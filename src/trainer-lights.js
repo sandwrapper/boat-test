@@ -46,22 +46,23 @@
   // Keep only the colour words that sit beside each lamp ("red", "green", …) and the "≥ 1.5 m" spacing
   // notes; everything else (vessel name, "seen from …" hint, rule text, shape meaning) is removed.
   const KEEP = /^(red|green|white|yellow|≥ [\d.]+ m)$/;
-  function quizArt(svg, label, caption) {
+  function quizArt(svg, label, caption, width) {
     let out = svg.replace(/<text\b[^>]*>([\s\S]*?)<\/text>/g, (m, inner) => KEEP.test(inner.trim()) ? m : '');
     out = out.replace(/aria-label="[^"]*"/, `aria-label="${esc(label)}"`);
+    if (width) out = out.replace(/^(<svg\b[^>]*?)\swidth="\d+"/, `$1 width="${width}"`);   // larger on the stage; max-width:100% keeps it on a phone
     if (caption) out = out.replace(/<\/svg>\s*$/, caption + '</svg>');
     return out;
   }
   // vesselLights panels are 360 × 292 with a plain band along the bottom (y ≥ 222) where the hint used to be.
   function nightArt(type, view, opts) {
     const cap = S.text(180, 258, 'Night. Read the lights only.', { size: 11, fill: '#a7b6c4', italic: true });
-    return quizArt(S.vesselLights(type, view, opts), 'Night view of a vessel: only her lights are visible', cap);
+    return quizArt(S.vesselLights(type, view, opts), 'Night view of a vessel: only her lights are visible', cap, 480);
   }
   // dayShape panels are 380 × 320; the right half (x ≈ 262) held the title and meaning.
   function dayArt(kind) {
     const cap = S.text(262, 120, 'A black day shape.', { size: 13, weight: 700, fill: '#1a2630' }) +
       S.text(262, 140, 'What does it tell you?', { size: 12, fill: '#4b5a66' });
-    return quizArt(S.dayShape(kind), 'A black day shape hoisted on a mast', cap);
+    return quizArt(S.dayShape(kind), 'A black day shape hoisted on a mast', cap, 440);
   }
 
   /* ---------- vocabulary ---------- */
@@ -172,7 +173,7 @@
     SR('anchored>=50', 'port', 'anchor', 'Two all-round white lights, the forward one HIGHER, and no sidelights: a vessel of 50 m or more at anchor (Rule 30(a)). A ship underway would carry her after masthead light higher and show a sidelight.'),
     SR('aground', 'port', 'aground', 'Anchor light(s) plus two all-round RED lights in a vertical line: aground (Rule 30(d)). "Red over red" alone would be not under command.'),
     SR('fishing', 'port', 'fishing', 'All-round RED over WHITE: "red over white, fishing at night" (Rule 26(c)). The sidelight shows she is making way.'),
-    SR('fishing', 'ahead', 'fishing', 'All-round RED over WHITE: engaged in fishing other than trawling (Rule 26(c)); the sidelights mean she is making way. A fishing vessel shows these lights even at anchor (Rule 26).', { making: false }),
+    SR('fishing', 'ahead', 'fishing', 'All-round RED over WHITE and no sidelights: engaged in fishing other than trawling, not making way (Rule 26(c)). A fishing vessel shows these lights, not anchor lights, even when at anchor (Rule 26).', { making: false }),
     SR('trawling', 'starboard', 'trawling', 'All-round GREEN over WHITE: "green over white, trawling at night" (Rule 26(b)). The sidelight shows she is making way.'),
     SR('trawling', 'ahead', 'trawling', 'All-round GREEN over WHITE with no sidelights: a trawler that is not making way (Rule 26(b)).', { making: false }),
     SR('nuc', 'port', 'nuc', 'Two all-round RED lights in a vertical line, no masthead light, a sidelight: not under command and still making way (Rule 27(a)). "Red over red, the captain is dead."'),
