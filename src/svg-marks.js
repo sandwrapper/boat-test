@@ -78,14 +78,22 @@
     'cardinal-e':        { name: 'East cardinal mark', bands: [[B, .3], [Y, .4], [B, .3]], shape: 'pillar', top: 'cones-base', topColor: B, light: W, charText: 'VQ(3) 5s or Q(3) 10s W', pass: 'Safe water lies EAST of the mark — pass east of it', spar: 'pointed', reflex: [BU, BU], abbr: 'BYB', clock: '3 o’clock = 3 flashes' },
     'cardinal-s':        { name: 'South cardinal mark', bands: [[Y, .5], [B, .5]], shape: 'pillar', top: 'cones-down', topColor: B, light: W, charText: 'VQ(6)+LFl 10s or Q(6)+LFl 15s W', pass: 'Safe water lies SOUTH of the mark — pass south of it', spar: 'blunt', reflex: [Y, BU], abbr: 'YB', clock: '6 o’clock = 6 flashes + long flash' },
     'cardinal-w':        { name: 'West cardinal mark', bands: [[Y, .33], [B, .34], [Y, .33]], shape: 'pillar', top: 'cones-point', topColor: B, light: W, charText: 'VQ(9) 10s or Q(9) 15s W', pass: 'Safe water lies WEST of the mark — pass west of it', spar: 'blunt', reflex: [Y, Y], abbr: 'YBY', clock: '9 o’clock = 9 flashes' },
-    'isolated-danger':   { name: 'Isolated danger mark', bands: [[B, .3], [R, .4], [B, .3]], shape: 'pillar', top: 'two-balls', topColor: B, light: W, charText: 'Fl(2) W', pass: 'Danger directly beneath; navigable water all around — pass either side at a safe distance', spar: 'blunt', reflex: [BU, R], abbr: 'BRB' },
-    'safe-water':        { name: 'Safe water mark (centre fairway)', bands: [[R, 1], [W, 1], [R, 1], [W, 1], [R, 1], [W, 1]], vertical: true, shape: 'sphere', top: 'ball', topColor: R, light: W, charText: 'Iso W / Oc W / LFl 10s W / Mo(A) W', pass: 'Navigable water all around: mid-channel, landfall or best passage under a bridge', spar: 'blunt', reflex: [R, W], abbr: 'RW' },
-    'special':           { name: 'Special mark', bands: [[Y, 1]], shape: 'pillar', top: 'x', topColor: Y, light: Y, charText: 'Fl(4) Y typical — any rhythm not used for white', pass: 'Marks a special area or feature shown on the chart (fish farm, cable, bathing area, anchorage)', spar: 'blunt', reflex: [Y], abbr: 'Y' },
-    'wreck':             { name: 'Emergency wreck marking buoy', bands: [[BU, 1], [Y, 1], [BU, 1], [Y, 1], [BU, 1], [Y, 1]], vertical: true, shape: 'pillar', top: 'plus', topColor: Y, light: [BU, Y], charText: 'Al Bu/Y: 1 s blue, 1 s yellow, 0.5 s dark between', pass: 'A NEW danger (wreck) — keep well clear and check Notices to Mariners', spar: 'blunt', reflex: [BU, Y], abbr: 'BuY' },
+    /* The blunt/pointed top rule is verified only for lateral and cardinal spars (DNL1, F14/F30): `spar: null` below
+       means "draw a plain top and make no claim". Reflectors: isolated danger blue over red (F35), safe water red over
+       white (F39), special one yellow band (F41); none is documented for the wreck buoy, so it gets no reflex bands. */
+    'isolated-danger':   { name: 'Isolated danger mark', bands: [[B, .3], [R, .4], [B, .3]], shape: 'pillar', top: 'two-balls', topColor: B, light: W, charText: 'Fl(2) W', pass: 'Danger directly beneath; navigable water all around — pass either side at a safe distance', spar: null, reflex: [BU, R], abbr: 'BRB' },
+    'safe-water':        { name: 'Safe water mark (centre fairway)', bands: [[R, 1], [W, 1], [R, 1], [W, 1], [R, 1], [W, 1]], vertical: true, shape: 'sphere', top: 'ball', topColor: R, light: W, charText: 'Iso W / Oc W / LFl 10s W / Mo(A) W', pass: 'Navigable water all around: mid-channel, landfall or best passage under a bridge', spar: null, reflex: [R, W], abbr: 'RW' },
+    'special':           { name: 'Special mark', bands: [[Y, 1]], shape: 'pillar', top: 'x', topColor: Y, light: Y, charText: 'Fl(4) Y typical — any rhythm not used for white', pass: 'Marks a special area or feature shown on the chart (fish farm, cable, bathing area, anchorage)', spar: null, reflex: [Y], abbr: 'Y' },
+    'wreck':             { name: 'Emergency wreck marking buoy', bands: [[BU, 1], [Y, 1], [BU, 1], [Y, 1], [BU, 1], [Y, 1]], vertical: true, shape: 'pillar', top: 'plus', topColor: Y, light: [BU, Y], charText: 'Al Bu/Y: 1 s blue, 1 s yellow, 0.5 s dark between', pass: 'A NEW danger (wreck) — keep well clear and check Notices to Mariners', spar: null, reflex: [], abbr: 'BuY' },
   };
   const KIND_NAMES = Object.keys(KINDS);
   const FORMS = ['buoy', 'perch', 'can', 'cone', 'spar'];
   const LATERALS = ['lateral-port', 'lateral-starboard', 'preferred-starboard', 'preferred-port'];
+  /* Preferred-channel marks are not used in Norwegian waters (INT1 Q130 note 1, fact F19) and the emergency wreck
+     buoy is a floating pillar/spar (IALA Table 11, F45): the Norwegian perch/spar forms exist only for the others.
+     ILLUSTRATIONS.md allows every form for every kind; the fact sheet wins, so these combinations throw. */
+  const NO_NORWEGIAN_FORMS = ['preferred-starboard', 'preferred-port'];
+  const NO_PERCH = NO_NORWEGIAN_FORMS.concat(['wreck']);
 
   /* fill a shape with the kind's bands: returns clipPath + rects. Local coords: x centred on 0, y from -H (top) to 0 (bottom). */
   function bandFill(kind, id, shapePath, H, halfW) {
@@ -161,7 +169,8 @@
       const tm = topmark(kind, 0, stemTop); svg += tm.svg; top = stemTop - tm.h;
     }
     if (opts.light) {
-      const ly = top - 22; svg += `<line x1="0" y1="${top}" x2="0" y2="${ly}" stroke="${INK}" stroke-width="2"/>` + lamp(0, ly, k.light, 9); top = ly - 20;
+      /* lantern: a fixed dark housing behind the disc so a WHITE light is visible on light paper too */
+      const ly = top - 24; svg += `<line x1="0" y1="${top}" x2="0" y2="${ly}" stroke="${INK}" stroke-width="2"/><rect x="-13" y="${ly - 13}" width="26" height="26" rx="6" fill="${C.hullDark}"/>` + lamp(0, ly, k.light, 9); top = ly - 22;
     }
     return { svg, top, H };
   }

@@ -219,7 +219,7 @@
       s += label(cx, cy + L / 2 + 100, 'Which way does the stern move?', 12, { weight: 700 });
       s += label(cx, 46, 'bow up; left of picture = port', 10, { fill: MUTED });
     } else {
-      s += panel(0, 'A — AHEAD', false) + `<line x1="320" y1="10" x2="320" y2="320" stroke="${LINE}"/>` + panel(320, 'B — ASTERN (reverse)', true);
+      s += panel(0, 'A: AHEAD', false) + `<line x1="320" y1="10" x2="320" y2="320" stroke="${LINE}"/>` + panel(320, 'B: ASTERN (reverse)', true);
     }
     return S.svg(640, 330, s, { label: 'Propeller walk with a right-handed propeller' });
   }
@@ -269,7 +269,7 @@
       }
       return s;
     }
-    const s = panel(0, 'A — wind blowing OFF the quay', true) + `<line x1="320" y1="10" x2="320" y2="300" stroke="${LINE}"/>` + panel(320, 'B — wind blowing ONTO the quay', false);
+    const s = panel(0, 'A: wind blowing OFF the quay', true) + `<line x1="320" y1="10" x2="320" y2="300" stroke="${LINE}"/>` + panel(320, 'B: wind blowing ONTO the quay', false);
     return S.svg(640, 305, s, { label: 'Approaching a quay with wind off and onto the quay' });
   }
 
@@ -296,7 +296,7 @@
       s += `<circle cx="${l.to[0]}" cy="${l.to[1] + 4}" r="4" fill="#3b2a1a"/>`;
       s += o.quiz ? badge(l.to[0], 272, l.n) : label(l.to[0], 272, l.name, 10, { weight: 700 });
     });
-    s += label(320, 40, o.quiz ? 'A boat moored alongside a quay — which line is which?' : 'Mooring alongside: bow line, stern line, springs (and optional breast line)', 12, { weight: 700 });
+    s += label(320, 40, o.quiz ? 'A boat moored alongside a quay: which line is which?' : 'Mooring alongside: bow line, stern line, springs (and optional breast line)', 12, { weight: 700 });
     if (!o.quiz) {
       s += label(320, 60, 'Bow line stops movement astern, stern line stops movement ahead,', 10, { fill: MUTED });
       s += label(320, 74, 'springs cross and stop surging fore and aft, breast lines stop sideways movement.', 10, { fill: MUTED });
@@ -334,7 +334,7 @@
     s += `<line x1="170" y1="266" x2="102" y2="268" stroke="${HULL_STROKE}" stroke-width="5" stroke-dasharray="6 4" stroke-linecap="round"/>`;
     s += anchorIcon(74, 270, 5, 1.1);
     s += label(135, 292, '5–8 m chain next to the anchor', 10, { fill: '#fff3e0', weight: 700 });
-    s += label(330, 292, 'pull on the anchor stays nearly horizontal — it digs in', 10, { fill: '#fff3e0' });
+    s += label(330, 292, 'pull on the anchor stays nearly horizontal, so it digs in', 10, { fill: '#fff3e0' });
     s += label(210, 150, 'RODE LENGTH ~ 5 x D', 13, { weight: 800, fill: C.orange });
     s += label(210, 168, '(3 x for all-chain in calm weather;', 10, { fill: INK }) + label(210, 181, '7–10 x in strong wind or poor holding)', 10, { fill: INK });
     // depth arrow
@@ -353,23 +353,25 @@
 
   /* ---------- scope comparison for a picture question ---------- */
   function illScopeCompare() {
-    // three panels, same depth, different rode lengths: A 1 x, B 5 x, C 2.5 x
-    const specs = [['A', 20, 'rode about equal to the depth'], ['B', 110, 'rode about five times the depth'], ['C', 50, 'rode about twice the depth']];
+    // three panels, same depth (32 px), rode drawn to scale: A about 1 x depth, B about 5 x, C about 2 x
+    const specs = [['A', 1.05, 'rode about equal to the depth'], ['B', 5, 'rode about five times the depth'], ['C', 2, 'rode about twice the depth']];
     let s = '';
-    specs.forEach(([n, dx, sub], i) => {
-      const x0 = i * 213, surf = 60, bed = 150;
-      s += `<rect x="${x0 + 4}" y="${surf}" width="205" height="${bed - surf}" fill="${WATER}" opacity=".22"/><rect x="${x0 + 4}" y="${bed}" width="205" height="22" fill="${SEABED}"/>`;
+    specs.forEach(([n, k, sub], i) => {
+      const x0 = i * 213, surf = 80, bed = 112, depth = bed - surf;
+      s += `<rect x="${x0 + 4}" y="${surf}" width="205" height="${bed - surf}" fill="${WATER}" opacity=".22"/><rect x="${x0 + 4}" y="${bed}" width="205" height="30" fill="${SEABED}"/>`;
       s += `<line x1="${x0 + 4}" y1="${surf}" x2="${x0 + 209}" y2="${surf}" stroke="${WATER}" stroke-width="2"/>`;
-      const bx = x0 + 150;
-      s += `<path d="M${bx},${surf} L${bx + 8},${surf - 12} L${bx + 48},${surf - 12} L${bx + 56},${surf} L${bx + 50},${surf + 6} L${bx + 6},${surf + 6} Z" fill="${HULL}" stroke="${HULL_STROKE}" stroke-width="1.5"/>`;
+      const bx = x0 + 178;
+      s += `<path d="M${bx},${surf} L${bx + 6},${surf - 10} L${bx + 24},${surf - 10} L${bx + 28},${surf} L${bx + 24},${surf + 5} L${bx + 4},${surf + 5} Z" fill="${HULL}" stroke="${HULL_STROKE}" stroke-width="1.5"/>`;
+      const rode = k * depth, dx = Math.sqrt(Math.max(rode * rode - depth * depth, 1));
       const ax = bx - dx;
-      s += `<path d="M${bx},${surf} Q${(bx + ax) / 2},${bed + (dx > 60 ? 10 : 0)} ${ax},${bed - 2}" fill="none" stroke="${C.orange}" stroke-width="2.5"/>`;
-      s += anchorIcon(ax - 18, bed, dx > 60 ? 5 : -35, 0.7);
-      s += badge(x0 + 24, 40, n);
-      s += label(x0 + 106, 190, sub, 10, { fill: MUTED });
+      s += `<line x1="${bx}" y1="${surf}" x2="${ax.toFixed(1)}" y2="${bed - 1}" stroke="${C.orange}" stroke-width="2.5" stroke-linecap="round"/>`;
+      s += anchorIcon(ax - 16, bed + 1, k > 3 ? 4 : -40, 0.6);
+      s += badge(x0 + 24, 44, n);
+      s += label(x0 + 106, 162, sub, 10, { fill: MUTED });
     });
     s += label(320, 16, 'Same depth, rope-and-chain rode, light wind. Which boat has paid out a correct scope?', 11, { weight: 700 });
-    return S.svg(640, 205, s, { label: 'Three anchored boats with different scope' });
+    s += label(320, 32, '(rode drawn to scale against the depth)', 9.5, { fill: MUTED });
+    return S.svg(640, 176, s, { label: 'Three anchored boats with different scope' });
   }
 
   /* ---------- ILL-7 towing (F53–F59) ---------- */
@@ -429,9 +431,9 @@
     s += boatTop(110, 80, 70, 26, { rot: 95, console: false });
     s += `<path d="M78,72 l-30,-16 M78,88 l-30,16" stroke="${WATER}" stroke-width="2"/>`;
     s += label(110, 112, 'keep speed and wash down', 10, { fill: MUTED }) + label(110, 125, 'near the shore', 10, { fill: MUTED });
-    // skier
-    s += boatTop(540, 70, 70, 26, { rot: 100, console: false });
-    s += `<line x1="505" y1="72" x2="430" y2="90" stroke="${C.orange}" stroke-width="2"/>` + dot(424, 92, 6, '#f1c27d');
+    // skier, well outside the 50 m circle
+    s += boatTop(585, 48, 70, 26, { rot: 95, console: false });
+    s += `<line x1="550" y1="50" x2="482" y2="58" stroke="${C.orange}" stroke-width="2"/>` + dot(476, 59, 6, '#f1c27d');
     s += lines(540, 108, ['towing a skier: observer on board,', 'floating line, flotation worn,', 'engine in NEUTRAL when the skier', 'is near the propeller'], 9.5, { fill: INK }, 11);
     return S.svg(640, 250, s, { label: 'Speed near bathers and water-sports safety' });
   }
