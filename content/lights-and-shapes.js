@@ -111,7 +111,7 @@
     s += T(477, 30, 'Motorboat under 7 m, max speed 7 knots', { size: 13, weight: 700, fill: NI });
     s += hullSide(380, 160, 150, 1, { h: 13 }) + rect(436, 134, 30, 13, NHULL, 'none', { rx: 2 }) + mast(480, 147, 96);
     s += lamp(480, 92, 'white', { label: 'white, all round (360°)', size: 9.5 });
-    s += `<circle cx="526" cy="152" r="4" fill="none" stroke="${C.green}" stroke-width="1.5" stroke-dasharray="2 2"/>` + line(530, 156, 548, 172, NM, { sw: 1 }) + T(552, 176, 'sidelights if practicable', { size: 9.5, fill: NM, anchor: 'start' });
+    s += `<circle cx="526" cy="152" r="4" fill="none" stroke="${C.green}" stroke-width="1.5" stroke-dasharray="2 2"/>` + line(522, 156, 512, 170, NM, { sw: 1 }) + T(508, 176, 'sidelights if practicable', { size: 9.5, fill: NM, anchor: 'end' });
     s += lines(477, 190, ['Rule 23(c)/(d)(ii): an all-round white light', 'is enough; both the 7 m AND the 7 knot', 'conditions must be met.'], { size: 10.5, fill: NI, lh: 13 });
     s += rect(340, 232, 275, 46, 'none', C.yellow, { rx: 5, sw: 1.2 }) + lines(477, 246, ['Norwegian Rule 43: a boat showing only a white', 'light, and any rowing boat, keeps WELL clear of', 'other vessels, slows down and stops if needed.'], { size: 10, weight: 600, fill: C.yellow, lh: 12 });
     return S.svg(W, H, s, { label: 'A rowing boat showing a torch, and a small slow motorboat showing a single all-round white light, with the Norwegian Rule 43 duty to keep well clear' });
@@ -208,7 +208,7 @@
     const panels = [
       { t: 'At anchor, under 50 m', draw: x => hullSide(x + 40, 160, 120, 1, { h: 12, house: true }) + mast(x + 112, 148, 92) + lamp(x + 112, 88, 'white', { label: 'white, 360°' }), day: ['ball'], txt: ['ONE all-round white light where', 'best seen (Rule 30(b)).', 'By day: one black ball forward.', 'Under 7 m, away from channels', 'and traffic: no light needed.'] },
       { t: 'At anchor, 50 m and over', draw: x => hullSide(x + 20, 160, 160, 1, { h: 16, house: true }) + mast(x + 160, 144, 70) + mast(x + 60, 144, 104) + lamp(x + 160, 66, 'white', { label: 'fwd, HIGHER', side: 'left' }) + lamp(x + 60, 100, 'white', { label: 'aft, lower', side: 'left' }), day: ['ball'], txt: ['White forward and a LOWER white', 'aft (Rule 30(a)); from 100 m the', 'decks are lit as well. By day:', 'one ball forward.'] },
-      { t: 'Aground', draw: x => hullSide(x + 20, 160, 160, 1, { h: 16, house: true }) + mast(x + 160, 144, 70) + mast(x + 60, 144, 104) + mast(x + 110, 150, 60) + lamp(x + 160, 66, 'white', { label: 'white', side: 'left' }) + lamp(x + 60, 100, 'white', { label: 'white', side: 'left' }) + lamp(x + 110, 60, 'red', { label: 'red' }) + lamp(x + 110, 84, 'red', { label: 'red' }), day: ['ball', 'ball', 'ball'], txt: ['Anchor light(s) PLUS two all-', 'round RED lights in a vertical', 'line (Rule 30(d)). By day: THREE', 'balls. Under 12 m: anchor light', 'only, no reds and no balls.'] },
+      { t: 'Aground', draw: x => hullSide(x + 20, 160, 160, 1, { h: 16, house: true }) + mast(x + 160, 144, 70) + mast(x + 60, 144, 104) + mast(x + 110, 150, 72) + lamp(x + 160, 66, 'white', { label: 'white', side: 'left' }) + lamp(x + 60, 100, 'white', { label: 'white', side: 'left' }) + lamp(x + 110, 82, 'red', { label: 'red' }) + lamp(x + 110, 106, 'red', { label: 'red' }), day: ['ball', 'ball', 'ball'], txt: ['Anchor light(s) PLUS two all-', 'round RED lights in a vertical', 'line (Rule 30(d)). By day: THREE', 'balls. Under 12 m: anchor light', 'only, no reds and no balls.'] },
     ];
     panels.forEach((p, i) => {
       const x = 10 + i * (pw + 10);

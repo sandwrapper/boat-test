@@ -77,10 +77,10 @@
   /* o.boats: [{x, y, hdg, len, fill, opts, name, nx, ny, sub:[...]}]; o.meet: [x, y] where the dashed course lines cross;
      o.wind: true draws wind from the north (page top); o.shore: true draws a narrow sound; o.note: text line at the bottom. */
   function scene(o) {
-    const W = 480, H = o.H || 400;
+    const W = 480, H = o.H || 420, band = 44, wx = o.windX || 240;
     let g = rect(0, 0, W, H, SHALLOW, 'none', { rx: 8 });
-    if (o.shore) g += `<polygon points="0,0 115,0 175,220 115,${H - 40} 0,${H - 40}" fill="${SHORE}" opacity=".9"/><polygon points="480,0 365,0 305,220 365,${H - 40} 480,${H - 40}" fill="${SHORE}" opacity=".9"/>`;
-    if (o.wind) g += windArrow(240, 22, 240, 78, 240, 94);
+    if (o.shore) g += `<polygon points="0,0 115,0 175,220 115,${H - band} 0,${H - band}" fill="${SHORE}" opacity=".9"/><polygon points="480,0 365,0 305,220 365,${H - band} 480,${H - band}" fill="${SHORE}" opacity=".9"/>`;
+    if (o.wind) g += windArrow(wx, 22, wx, 78, wx, 94);
     o.boats.forEach(b => {
       const m = o.meet || [null, null];
       g += course(b.x, b.y, b.hdg, b.len, b.solid == null ? 45 : b.solid, b.noMeet ? null : m[0], m[1], INK2);
@@ -91,7 +91,8 @@
       if (b.sub) g += lines(b.nx, b.ny + 15, b.sub, { size: 11, halo: SHALLOW, lh: 13, fill: INK2 });
     });
     if (o.extra) g += o.extra;
-    g += rect(0, H - 40, W, 40, PAPER, 'none', { rx: 0, opacity: .92 }) + txt(W / 2, H - 20, o.note || '', { size: 12, weight: 600 });
+    const noteLines = wrap(o.note || '', 76);
+    g += rect(0, H - band, W, band, PAPER, 'none', { rx: 0, opacity: .92 }) + lines(W / 2, H - band / 2 - (noteLines.length - 1) * 7, noteLines, { size: 12, weight: 600, lh: 14 });
     g += compass(30, 30);
     return S.svg(W, H, g, { label: o.label || 'Encounter situation, plan view, north up' });
   }
@@ -107,8 +108,8 @@
     meet: [310, 150], note: 'Open water, daylight. Both boats are under engine; the bearing of B is steady.', label: 'Two motorboats on crossing courses: the other boat is on your port bow' });
   // Head-on between two motorboats (Rule 14).
   const qHeadOn = () => scene({ boats: [
-    { x: 240, y: 320, hdg: 0, len: 56, opts: { power: true }, name: 'YOU', nx: 240, ny: 362, sub: ['motorboat, heading north'], noMeet: true, solid: 60 },
-    { x: 240, y: 100, hdg: 180, len: 56, opts: { power: true }, name: 'C', nx: 240, ny: 58, sub: ['motorboat, heading south'], noMeet: true, solid: 60 }],
+    { x: 240, y: 320, hdg: 0, len: 56, opts: { power: true }, name: 'YOU', nx: 330, ny: 312, sub: ['motorboat, heading north'], noMeet: true, solid: 60 },
+    { x: 240, y: 110, hdg: 180, len: 56, opts: { power: true }, name: 'C', nx: 330, ny: 102, sub: ['motorboat, heading south'], noMeet: true, solid: 60 }],
     note: 'Open water. Two motorboats on reciprocal courses, risk of collision.', label: 'Two motorboats meeting head-on' });
   // Motorboat (you) and a yacht UNDER SAIL on your port bow, wind from the north (S4): you give way (Rule 18).
   const qPowerSail = () => scene({ wind: true, boats: [
@@ -127,14 +128,15 @@
     meet: [170, 170], note: 'Open water, plenty of sea room. F is sailing; no cone, no engine.', label: 'A motorboat and a sailing yacht under sail on crossing courses, the yacht on the motorboat\'s starboard bow' });
   // Overtaking: G comes up from right astern of H (inside the 135 degree sector) and is faster (S8).
   const qOvertake = () => scene({ boats: [
-    { x: 240, y: 150, hdg: 0, len: 56, opts: { power: true }, name: 'H', nx: 240, ny: 108, sub: ['motorboat, 6 knots'], noMeet: true },
-    { x: 290, y: 310, hdg: 0, len: 56, opts: { power: true }, name: 'G', nx: 290, ny: 352, sub: ['motorboat, 15 knots'], noMeet: true, solid: 70 }],
-    extra: line(240, 178, 240, 300, INK2, 1, '3 4') + txt(205, 240, 'G is closing', { size: 11, fill: INK2, halo: SHALLOW }) + txt(205, 254, 'from astern', { size: 11, fill: INK2, halo: SHALLOW }),
+    { x: 240, y: 150, hdg: 0, len: 56, opts: { power: true }, name: 'H', nx: 160, ny: 142, sub: ['motorboat, 6 knots'], noMeet: true },
+    { x: 290, y: 310, hdg: 0, len: 56, opts: { power: true }, name: 'G', nx: 380, ny: 302, sub: ['motorboat, 15 knots'], noMeet: true, solid: 70 }],
+    extra: line(240, 178, 240, 300, INK2, 1, '3 4') + txt(170, 240, 'G is closing', { size: 11, fill: INK2, halo: SHALLOW }) + txt(170, 254, 'from astern', { size: 11, fill: INK2, halo: SHALLOW }),
     note: 'Open water. G is gaining on H from a direction more than 22.5 degrees abaft H\'s beam.', label: 'A faster motorboat coming up from astern of a slower one' });
   // Sailing boat overtaking a motorboat.
-  const qSailOvertake = () => scene({ wind: true, boats: [
-    { x: 240, y: 170, hdg: 0, len: 56, opts: { power: true }, name: 'J', nx: 240, ny: 128, sub: ['motorboat, 4 knots'], noMeet: true },
-    { x: 290, y: 320, hdg: 0, len: 56, opts: { sail: 1 }, name: 'K', nx: 290, ny: 362, sub: ['sailing yacht, 7 knots'], noMeet: true, solid: 60 }],
+  const qSailOvertake = () => scene({ wind: true, windX: 420, boats: [
+    { x: 220, y: 170, hdg: 0, len: 56, opts: { power: true }, name: 'J', nx: 140, ny: 162, sub: ['motorboat, 4 knots'], noMeet: true },
+    { x: 270, y: 320, hdg: 0, len: 56, opts: { sail: 1 }, name: 'K', nx: 360, ny: 312, sub: ['sailing yacht, 7 knots'], noMeet: true, solid: 60 }],
+    extra: line(220, 198, 220, 300, INK2, 1, '3 4') + txt(150, 240, 'K is closing', { size: 11, fill: INK2, halo: SHALLOW }) + txt(150, 254, 'from astern', { size: 11, fill: INK2, halo: SHALLOW }),
     note: 'Open water. K is faster and is coming up from more than 22.5 degrees abaft J\'s beam.', label: 'A sailing yacht overtaking a slower motorboat from astern' });
   // Sail vs sail, opposite tacks, wind from north (S6): L heading NE on port tack (boom to starboard) gives way.
   const qSailOpp = () => scene({ wind: true, boats: [
@@ -147,17 +149,17 @@
     { x: 166, y: 219, hdg: 75, len: 56, opts: { sail: 1 }, name: 'N', nx: 110, ny: 180, sub: ['boom out to starboard'] }],
     meet: [412, 153], note: 'Two yachts under sail with the wind on the same side; N is nearer to where the wind comes from.', label: 'Two sailing yachts on the same tack converging, wind from the north' });
   // Narrow sound: ferry coming down on ITS starboard side; small motorboat going up (S11).
-  const qFerryMotor = () => scene({ shore: true, H: 420, boats: [
+  const qFerryMotor = () => scene({ shore: true, H: 440, boats: [
     { x: 205, y: 120, hdg: 180, len: 90, fill: FERRY, opts: { beam: .32, ferry: true }, name: 'SCHEDULED FERRY', nx: 205, ny: 190, sub: ['heading south'], noMeet: true, solid: 50 },
     { x: 285, y: 320, hdg: 0, len: 40, opts: { power: true }, name: 'YOU', nx: 285, ny: 355, sub: ['6 m motorboat, heading north'], noMeet: true, solid: 50 }],
     note: 'A narrow sound with a scheduled ferry route; the courses converge ahead.', label: 'A small motorboat and a scheduled ferry meeting in a narrow sound' });
-  const qFerrySail = () => scene({ shore: true, H: 420, wind: false, boats: [
+  const qFerrySail = () => scene({ shore: true, H: 440, wind: false, boats: [
     { x: 205, y: 120, hdg: 180, len: 90, fill: FERRY, opts: { beam: .32, ferry: true }, name: 'COASTAL CARGO SHIP', nx: 205, ny: 190, sub: ['heading south'], noMeet: true, solid: 50 },
     { x: 285, y: 320, hdg: 0, len: 44, opts: { sail: 1 }, name: 'YOU', nx: 285, ny: 358, sub: ['9 m yacht UNDER SAIL,', 'engine off, heading north'], noMeet: true, solid: 50 }],
     extra: windArrow(420, 60, 420, 110, 420, 126),
     note: 'A narrow sound; the cargo ship can only navigate safely inside the channel.', label: 'A sailing yacht and a coastal cargo ship meeting in a narrow sound' });
   // Kayak and motorboat in a narrow sound (S12).
-  const qKayak = () => scene({ shore: true, H: 420, boats: [
+  const qKayak = () => scene({ shore: true, H: 440, boats: [
     { x: 300, y: 150, hdg: 200, len: 30, fill: PAPER, opts: { kayak: true, beam: .32, lights: false }, name: 'KAYAK', nx: 350, ny: 120, noMeet: true, solid: 40 },
     { x: 250, y: 330, hdg: 0, len: 44, opts: { power: true }, name: 'YOU', nx: 250, ny: 365, sub: ['motorboat, heading north'], noMeet: true, solid: 60 }],
     note: 'A narrow sound. The kayak is paddling towards you along the shore.', label: 'A motorboat and a kayak approaching each other in a narrow sound' });
@@ -172,7 +174,7 @@
     for (let i = 0; i < 3; i++) {
       g += `<g opacity="${op[i]}">` + line(own[i][0], own[i][1], other[i][0], other[i][1], BAD, 1.5, '6 4') + boat(own[i][0], own[i][1], 0, 44, HULL, { power: true, lights: true }) + boat(other[i][0], other[i][1], 270, 44, HULL, { power: true, lights: true }) + '</g>';
       g += txt(own[i][0] - 40, own[i][1], 't' + (i + 1), { size: 12, weight: 700, halo: SHALLOW }) + txt(other[i][0], other[i][1] - 32, 't' + (i + 1), { size: 12, weight: 700, halo: SHALLOW });
-      g += txt((own[i][0] + other[i][0]) / 2 + 16, (own[i][1] + other[i][1]) / 2, 'bearing 045°', { size: 10, fill: BAD, weight: 600, halo: SHALLOW });
+      g += txt(own[i][0] + (other[i][0] - own[i][0]) * .55 + 30, own[i][1] + (other[i][1] - own[i][1]) * .55 + 4, 'bearing 045°', { size: 10, fill: BAD, weight: 600, halo: SHALLOW });
     }
     g += line(120, 140, 120, 118, INK2, 2.5) + head(120, 116, 0, INK2, 9) + line(150, 109, 132, 109, INK2, 2.5) + head(130, 109, 270, INK2, 9);
     g += `<circle cx="120" cy="109" r="7" fill="none" stroke="${BAD}" stroke-width="2"/>` + txt(78, 109, 'collision', { size: 11, fill: BAD, weight: 700, halo: SHALLOW });
@@ -215,7 +217,7 @@
       for (const ch of p) { if (ch === '.') { s += `<circle cx="${cx + 5}" cy="${y}" r="5" fill="${SEA}"/>`; cx += 15; } else if (ch === '-') { s += rect(cx, y - 5, 34, 10, SEA, 'none', { rx: 3 }); cx += 40; } }
       return s;
     };
-    const card = (x, y, w, p, title, sub) => rect(x, y, w, 44, PAPER, LINE) + blast(x + 10, y + 14, p) + txt(x + 10, y + 32, title, { size: 11, weight: 700, anchor: 'start' }) + (sub ? txt(x + w - 8, y + 32, sub, { size: 9.5, anchor: 'end', fill: MUTED }) : '');
+    const card = (x, y, w, p, title, sub) => rect(x, y, w, 44, PAPER, LINE) + blast(x + 10, y + 14, p) + txt(x + 10, y + 32, title, { size: 11, weight: 700, anchor: 'start' }) + (sub ? txt(x + w - 8, y + 14, sub, { size: 9.5, anchor: 'end', fill: MUTED }) : '');
     g += txt(126, 20, 'Manoeuvring, in sight (Rule 34)', { size: 12.5, weight: 700 });
     const L = 14, cw = 222;
     g += card(L, 32, cw, '.', 'I am altering course to STARBOARD', '34(a)');
@@ -232,7 +234,7 @@
     g += card(R, 84, cw, '--', 'Power-driven, underway but STOPPED', 'every 2 min');
     g += card(R, 136, cw, '-..', 'Sailing, fishing, NUC, RAM, CBD, towing', 'every 2 min');
     g += txt(R + cw / 2, 206, 'Norwegian Rule 41 (narrow channel)', { size: 12.5, weight: 700 });
-    g += rect(R, 218, cw, 44, PAPER, LINE) + rect(R + 10, 227, 70, 10, SEA, 'none', { rx: 3 }) + txt(R + 10, 250, 'ONE LONG blast of at least 10 s', { size: 11, weight: 700, anchor: 'start' }) + txt(R + cw - 8, 250, 'from about 0.5 NM', { size: 9.5, anchor: 'end', fill: MUTED });
+    g += rect(R, 218, cw, 44, PAPER, LINE) + rect(R + 10, 227, 70, 10, SEA, 'none', { rx: 3 }) + txt(R + 10, 250, 'ONE LONG blast of at least 10 s', { size: 11, weight: 700, anchor: 'start' }) + txt(R + cw - 8, 232, 'from about 0.5 NM', { size: 9.5, anchor: 'end', fill: MUTED });
     g += card(R, 270, cw, '.....', 'Channel too narrow: you must wait', 'NO 41(c)');
     g += rect(R, 322, cw, 118, 'none', INK2, { dash: '4 3' }) + lines(R + 10, 340, ['Short blast: about 1 second.', 'Prolonged blast: 4 to 6 seconds.', 'The Rule 34 signals may be backed', 'up by light flashes with the same', 'meaning (Rule 34(b)).', 'Under 12 m in fog: "some other', 'efficient sound signal", 2 min.'], { size: 10.5, anchor: 'start', lh: 14, fill: INK2 });
     g += txt(W / 2, H - 14, 'Disc = short blast, bar = prolonged blast (drawn about five times as long).', { size: 10.5, fill: MUTED });
@@ -395,9 +397,9 @@
         id: 'narrow-waters',
         title: 'Narrow waters, ferries and cargo ships (part 4)',
         html: `<p>A ferry or a coastal cargo ship in a narrow sound cannot leave the channel, cannot stop quickly and cannot see a small boat close under her bow. Two rules, one international and one Norwegian, put the duty to keep clear on the small craft, whatever the starboard-and-port geometry and whether the small craft is under engine, sail or oars.</p>
-<div class="callout rule"><p><strong>Rule 9(a):</strong> in a narrow channel or fairway keep as near to the outer limit on your <strong>starboard</strong> side as is safe and practicable. <strong>Rule 9(b):</strong> a vessel of <strong>less than 20 m</strong> or a <strong>sailing vessel</strong> shall not impede the passage of a vessel which can safely navigate only within the channel. Rule 9(d): do not cross a narrow channel if that impedes such a vessel; she may sound five short blasts if in doubt about you.</p></div>
+<div class="callout rule"><p><strong>Rule 9(a):</strong> in a narrow channel or fairway keep as near to the outer limit on your <strong>starboard</strong> side as is safe and practicable. <strong>Rule 9(b):</strong> a vessel of <strong>less than 20 m</strong> or a <strong>sailing vessel</strong> shall not impede the passage of a vessel which can safely navigate only within the channel.</p></div>
 <div class="callout rule"><p><strong>Norwegian Rule 44:</strong> pleasure craft and open boats <strong>under oars, sail or engine</strong> shall as far as practicable keep out of the way of <strong>larger vessels, scheduled ferries and other commercial traffic</strong> when passing <strong>narrow waters, a heavily trafficked fairway or a harbour area</strong>.</p></div>
-<p>So in a sound, a busy fairway or a harbour: your 6 m motorboat keeps clear of the ferry even when the ferry is on your port side; your 9 m yacht under sail keeps clear of the cargo ship even though in open water the ship would give way to sail. The right action is to <strong>slow down early</strong>, <strong>keep to your own starboard side</strong> of the channel, and <strong>pass astern</strong> of the ship or wait until she has passed. Never cross close ahead of a ferry, and give a ferry leaving her berth room to swing.</p>
+<p>So in a sound, a busy fairway or a harbour: your 6 m motorboat keeps clear of the ferry even when the ferry is on your port side; your 9 m yacht under sail keeps clear of the cargo ship even though in open water the ship would give way to sail. The right action is to <strong>slow down early</strong>, <strong>keep to your own starboard side</strong> of the channel, and <strong>pass astern</strong> of the ship or wait until she has passed. Never cross close ahead of a ferry.</p>
 <p>Rule 44 is written for confined and busy waters; in open water with sea room the ordinary rules apply between a ferry and a yacht, but keep well clear of anything big anyway.</p>
 <p>Two more Norwegian rules for channels. <strong>Rule 41(a):</strong> a power-driven vessel warns of her arrival in a narrow channel from about half a nautical mile with <strong>one long blast of at least 10 seconds</strong>; where two vessels cannot pass, the one arriving last waits. <strong>Rule 45:</strong> do not anchor or make fast so as to impede other vessels unless absolutely necessary.</p>`,
         illustration: () => S.encounter('narrow-channel'),
