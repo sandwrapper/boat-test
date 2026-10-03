@@ -73,7 +73,7 @@
     ferry:     { cat: 'power', name: 'scheduled ferry', label: ['SCHEDULED FERRY'], len: 84, draw: { ferry: true }, commercial: true },
     cargo:     { cat: 'power', name: 'coastal cargo ship', label: ['COASTAL CARGO SHIP', 'needs the deep water of the channel'], len: 96, draw: { ship: true }, commercial: true },
     oars:      { cat: 'oars', name: 'rowing boat', label: ['ROWING BOAT'], len: 34, draw: { oars: true, beam: .45 } },
-    kayak:     { cat: 'oars', name: 'kayak', you: 'kayak', label: ['KAYAK'], len: 34, draw: { kayak: true, beam: .3 } },
+    kayak:     { cat: 'oars', name: 'kayak', you: 'kayak', label: ['KAYAK'], len: 40, draw: { kayak: true, beam: .3 } },
   };
   const RANK = { power: 0, sail: 1, fishing: 2, nuc: 3, ram: 3 };   // F70
 
@@ -302,7 +302,7 @@
   }
   function windArrow(sc) {
     // the arrow points the way the wind BLOWS (from sc.wind towards sc.wind + 180); placed in the corner farthest from both boats
-    const corners = [[420, 70], [420, 350], [60, 350], [60, 70]];
+    const corners = [[420, 70], [420, 300], [60, 300], [60, 125]];   // clear of the compass inset (top-left) and the status line (bottom)
     const far = c => Math.min(Math.hypot(c[0] - sc.own.x, c[1] - sc.own.y), Math.hypot(c[0] - sc.other.x, c[1] - sc.other.y));
     const [cx, cy] = corners.reduce((a, b) => (far(b) > far(a) ? b : a));
     const [ux, uy] = dirv(sc.wind + 180), x1 = cx - ux * 26, y1 = cy - uy * 26, x2 = cx + ux * 26, y2 = cy + uy * 26;
@@ -320,7 +320,7 @@
     if (sc.P) g += `<circle cx="${f1(sc.P[0])}" cy="${f1(sc.P[1])}" r="4" fill="none" stroke="var(--bad)" stroke-width="2"/>`;
     const od = Object.assign({}, t.draw, t.draw.sail ? { sail: boomSide(sc.otherTack) } : {});
     const wd = Object.assign({}, o.draw, o.draw.sail ? { sail: boomSide(sc.ownTack) } : {});
-    g += hull(oth, t.draw.ferry ? FERRY : t.draw.ship ? SHIP : 'var(--paper)', od);
+    g += hull(oth, t.draw.ferry ? FERRY : t.draw.ship ? SHIP : C.hullLight, od);
     g += hull(own, 'var(--ink)', Object.assign({ stroke: 'var(--paper)' }, wd));
     // day shapes beside the vessel that carries them (on her starboard beam, unrotated)
     const sideOff = (v, k) => { const [px, py] = dirv(v.hdg + 90); return [v.x + px * k, v.y + py * k]; };
@@ -336,7 +336,7 @@
     if (sc.wind != null) g += windArrow(sc);
     // inset compass ("bow up") and the status line
     g += `<circle cx="30" cy="30" r="17" fill="var(--paper)" stroke="var(--line)"/><polygon points="30,17 25,34 35,34" fill="var(--ink)"/>` + txt(30, 56, 'bow up', { size: 9, fill: 'var(--muted)' });
-    g += txt(W / 2, H - 14, (sc.narrow ? 'Narrow sound / harbour area' : 'Open water, plenty of sea room') + ' · daylight · her bearing is steady and the range is closing', { size: 10.5, fill: 'var(--ink-2)' });
+    g += txt(W / 2, H - 14, (sc.narrow ? 'Narrow sound / harbour area' : 'Open water, plenty of sea room') + ' · daylight · her bearing is steady, the range is closing', { size: 10.5, fill: 'var(--ink-2)' });
     const off = sc.rel < 180 ? sc.rel : 360 - sc.rel;
     const label = `Plan view with your bow up. You are a ${o.you || o.name}. A ${t.name} is about ${Math.round(off)} degrees on your ${sc.rel < 180 ? 'starboard' : 'port'} side${sc.narrow ? ' in a narrow sound' : ' in open water'}, on a converging course.`;
     return S.svg(W, H, g, { label });

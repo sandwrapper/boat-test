@@ -7,14 +7,32 @@ window.BOAT = (function () {
   const trainers = [];
   const exam = { questions: 50, minutes: 60, pass: 40, maxPart4Errors: 2, partCounts: { 1: 13, 2: 12, 3: 12, 4: 13 }, note: '' };
 
+  // Deterministic per-question option shuffle so the correct answer is spread evenly over A-D
+  // whatever order the author wrote (the real exam randomises too). Seeded by the question id.
+  function seededRandom(seed) {
+    let h = 2166136261;
+    for (let i = 0; i < seed.length; i++) { h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    return function () { h ^= h << 13; h >>>= 0; h ^= h >> 17; h ^= h << 5; h >>>= 0; return h / 4294967296; };
+  }
+  function shuffleOptions(q) {
+    if (!Array.isArray(q.options) || q.options.length !== 4 || typeof q.answer !== 'number' || q.noShuffle) return;
+    if (q.options.every(o => /^[A-D]$/.test(String(o).trim()))) return; // options are picture labels: keep A-D order
+    const rnd = seededRandom(String(q.id || q.q));
+    const idx = [0, 1, 2, 3];
+    for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+    q.options = idx.map(k => q.options[k]);
+    q.answer = idx.indexOf(q.answer);
+  }
   function register(t) {
     if (!t || !t.id) throw new Error('BOAT.register: topic needs an id');
     t.sections = t.sections || [];
+    t.sections.forEach(s => { if (s.check) { if (!s.check.id) s.check.id = t.id + '-check-' + s.id; shuffleOptions(s.check); } });
     t.flashcards = t.flashcards || [];
     t.questions = t.questions || [];
     t.questions.forEach((q, i) => {
       if (!q.id) q.id = t.id + '-' + (i + 1);
       q.topic = t.id;
+      shuffleOptions(q);
       if (!Array.isArray(q.options) || q.options.length !== 4) console.warn('Question without 4 options', q.id);
       if (typeof q.answer !== 'number' || q.answer < 0 || q.answer > 3) console.warn('Question with bad answer index', q.id);
     });
