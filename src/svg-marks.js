@@ -433,7 +433,7 @@
     P.rocks.forEach(([a, r]) => { const [x, y] = pt(a, r); inner += rockBlob(x, y, 12, MUTED) + `<g stroke="${INK}" stroke-width="2"><line x1="${fx(x - 5)}" y1="${fx(y)}" x2="${fx(x + 5)}" y2="${fx(y)}"/><line x1="${fx(x)}" y1="${fx(y - 5)}" x2="${fx(x)}" y2="${fx(y + 5)}"/></g>`; });
     /* land and the light */
     inner += `<path d="M0,0 H${Wd} V70 Q560,95 480,100 Q400,105 360,122 Q320,140 280,122 Q240,105 160,100 Q80,95 0,70 Z" fill="${PAPER2}" stroke="${LINE}" stroke-width="1.5"/>`;
-    inner += `<circle cx="${lx}" cy="${ly}" r="5" fill="${INK}"/>` + lighthouse(lx, ly - 24, 1.1) + T(lx, 36, 'sector light (fyrlykt)', { size: 13, weight: 700 });
+    inner += `<circle cx="${lx}" cy="${ly}" r="5" fill="${INK}"/>` + lighthouse(lx, ly - 24, 1.1) + T(lx, 36, 'sector light', { size: 13, weight: 700 });
     inner += T(lx, 54, 'Fl WRG 4s 21m 18-12M', { size: 12, fill: INK2 });
     /* boats */
     P.boats.forEach(b => { const [x, y] = pt(b.a, b.r); inner += boatPlan(x, y, (b.a + 180) % 360, 40); inner += T(x, y + 36, b.label[0], { size: 11.5, weight: 700 }) + T(x, y + 50, b.label[1], { size: 11 }); });
@@ -448,7 +448,7 @@
   /* leadingLine() — two leading marks in transit, with a boat on and off the line. */
   function leadingLine() {
     const Wd = 640, Ht = 540;
-    let inner = title(Wd, 22, 'Leading line (overett): two marks in line = you are on the track', 16);
+    let inner = title(Wd, 22, 'Leading line: two marks in line = you are on the track', 16);
     const win = (x, y, w, h, offset, cap1, cap2, good) => {
       let s = `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${PAPER}" stroke="${good ? C.green : LINE}" stroke-width="${good ? 2.5 : 1.2}"/>`;
       const hz = y + h - 56, cx = x + w / 2;
@@ -629,7 +629,7 @@
     variant = variant || 'left';
     const V = ['left', 'right', 'both']; if (!V.includes(variant)) throw bad('pointerPole variant', variant, V);
     const Wd = 480, Ht = 360, wl = 250, cx = 240;
-    let inner = title(Wd, 22, 'Pole with pointer (stang med viser)', 16) + water(0, wl, Wd, 40) + rockBlob(cx, wl + 4, 50, MUTED);
+    let inner = title(Wd, 22, 'Pole with pointer (Norwegian perch)', 16) + water(0, wl, Wd, 40) + rockBlob(cx, wl + 4, 50, MUTED);
     inner += `<line x1="${cx}" y1="${wl}" x2="${cx}" y2="80" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>`;
     /* Reflector colour follows the direction of buoyage (F51). The boats below head AWAY from the viewer, so a boat passing
        on the LEFT of the pole keeps the pole on its STARBOARD side (green reflector); passing on the RIGHT keeps it to PORT (red). */
@@ -642,7 +642,7 @@
     if (variant === 'both') inner += boat(110, 'either side') + boat(370, 'either side');
     inner += note(cx, 60, variant === 'both' ? 'Two arms + white reflector: the mark can be passed on both sides' : 'The arm points TOWARDS navigable water — never towards the rock', { size: 12.5, weight: 600 });
     if (variant !== 'both') inner += note(cx, Ht - 32, `Reflector ${variant === 'left' ? 'GREEN: the pole stays on your STARBOARD side' : 'RED: the pole stays on your PORT side'} (direction of buoyage: away from you).`, { size: 11 });
-    inner += note(cx, Ht - 16, variant === 'both' ? 'Reflector: red = leave to port, green = leave to starboard, white = either side.' : 'Pointers can be bent by ice and collisions: always check the chart (Den norske los).', { size: 11 });
+    inner += note(cx, Ht - 16, variant === 'both' ? 'Reflector: red = leave to port, green = leave to starboard, white = either side.' : 'Pointers can be bent by ice and collisions: always check the chart and the Norwegian sailing directions.', { size: 11 });
     return S.svg(Wd, Ht, inner, { label: `Norwegian iron pole on a rock with ${variant === 'both' ? 'two pointer arms and a white reflector: pass on either side' : 'a pointer arm pointing ' + variant + ' with a ' + (variant === 'left' ? 'green' : 'red') + ' reflector: the arm points towards navigable water, pass on the ' + variant + ' (heading away from the viewer, the pole stays to ' + (variant === 'left' ? 'starboard' : 'port') + ')'}.` });
   }
   /* lightDecoder() — full light description decoded: Fl(3) WRG 15s 21m 15-11M */
