@@ -165,7 +165,7 @@
     // Annex I §2(f): the red-white-red stack is carried BELOW the masthead light, so the masthead light sits highest, forward.
     'ram': { name: 'Vessel restricted in her ability to manoeuvre', rule: 'Rule 27(b): all-round RED–WHITE–RED (below the masthead light); + masthead light, sidelights, sternlight when making way', lights: [L('mh', 'white', .55, 5.2, 0, true), L('ar', 'red', -.1, 4), L('ar', 'white', -.1, 3), L('ar', 'red', -.1, 2), ...sidesL(.3, 1, true), sternL(.8, true)] },
     // Annex I §2(f): the Rule 28 reds are carried below the masthead lights — here vertically between the forward and the (higher) after masthead light, as on the RAM card.
-    'cbd': { name: 'Vessel constrained by her draught', rule: 'Rule 28: three all-round RED lights in a vertical line (below the masthead lights) + normal power-driven lights', lights: [L('mh', 'white', .6, 2.6), L('mh', 'white', -.45, 5.6), L('ar', 'red', .1, 4.8), L('ar', 'red', .1, 3.9), L('ar', 'red', .1, 3), ...sidesL(.3, 1.4), sternL(.8)] },
+    'cbd': { name: 'Vessel constrained by her draught', rule: 'Rule 28: three all-round RED lights in a vertical line (below the after masthead light, between the two masthead lights here) + normal power-driven lights', lights: [L('mh', 'white', .6, 2.6), L('mh', 'white', -.45, 5.6), L('ar', 'red', .1, 4.8), L('ar', 'red', .1, 3.9), L('ar', 'red', .1, 3), ...sidesL(.3, 1.4), sternL(.8)] },
     'pilot': { name: 'Pilot vessel on duty', rule: 'Rule 29: all-round WHITE over RED at the masthead; + sidelights and sternlight when underway', lights: [L('ar', 'white', .1, 4), L('ar', 'red', .1, 3), ...sidesL(.4, 1, true), sternL(.8, true)] },
     'towing': { name: 'Power-driven vessel towing astern', rule: 'Rule 24(a): two masthead lights in a vertical line (three if tow > 200 m), sidelights, sternlight, YELLOW towing light above the sternlight', lights: o => [...Array.from({ length: o.long ? 3 : 2 }, (_, i) => L('mh', 'white', .4, 2.8 + i)), ...sidesL(.5, 1), sternL(.8), L('tw', 'yellow', -1, 1.6)] },
     'towed': { name: 'Vessel being towed', rule: 'Rule 24(e): sidelights + sternlight', lights: [...sidesL(.6, .9), sternL(.8)] },
@@ -214,7 +214,7 @@
       if (seen.has(key)) return; seen.add(key);
       g += lamp(x, y, l.color, { r: 6.5, label: l.tag || l.color, side: x < cx ? 'left' : 'right' });
     });
-    const title = def.name + (making ? '' : ', stopped');
+    const title = def.name + (making ? '' : ', stopped') + (type === 'towing' && opts && opts.long ? ' (tow over 200 m)' : '');
     g += txt(cx, 20, title, { size: title.length > 36 ? 12 : 13, weight: 700, fill: NIGHT_INK });
     // the "red on your right" hint only makes sense when sidelights are actually visible
     const sides = lights.some(l => l.arc === 'sp' || l.arc === 'ss');
@@ -549,7 +549,7 @@
     g += txt(fx + u * .75, fy + fh / 2 - 6, 'WHITE', { size: 13, weight: 700, fill: DAY_MUTED }) + txt(fx + u * .75, fy + fh / 2 + 10, 'hoist half', { size: 10, fill: DAY_MUTED });
     g += txt(fx + u * 1.85, fy + fh / 2 - 6, 'BLUE', { size: 13, weight: 700, fill: '#ffffff' }) + txt(fx + u * 1.85, fy + fh / 2 + 10, 'fly half', { size: 10, fill: '#ffffff' });
     g += line(fx + u * 2.25 + 4, fy + fh / 2 + 6, fx + fw - 10, fy + fh + 18, 'var(--ink-2)', 1) + txt(fx + fw - 8, fy + fh + 26, 'swallow-tail notch at the fly', { size: 10, fill: 'var(--ink-2)', anchor: 'end' });
-    g += txt(fx - 14, fy + fh + 26, 'hoist', { size: 10, fill: 'var(--ink-2)', anchor: 'start' });
+    g += txt(fx + 4, fy + fh + 26, 'hoist', { size: 10, fill: 'var(--ink-2)', anchor: 'start' });
     // the North American red flag with a white diagonal stripe, crossed out
     const rx = 380, ry = 80, rw = 140, rh = 93;
     g += `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${C.red}"/><polygon points="${rx},${ry} ${rx + 18},${ry} ${rx + rw},${ry + rh - 18} ${rx + rw},${ry + rh} ${rx + rw - 18},${ry + rh} ${rx},${ry + 18}" fill="#ffffff"/>`;

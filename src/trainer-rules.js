@@ -302,7 +302,7 @@
   }
   function windArrow(sc) {
     // the arrow points the way the wind BLOWS (from sc.wind towards sc.wind + 180); placed in the corner farthest from both boats
-    const corners = [[420, 70], [420, 300], [60, 300], [60, 125]];   // clear of the compass inset (top-left) and the status line (bottom)
+    const corners = sc.narrow ? [[355, 70], [355, 300], [125, 300], [125, 125]] : [[420, 70], [420, 300], [60, 300], [60, 125]];   // clear of the compass inset, the status line and the shores
     const far = c => Math.min(Math.hypot(c[0] - sc.own.x, c[1] - sc.own.y), Math.hypot(c[0] - sc.other.x, c[1] - sc.other.y));
     const [cx, cy] = corners.reduce((a, b) => (far(b) > far(a) ? b : a));
     const [ux, uy] = dirv(sc.wind + 180), x1 = cx - ux * 26, y1 = cy - uy * 26, x2 = cx + ux * 26, y2 = cy + uy * 26;
