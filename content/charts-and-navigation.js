@@ -142,13 +142,14 @@
     s += T(372, 236, 'drying area', { size: 10.5, fill: LAND_INK, weight: 700 });
     // level lines across the picture
     const levels = [[yHAT, 'HAT', 'highest astronomical tide', true], [yMHW, 'MHW', 'mean high water = the coastline', false], [yMSL, 'MSL', 'mean sea level', false], [yLAT, 'LAT = chart datum', 'depths are measured from here', false], [yDRY, 'CD − 0.5 m', 'lower limit of the drying area', false]];
+    // bridge on the left with a pier (drawn before the level labels so the labels stay readable over the pier)
+    s += rect(20, 74, 230, 14, PAPER2, INK, { rx: 2, sw: 1.4 }) + rect(238, 88, 14, 330 - 88, PAPER2, INK, { rx: 1 });
+    s += T(130, 60, 'bridge', { size: 11.5, weight: 700, fill: LAND_INK });   // fixed light sky behind it
     levels.forEach(([y, a, b], i) => {
       s += ln(20, y, 620, y, LAND_INK, { sw: i === 3 ? 2 : 1.1, dash: i === 4 ? '2 3' : i === 3 ? '' : '6 4', opacity: .9 });
-      s += rect(22, y - 9, 150, 18, PAPER, 'none', { rx: 3, opacity: .9 }) + T(26, y, a, { size: 11, weight: 700, anchor: 'start' }) + T(26 + a.length * 6.6 + 6, y, b, { size: 9.5, anchor: 'start', fill: INK2 });
+      const bx = 26 + a.length * 6.6 + 6, bw = bx + b.length * 5.6 - 22 + 6;   // label box sized to its text
+      s += rect(22, y - 9, bw, 18, PAPER, 'none', { rx: 3, opacity: .92 }) + T(26, y, a, { size: 11, weight: 700, anchor: 'start' }) + T(bx, y, b, { size: 9.5, anchor: 'start', fill: INK2 });
     });
-    // bridge on the left with a pier
-    s += rect(20, 74, 230, 14, PAPER2, INK, { rx: 2, sw: 1.4 }) + rect(238, 88, 14, 330 - 88, PAPER2, INK, { rx: 1 });
-    s += T(130, 60, 'bridge', { size: 11.5, weight: 700 });
     s += dim(120, 88, yHAT, ['Vertical clearance', 'measured from HAT'], MAG, { dx: 8 });
     // charted depth arrow
     s += dim(300, yLAT, 294, ['Charted depth', 'below chart datum (LAT)'], LAND_INK, { dx: 8 });

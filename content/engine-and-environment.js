@@ -166,7 +166,7 @@
     // vapour cloud sinking
     for (let i = 0; i < 26; i++) { const x = 140 + (i * 37) % 440, y = 236 + ((i * 17) % 40); s += `<circle cx="${x}" cy="${y}" r="${4 + (i % 3)}" fill="${C.yellow}" opacity=".5"/>`; }
     s += arrow(420, 175, 420, 232, { color: C.orange, width: 3 });
-    s += lines(250, 262, ['PETROL VAPOUR: about 2.8 x heavier than air,', 'sinks and collects in the bilge'], 12, { weight: 700, fill: DARK });
+    s += lines(250, 262, ['PETROL VAPOUR: about 2.8 x heavier than air,', 'sinks and collects in the bilge'], 12, { weight: 700, fill: '#fff6d6' });
     // blower
     s += box(580, 100, 60, 30, { fill: PAPER, stroke: LINE }) + label(610, 115, 'BLOWER', 11, { weight: 700 });
     s += `<path d="M590,130 L590,255" fill="none" stroke="${INK}" stroke-width="3"/>` + `<path d="M585,255 L600,255" stroke="${INK}" stroke-width="3"/>`;
@@ -200,7 +200,7 @@
     // storm cloud
     s += `<path d="M470,160 q10,-18 28,-8 q8,-14 24,-4 q14,-4 16,12 q8,10 -6,14 l-56,0 q-14,-2 -6,-14z" fill="#8A8F98" stroke="${LINE}"/>`;
     s += dline(455, 182, 480, 182, MUTED, 2) + dline(462, 190, 492, 190, MUTED, 2);
-    s += lines(455, 205, ['head wind + waves', '= more fuel per mile'], 11, { anchor: 'start', fill: DARK, weight: 600 });
+    s += lines(455, 205, ['head wind + waves', '= more fuel per mile'], 11, { anchor: 'start', fill: '#fff6d6', weight: 600 });
     s += label(300, 385, 'Plan to arrive home with the tank still one-third full.', 14, { weight: 700 });
     return S.svg(600, 400, s, { width: 600, label: 'Fuel tank divided into thirds: out, back and reserve, with a map of the trip' });
   }
@@ -304,7 +304,7 @@
     s += label(360, 36, 'Engine START circuit: kept separate so lights and fridge cannot flatten it', 12, { fill: MUTED, weight: 600 });
     s += lines(300, 292, ['MAIN BATTERY SWITCH', 'OFF when leaving the boat;', 'isolates everything'], 11, { weight: 700 }, 13);
     s += lines(490, 345, ['FUSE PANEL: every circuit fused;', 'replace with the SAME rating'], 11, { weight: 700 }, 13);
-    s += label(650, 140, 'Navigation lights', 11, { anchor: 'start', weight: 600 }).replace('x="650"', 'x="676"');
+    s += box(672, 150, 104, 20, { fill: PAPER, stroke: 'none', rx: 4 }) + label(676, 160, 'Navigation lights', 11, { anchor: 'start', weight: 600 });
     s += label(700, 210, 'VHF / chart plotter', 11, { anchor: 'start', weight: 600 });
     s += lines(215, 398, ['Automatic BILGE PUMP: wired BEFORE the main switch,', 'with its own fuse, so it works when you are away'], 11, { anchor: 'start', weight: 600 }, 13);
     s += label(378, 372, 'Alternator / charger: charges both banks', 11, { weight: 600 });
@@ -399,7 +399,7 @@
     // birds
     [[230, 120], [290, 150], [250, 190]].forEach(p => { s += `<path d="M${p[0] - 14},${p[1]} q7,-10 14,0 q7,-10 14,0" fill="none" stroke="${INK}" stroke-width="2.5"/>`; });
     s += dline(380, 170, 450, 170, FUEL, 2) + label(415, 156, '50 m', 14, { fill: FUEL, weight: 800 });
-    if (!quiz) s += lines(260, 300, ['No landing; no boats, kayaks, paddleboards', 'or divers within 50 m of the shore'], 12, { fill: DARK, weight: 700 });
+    if (!quiz) s += lines(260, 309, ['No landing; no boats, kayaks, paddleboards', 'or divers within 50 m of the shore'], 12, { fill: INK, weight: 700 });
     s += label(260, 32, 'SEA-BIRD RESERVE', 15, { weight: 800 });
     // calendar
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

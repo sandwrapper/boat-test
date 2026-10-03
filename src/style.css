@@ -97,8 +97,8 @@ th { font-family: var(--font-display); font-weight: 700; font-size: .85rem; lett
 .view { flex: 1; width: 100%; max-width: 1120px; margin: 0 auto; padding: 1.4rem 16px 3rem; }
 .foot { border-top: 1px solid var(--line); padding: 1rem 16px 1.5rem; font-size: .85rem; color: var(--muted); max-width: 1120px; margin: 0 auto; width: 100%; }
 @media (max-width: 760px) {
-  .mainnav { margin-left: 0; width: 100%; order: 3; overflow-x: auto; flex-wrap: nowrap; padding-bottom: .2rem; }
-  .mainnav a { white-space: nowrap; padding: .3rem .6rem; font-size: .9rem; }
+  .mainnav { margin-left: 0; width: 100%; order: 3; gap: .1rem .05rem; }
+  .mainnav a { white-space: nowrap; padding: .3rem .55rem; font-size: .9rem; }
   .themebtn { margin-left: auto; }
   body { font-size: 16px; }
 }
@@ -178,6 +178,17 @@ label.chk { display: inline-flex; gap: .4rem; align-items: center; cursor: point
 .figure .art { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem; overflow-x: auto; }
 .figure .art svg { display: block; margin: 0 auto; height: auto; }
 .figure figcaption { font-size: .9rem; color: var(--ink-2); margin-top: .4rem; }
+.art, .qart, .trainer .stage { position: relative; }
+.art svg, .qart svg, .trainer .stage svg { cursor: zoom-in; }
+.zoomhint { position: absolute; right: .5rem; top: .4rem; font-size: .72rem; font-family: var(--font-display); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); pointer-events: none; display: none; }
+@media (max-width: 760px) { .zoomhint { display: block; } }
+.lightbox { position: fixed; inset: 0; z-index: 60; background: var(--paper); overflow: auto; padding: 3.2rem 16px 1rem; -webkit-overflow-scrolling: touch; }
+.lightbox[hidden] { display: none; }
+.lightbox .lb-close { position: fixed; top: .6rem; right: 16px; z-index: 61; }
+.lightbox .lb-body { display: inline-block; min-width: 100%; padding: .6rem; border-radius: var(--radius); background: var(--paper-2); }
+.lightbox .lb-body.night { background: #0a1420; }
+.lightbox .lb-body svg { display: block; max-width: none; height: auto; }
+.lightbox .lb-cap { font-size: .95rem; color: var(--ink-2); margin: .5rem 0 0; max-width: 72ch; }
 .keyfacts { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .8rem 1rem; margin: 1rem 0; }
 .keyfacts .eyebrow { margin-bottom: .3rem; }
 .keyfacts ul { margin: 0; padding-left: 1.2rem; }
@@ -252,4 +263,9 @@ label.chk { display: inline-flex; gap: .4rem; align-items: center; cursor: point
 .reviewlist .item { display: grid; grid-template-columns: 1fr auto; gap: .5rem 1rem; padding: .6rem 0; border-bottom: 1px solid var(--line); align-items: center; }
 .weak { display: grid; gap: .5rem; }
 .weak .row { display: grid; grid-template-columns: 1fr 120px 60px; gap: .6rem; align-items: center; font-size: .95rem; }
-@media (max-width: 520px) { .weak .row { grid-template-columns: 1fr 80px 50px; } }
+@media (max-width: 520px) {
+  .weak .row { grid-template-columns: 1fr 80px 50px; }
+  .navgrid { grid-template-columns: repeat(10, 1fr); gap: .2rem; }
+  .navgrid button { font-size: .75rem; padding: .25rem 0; }
+  .flash .qfoot .small { display: none; }   /* keyboard hints are no use on a phone */
+}

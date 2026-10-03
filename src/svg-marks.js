@@ -641,8 +641,8 @@
     if (variant === 'right') inner += boat(370, 'pass HERE (deep water)') + T(110, wl + 56, 'shallow — do not pass', { size: 11.5, fill: MUTED }) + `<text x="110" y="${wl + 20}" font-size="22" fill="${C.red}" text-anchor="middle">✕</text>`;
     if (variant === 'both') inner += boat(110, 'either side') + boat(370, 'either side');
     inner += note(cx, 60, variant === 'both' ? 'Two arms + white reflector: the mark can be passed on both sides' : 'The arm points TOWARDS navigable water — never towards the rock', { size: 12.5, weight: 600 });
-    if (variant !== 'both') inner += note(cx, Ht - 32, `Reflector ${variant === 'left' ? 'GREEN: the pole stays on your STARBOARD side' : 'RED: the pole stays on your PORT side'} (direction of buoyage: away from you).`, { size: 11 });
-    inner += note(cx, Ht - 16, variant === 'both' ? 'Reflector: red = leave to port, green = leave to starboard, white = either side.' : 'Pointers can be bent by ice and collisions: always check the chart and the Norwegian sailing directions.', { size: 11 });
+    if (variant !== 'both') inner += note(cx, Ht - 32, `Reflector ${variant === 'left' ? 'GREEN: the pole stays to STARBOARD' : 'RED: the pole stays to PORT'} (direction of buoyage: away from you).`, { size: 10.5 });
+    inner += note(cx, Ht - 16, variant === 'both' ? 'Reflector: red = leave to port, green = leave to starboard, white = either side.' : 'Pointers can be bent by ice or collisions: always check the chart.', { size: 10.5 });
     return S.svg(Wd, Ht, inner, { label: `Norwegian iron pole on a rock with ${variant === 'both' ? 'two pointer arms and a white reflector: pass on either side' : 'a pointer arm pointing ' + variant + ' with a ' + (variant === 'left' ? 'green' : 'red') + ' reflector: the arm points towards navigable water, pass on the ' + variant + ' (heading away from the viewer, the pole stays to ' + (variant === 'left' ? 'starboard' : 'port') + ')'}.` });
   }
   /* lightDecoder() — full light description decoded: Fl(3) WRG 15s 21m 15-11M */

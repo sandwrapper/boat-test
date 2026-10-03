@@ -146,7 +146,7 @@
       const exams = B.progress.exams();
       el.innerHTML = `<div class="pagehead"><div><div class="eyebrow">Mock exam</div><h1>Full-length exam simulation</h1><p>${B.exam.questions} multiple-choice questions in ${B.exam.minutes} minutes, drawn from the four official curriculum parts in roughly equal numbers. Two things must both be true to pass: at least ${B.exam.pass} correct overall, and no more than ${B.exam.maxPart4Errors} wrong in part 4, the "particularly important topics". No feedback until you hand in. ${B.exam.note ? esc(B.exam.note) : ''}</p></div></div>
         <div class="grid two">
-          <div class="card raised"><h3>Before you start</h3><ul><li>You can move freely between questions and flag any for a second look.</li><li>The timer keeps running if you leave the page; the attempt is lost if you reload.</li><li>Unanswered questions count as wrong, so always pick something.</li><li>Keys <kbd>1</kbd>–<kbd>4</kbd> answer, <kbd>←</kbd> <kbd>→</kbd> move, <kbd>F</kbd> flags.</li></ul><div class="btnrow"><a class="btn primary" href="#exam.run">Start the exam</a></div></div>
+          <div class="card raised"><h3>Before you start</h3><ul><li>You can move freely between questions and flag any for a second look.</li><li>The attempt is lost if you leave the page or reload, so stay on it until you hand in.</li><li>Unanswered questions count as wrong, so always pick something.</li><li>Keys <kbd>1</kbd>–<kbd>4</kbd> answer, <kbd>←</kbd> <kbd>→</kbd> move, <kbd>F</kbd> flags.</li></ul><div class="btnrow"><a class="btn primary" href="#exam.run">Start the exam</a></div></div>
           <div class="card"><h3>Your attempts</h3>${exams.length ? `<div class="table-wrap"><table><thead><tr><th>Date</th><th>Score</th><th>Result</th></tr></thead><tbody>${exams.slice(0, 8).map(e => `<tr><td>${new Date(e.date).toLocaleDateString()}</td><td class="num">${e.score}/${e.total}</td><td>${e.passed ? '<span class="pill ok">Pass</span>' : '<span class="pill bad">Fail</span>'}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">No attempts yet.</p>'}</div>
         </div>`;
       return;
@@ -238,7 +238,7 @@
     let queue = cards.map(x => ({ ...x, box: boxes[x.key] || 0 })).sort((a, b) => a.box - b.box || Math.random() - 0.5);
     let idx = 0, flipped = false, gotIt = 0, again = 0;
     const title = scope === 'all' ? 'All topics' : B.topic(scope).title;
-    el.innerHTML = `<div class="flash"><div class="crumbs"><a href="#flash">Flashcards</a> › ${esc(title)}</div><div class="quiz-head"><div class="eyebrow">Card <span id="cn">1</span> of ${queue.length}</div><div class="btnrow"><span class="pill ok" id="gotpill">0 got it</span><span class="pill bad" id="againpill">0 again</span></div></div>
+    el.innerHTML = `<div class="flash"><div class="crumbs"><a href="#flash">Flashcards</a> › ${esc(title)}</div><div class="quiz-head"><div class="eyebrow">Card <span id="cn">1</span> of <span id="ctot">${queue.length}</span></div><div class="btnrow"><span class="pill ok" id="gotpill">0 got it</span><span class="pill bad" id="againpill">0 again</span></div></div>
       <div class="fcard" id="fcard" tabindex="0" role="button" aria-label="Flip card"><div class="inner"><div class="face front"><span class="eyebrow" id="ftopic"></span><div id="front"></div></div><div class="face back"><span class="eyebrow">Answer</span><div id="back"></div></div></div></div>
       <div class="qfoot" style="margin-top:1rem"><button class="btn" id="againBtn" disabled>Again</button><span class="small muted">Space flips · 1 again · 2 got it</span><button class="btn primary" id="gotBtn" disabled>Got it</button></div></div>`;
     const fc = el.querySelector('#fcard');
@@ -256,7 +256,7 @@
       el.querySelector('#gotpill').textContent = `${gotIt} got it`; el.querySelector('#againpill').textContent = `${again} again`;
       idx++;
       if (idx >= queue.length) { el.querySelector('.flash').innerHTML = `<div class="qcard score"><div class="eyebrow">${esc(title)}</div><div class="big">${gotIt}</div><div class="verdict pass">cards known</div><p class="muted">${again ? `${again} card${again === 1 ? '' : 's'} needed a second look.` : 'Every card known on the first pass.'}</p><div class="btnrow" style="justify-content:center"><a class="btn primary" href="#flash.${scope}" onclick="setTimeout(()=>BOAT.render(),0)">Again</a><a class="btn" href="#flash">All decks</a></div></div>`; return; }
-      el.querySelector('#cn').textContent = idx + 1; show();
+      el.querySelector('#cn').textContent = idx + 1; el.querySelector('#ctot').textContent = queue.length; show();
     }
     fc.addEventListener('click', flip);
     el.querySelector('#againBtn').addEventListener('click', () => grade(false));

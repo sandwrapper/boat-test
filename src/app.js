@@ -347,9 +347,46 @@ window.BOAT = (function () {
     });
   });
 
+  // ---------- Lightbox: tap any picture to see it large (pictures shrink below legibility on phones) ----------
+  function initLightbox() {
+    const box = document.createElement('div'); box.className = 'lightbox'; box.hidden = true;
+    box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'Enlarged picture');
+    box.innerHTML = '<button type="button" class="btn sm lb-close">✕ Close</button><div class="lb-body"></div><p class="lb-cap"></p>';
+    document.body.appendChild(box);
+    const body = box.querySelector('.lb-body'), cap = box.querySelector('.lb-cap'), closeBtn = box.querySelector('.lb-close');
+    let opener = null;
+    function close() { if (box.hidden) return; box.hidden = true; body.innerHTML = ''; cap.textContent = ''; if (opener && document.contains(opener)) opener.focus({ preventScroll: true }); opener = null; }
+    function open(art) {
+      const svg = art.querySelector('svg'); if (!svg) return;
+      const clone = svg.cloneNode(true);
+      const vb = (svg.getAttribute('viewBox') || '0 0 640 400').split(/[\s,]+/).map(Number);
+      const natural = vb[2] || 640;
+      // at least 1.6x the natural size on a phone, so 10 px labels become readable; scroll or pinch for the rest
+      const w = Math.max(Math.min(window.innerWidth - 44, natural * 2), Math.min(natural * 1.6, 1100));
+      clone.style.width = w + 'px'; clone.style.maxWidth = 'none'; clone.removeAttribute('width'); clone.removeAttribute('height');
+      body.className = 'lb-body' + (art.classList.contains('night') ? ' night' : '');
+      body.innerHTML = ''; body.appendChild(clone);
+      const fig = art.closest('figure'); const fc = fig && fig.querySelector('figcaption');
+      cap.textContent = fc ? fc.textContent : (svg.getAttribute('aria-label') || '');
+      opener = art; box.hidden = false; box.scrollTop = 0; box.scrollLeft = 0; closeBtn.focus({ preventScroll: true });
+    }
+    document.addEventListener('click', e => {
+      if (!box.hidden) { if (e.target.closest('.lb-close') || !e.target.closest('.lb-body')) close(); return; }
+      const art = e.target.closest('.figure .art, .qart, .trainer .stage'); if (!art || !e.target.closest('svg')) return;
+      open(art);
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !box.hidden) { e.stopPropagation(); close(); } }, true);
+    window.addEventListener('hashchange', close);
+    // zoom affordance on pictures, added after every render
+    const mark = () => document.querySelectorAll('.figure .art, .qart, .trainer .stage').forEach(a => { if (a.querySelector('svg') && !a.querySelector('.zoomhint')) { const h = document.createElement('span'); h.className = 'zoomhint'; h.textContent = 'tap to enlarge'; a.appendChild(h); } });
+    if ('MutationObserver' in window) new MutationObserver(mark).observe(document.getElementById('view'), { childList: true, subtree: true });
+    mark();
+  }
+
   // ---------- Start ----------
   function start() {
     initTheme();
+    initLightbox();
     window.addEventListener('hashchange', render);
     render();
     const n = allQuestions().length;

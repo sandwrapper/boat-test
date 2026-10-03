@@ -373,7 +373,7 @@
         if (i === 1) s += circ(x + 38, 64, 16, C.orange, INK, 1.2) + circ(x + 38, 64, 8, PAPER, 'none') + circ(x + 38, 50, 3, C.white, INK, 0.6) + `<path d="M${x + 54},${66} q10,8 4,20 q-6,10 6,16" fill="none" stroke="${INK2}" stroke-width="1.5"/>`;
         if (i === 2) s += rect(x + 16, 46, 48, 34, INK2, 'none', { rx: 4 }) + rect(x + 20, 50, 40, 20, '#1e2a16', 'none', { rx: 2 }) + rect(x + 32, 84, 16, 10, C.red, INK, { rx: 2, sw: 0.8 }) + T(x + 40, 89, 'MOB', { size: 6.5, weight: 800, fill: '#fff' });
         if (i === 3) s += person(x + 30, 50, { jacket: true, noLegs: true }) + line(x + 38, 64, x + 66, 56, SKIN, { sw: 3.5 }) + circ(x + 70, 55, 2.5, SKIN);
-        s += lines(x + 100, 56, a, { size: 9.8, lh: 12, fill: INK, weight: 600 });
+        s += lines(x + 72, 101, a, { size: 9.4, lh: 11.5, fill: INK, weight: 600 });   // captions below the icons so they never overlap
       });
     }
     // Panel B: track diagram, north up. Original course 045 from bottom-left.

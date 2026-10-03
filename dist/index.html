@@ -107,8 +107,8 @@ th { font-family: var(--font-display); font-weight: 700; font-size: .85rem; lett
 .view { flex: 1; width: 100%; max-width: 1120px; margin: 0 auto; padding: 1.4rem 16px 3rem; }
 .foot { border-top: 1px solid var(--line); padding: 1rem 16px 1.5rem; font-size: .85rem; color: var(--muted); max-width: 1120px; margin: 0 auto; width: 100%; }
 @media (max-width: 760px) {
-  .mainnav { margin-left: 0; width: 100%; order: 3; overflow-x: auto; flex-wrap: nowrap; padding-bottom: .2rem; }
-  .mainnav a { white-space: nowrap; padding: .3rem .6rem; font-size: .9rem; }
+  .mainnav { margin-left: 0; width: 100%; order: 3; gap: .1rem .05rem; }
+  .mainnav a { white-space: nowrap; padding: .3rem .55rem; font-size: .9rem; }
   .themebtn { margin-left: auto; }
   body { font-size: 16px; }
 }
@@ -188,6 +188,17 @@ label.chk { display: inline-flex; gap: .4rem; align-items: center; cursor: point
 .figure .art { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .6rem; overflow-x: auto; }
 .figure .art svg { display: block; margin: 0 auto; height: auto; }
 .figure figcaption { font-size: .9rem; color: var(--ink-2); margin-top: .4rem; }
+.art, .qart, .trainer .stage { position: relative; }
+.art svg, .qart svg, .trainer .stage svg { cursor: zoom-in; }
+.zoomhint { position: absolute; right: .5rem; top: .4rem; font-size: .72rem; font-family: var(--font-display); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); pointer-events: none; display: none; }
+@media (max-width: 760px) { .zoomhint { display: block; } }
+.lightbox { position: fixed; inset: 0; z-index: 60; background: var(--paper); overflow: auto; padding: 3.2rem 16px 1rem; -webkit-overflow-scrolling: touch; }
+.lightbox[hidden] { display: none; }
+.lightbox .lb-close { position: fixed; top: .6rem; right: 16px; z-index: 61; }
+.lightbox .lb-body { display: inline-block; min-width: 100%; padding: .6rem; border-radius: var(--radius); background: var(--paper-2); }
+.lightbox .lb-body.night { background: #0a1420; }
+.lightbox .lb-body svg { display: block; max-width: none; height: auto; }
+.lightbox .lb-cap { font-size: .95rem; color: var(--ink-2); margin: .5rem 0 0; max-width: 72ch; }
 .keyfacts { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius); padding: .8rem 1rem; margin: 1rem 0; }
 .keyfacts .eyebrow { margin-bottom: .3rem; }
 .keyfacts ul { margin: 0; padding-left: 1.2rem; }
@@ -262,7 +273,12 @@ label.chk { display: inline-flex; gap: .4rem; align-items: center; cursor: point
 .reviewlist .item { display: grid; grid-template-columns: 1fr auto; gap: .5rem 1rem; padding: .6rem 0; border-bottom: 1px solid var(--line); align-items: center; }
 .weak { display: grid; gap: .5rem; }
 .weak .row { display: grid; grid-template-columns: 1fr 120px 60px; gap: .6rem; align-items: center; font-size: .95rem; }
-@media (max-width: 520px) { .weak .row { grid-template-columns: 1fr 80px 50px; } }
+@media (max-width: 520px) {
+  .weak .row { grid-template-columns: 1fr 80px 50px; }
+  .navgrid { grid-template-columns: repeat(10, 1fr); gap: .2rem; }
+  .navgrid button { font-size: .75rem; padding: .25rem 0; }
+  .flash .qfoot .small { display: none; }   /* keyboard hints are no use on a phone */
+}
 
 </style>
 </head>
@@ -1570,8 +1586,8 @@ window.BOAT_SVG = (function () {
     if (variant === 'right') inner += boat(370, 'pass HERE (deep water)') + T(110, wl + 56, 'shallow — do not pass', { size: 11.5, fill: MUTED }) + `<text x="110" y="${wl + 20}" font-size="22" fill="${C.red}" text-anchor="middle">✕</text>`;
     if (variant === 'both') inner += boat(110, 'either side') + boat(370, 'either side');
     inner += note(cx, 60, variant === 'both' ? 'Two arms + white reflector: the mark can be passed on both sides' : 'The arm points TOWARDS navigable water — never towards the rock', { size: 12.5, weight: 600 });
-    if (variant !== 'both') inner += note(cx, Ht - 32, `Reflector ${variant === 'left' ? 'GREEN: the pole stays on your STARBOARD side' : 'RED: the pole stays on your PORT side'} (direction of buoyage: away from you).`, { size: 11 });
-    inner += note(cx, Ht - 16, variant === 'both' ? 'Reflector: red = leave to port, green = leave to starboard, white = either side.' : 'Pointers can be bent by ice and collisions: always check the chart and the Norwegian sailing directions.', { size: 11 });
+    if (variant !== 'both') inner += note(cx, Ht - 32, `Reflector ${variant === 'left' ? 'GREEN: the pole stays to STARBOARD' : 'RED: the pole stays to PORT'} (direction of buoyage: away from you).`, { size: 10.5 });
+    inner += note(cx, Ht - 16, variant === 'both' ? 'Reflector: red = leave to port, green = leave to starboard, white = either side.' : 'Pointers can be bent by ice or collisions: always check the chart.', { size: 10.5 });
     return S.svg(Wd, Ht, inner, { label: `Norwegian iron pole on a rock with ${variant === 'both' ? 'two pointer arms and a white reflector: pass on either side' : 'a pointer arm pointing ' + variant + ' with a ' + (variant === 'left' ? 'green' : 'red') + ' reflector: the arm points towards navigable water, pass on the ' + variant + ' (heading away from the viewer, the pole stays to ' + (variant === 'left' ? 'starboard' : 'port') + ')'}.` });
   }
   /* lightDecoder() — full light description decoded: Fl(3) WRG 15s 21m 15-11M */
@@ -2497,9 +2513,46 @@ window.BOAT = (function () {
     });
   });
 
+  // ---------- Lightbox: tap any picture to see it large (pictures shrink below legibility on phones) ----------
+  function initLightbox() {
+    const box = document.createElement('div'); box.className = 'lightbox'; box.hidden = true;
+    box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'Enlarged picture');
+    box.innerHTML = '<button type="button" class="btn sm lb-close">✕ Close</button><div class="lb-body"></div><p class="lb-cap"></p>';
+    document.body.appendChild(box);
+    const body = box.querySelector('.lb-body'), cap = box.querySelector('.lb-cap'), closeBtn = box.querySelector('.lb-close');
+    let opener = null;
+    function close() { if (box.hidden) return; box.hidden = true; body.innerHTML = ''; cap.textContent = ''; if (opener && document.contains(opener)) opener.focus({ preventScroll: true }); opener = null; }
+    function open(art) {
+      const svg = art.querySelector('svg'); if (!svg) return;
+      const clone = svg.cloneNode(true);
+      const vb = (svg.getAttribute('viewBox') || '0 0 640 400').split(/[\s,]+/).map(Number);
+      const natural = vb[2] || 640;
+      // at least 1.6x the natural size on a phone, so 10 px labels become readable; scroll or pinch for the rest
+      const w = Math.max(Math.min(window.innerWidth - 44, natural * 2), Math.min(natural * 1.6, 1100));
+      clone.style.width = w + 'px'; clone.style.maxWidth = 'none'; clone.removeAttribute('width'); clone.removeAttribute('height');
+      body.className = 'lb-body' + (art.classList.contains('night') ? ' night' : '');
+      body.innerHTML = ''; body.appendChild(clone);
+      const fig = art.closest('figure'); const fc = fig && fig.querySelector('figcaption');
+      cap.textContent = fc ? fc.textContent : (svg.getAttribute('aria-label') || '');
+      opener = art; box.hidden = false; box.scrollTop = 0; box.scrollLeft = 0; closeBtn.focus({ preventScroll: true });
+    }
+    document.addEventListener('click', e => {
+      if (!box.hidden) { if (e.target.closest('.lb-close') || !e.target.closest('.lb-body')) close(); return; }
+      const art = e.target.closest('.figure .art, .qart, .trainer .stage'); if (!art || !e.target.closest('svg')) return;
+      open(art);
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !box.hidden) { e.stopPropagation(); close(); } }, true);
+    window.addEventListener('hashchange', close);
+    // zoom affordance on pictures, added after every render
+    const mark = () => document.querySelectorAll('.figure .art, .qart, .trainer .stage').forEach(a => { if (a.querySelector('svg') && !a.querySelector('.zoomhint')) { const h = document.createElement('span'); h.className = 'zoomhint'; h.textContent = 'tap to enlarge'; a.appendChild(h); } });
+    if ('MutationObserver' in window) new MutationObserver(mark).observe(document.getElementById('view'), { childList: true, subtree: true });
+    mark();
+  }
+
   // ---------- Start ----------
   function start() {
     initTheme();
+    initLightbox();
     window.addEventListener('hashchange', render);
     render();
     const n = allQuestions().length;
@@ -2659,7 +2712,7 @@ window.BOAT = (function () {
       const exams = B.progress.exams();
       el.innerHTML = `<div class="pagehead"><div><div class="eyebrow">Mock exam</div><h1>Full-length exam simulation</h1><p>${B.exam.questions} multiple-choice questions in ${B.exam.minutes} minutes, drawn from the four official curriculum parts in roughly equal numbers. Two things must both be true to pass: at least ${B.exam.pass} correct overall, and no more than ${B.exam.maxPart4Errors} wrong in part 4, the "particularly important topics". No feedback until you hand in. ${B.exam.note ? esc(B.exam.note) : ''}</p></div></div>
         <div class="grid two">
-          <div class="card raised"><h3>Before you start</h3><ul><li>You can move freely between questions and flag any for a second look.</li><li>The timer keeps running if you leave the page; the attempt is lost if you reload.</li><li>Unanswered questions count as wrong, so always pick something.</li><li>Keys <kbd>1</kbd>–<kbd>4</kbd> answer, <kbd>←</kbd> <kbd>→</kbd> move, <kbd>F</kbd> flags.</li></ul><div class="btnrow"><a class="btn primary" href="#exam.run">Start the exam</a></div></div>
+          <div class="card raised"><h3>Before you start</h3><ul><li>You can move freely between questions and flag any for a second look.</li><li>The attempt is lost if you leave the page or reload, so stay on it until you hand in.</li><li>Unanswered questions count as wrong, so always pick something.</li><li>Keys <kbd>1</kbd>–<kbd>4</kbd> answer, <kbd>←</kbd> <kbd>→</kbd> move, <kbd>F</kbd> flags.</li></ul><div class="btnrow"><a class="btn primary" href="#exam.run">Start the exam</a></div></div>
           <div class="card"><h3>Your attempts</h3>${exams.length ? `<div class="table-wrap"><table><thead><tr><th>Date</th><th>Score</th><th>Result</th></tr></thead><tbody>${exams.slice(0, 8).map(e => `<tr><td>${new Date(e.date).toLocaleDateString()}</td><td class="num">${e.score}/${e.total}</td><td>${e.passed ? '<span class="pill ok">Pass</span>' : '<span class="pill bad">Fail</span>'}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">No attempts yet.</p>'}</div>
         </div>`;
       return;
@@ -2751,7 +2804,7 @@ window.BOAT = (function () {
     let queue = cards.map(x => ({ ...x, box: boxes[x.key] || 0 })).sort((a, b) => a.box - b.box || Math.random() - 0.5);
     let idx = 0, flipped = false, gotIt = 0, again = 0;
     const title = scope === 'all' ? 'All topics' : B.topic(scope).title;
-    el.innerHTML = `<div class="flash"><div class="crumbs"><a href="#flash">Flashcards</a> › ${esc(title)}</div><div class="quiz-head"><div class="eyebrow">Card <span id="cn">1</span> of ${queue.length}</div><div class="btnrow"><span class="pill ok" id="gotpill">0 got it</span><span class="pill bad" id="againpill">0 again</span></div></div>
+    el.innerHTML = `<div class="flash"><div class="crumbs"><a href="#flash">Flashcards</a> › ${esc(title)}</div><div class="quiz-head"><div class="eyebrow">Card <span id="cn">1</span> of <span id="ctot">${queue.length}</span></div><div class="btnrow"><span class="pill ok" id="gotpill">0 got it</span><span class="pill bad" id="againpill">0 again</span></div></div>
       <div class="fcard" id="fcard" tabindex="0" role="button" aria-label="Flip card"><div class="inner"><div class="face front"><span class="eyebrow" id="ftopic"></span><div id="front"></div></div><div class="face back"><span class="eyebrow">Answer</span><div id="back"></div></div></div></div>
       <div class="qfoot" style="margin-top:1rem"><button class="btn" id="againBtn" disabled>Again</button><span class="small muted">Space flips · 1 again · 2 got it</span><button class="btn primary" id="gotBtn" disabled>Got it</button></div></div>`;
     const fc = el.querySelector('#fcard');
@@ -2769,7 +2822,7 @@ window.BOAT = (function () {
       el.querySelector('#gotpill').textContent = `${gotIt} got it`; el.querySelector('#againpill').textContent = `${again} again`;
       idx++;
       if (idx >= queue.length) { el.querySelector('.flash').innerHTML = `<div class="qcard score"><div class="eyebrow">${esc(title)}</div><div class="big">${gotIt}</div><div class="verdict pass">cards known</div><p class="muted">${again ? `${again} card${again === 1 ? '' : 's'} needed a second look.` : 'Every card known on the first pass.'}</p><div class="btnrow" style="justify-content:center"><a class="btn primary" href="#flash.${scope}" onclick="setTimeout(()=>BOAT.render(),0)">Again</a><a class="btn" href="#flash">All decks</a></div></div>`; return; }
-      el.querySelector('#cn').textContent = idx + 1; show();
+      el.querySelector('#cn').textContent = idx + 1; el.querySelector('#ctot').textContent = queue.length; show();
     }
     fc.addEventListener('click', flip);
     el.querySelector('#againBtn').addEventListener('click', () => grade(false));
@@ -8203,13 +8256,14 @@ window.BOAT = (function () {
     s += T(372, 236, 'drying area', { size: 10.5, fill: LAND_INK, weight: 700 });
     // level lines across the picture
     const levels = [[yHAT, 'HAT', 'highest astronomical tide', true], [yMHW, 'MHW', 'mean high water = the coastline', false], [yMSL, 'MSL', 'mean sea level', false], [yLAT, 'LAT = chart datum', 'depths are measured from here', false], [yDRY, 'CD − 0.5 m', 'lower limit of the drying area', false]];
+    // bridge on the left with a pier (drawn before the level labels so the labels stay readable over the pier)
+    s += rect(20, 74, 230, 14, PAPER2, INK, { rx: 2, sw: 1.4 }) + rect(238, 88, 14, 330 - 88, PAPER2, INK, { rx: 1 });
+    s += T(130, 60, 'bridge', { size: 11.5, weight: 700, fill: LAND_INK });   // fixed light sky behind it
     levels.forEach(([y, a, b], i) => {
       s += ln(20, y, 620, y, LAND_INK, { sw: i === 3 ? 2 : 1.1, dash: i === 4 ? '2 3' : i === 3 ? '' : '6 4', opacity: .9 });
-      s += rect(22, y - 9, 150, 18, PAPER, 'none', { rx: 3, opacity: .9 }) + T(26, y, a, { size: 11, weight: 700, anchor: 'start' }) + T(26 + a.length * 6.6 + 6, y, b, { size: 9.5, anchor: 'start', fill: INK2 });
+      const bx = 26 + a.length * 6.6 + 6, bw = bx + b.length * 5.6 - 22 + 6;   // label box sized to its text
+      s += rect(22, y - 9, bw, 18, PAPER, 'none', { rx: 3, opacity: .92 }) + T(26, y, a, { size: 11, weight: 700, anchor: 'start' }) + T(bx, y, b, { size: 9.5, anchor: 'start', fill: INK2 });
     });
-    // bridge on the left with a pier
-    s += rect(20, 74, 230, 14, PAPER2, INK, { rx: 2, sw: 1.4 }) + rect(238, 88, 14, 330 - 88, PAPER2, INK, { rx: 1 });
-    s += T(130, 60, 'bridge', { size: 11.5, weight: 700 });
     s += dim(120, 88, yHAT, ['Vertical clearance', 'measured from HAT'], MAG, { dx: 8 });
     // charted depth arrow
     s += dim(300, yLAT, 294, ['Charted depth', 'below chart datum (LAT)'], LAND_INK, { dx: 8 });
@@ -9835,7 +9889,7 @@ window.BOAT = (function () {
         if (i === 1) s += circ(x + 38, 64, 16, C.orange, INK, 1.2) + circ(x + 38, 64, 8, PAPER, 'none') + circ(x + 38, 50, 3, C.white, INK, 0.6) + `<path d="M${x + 54},${66} q10,8 4,20 q-6,10 6,16" fill="none" stroke="${INK2}" stroke-width="1.5"/>`;
         if (i === 2) s += rect(x + 16, 46, 48, 34, INK2, 'none', { rx: 4 }) + rect(x + 20, 50, 40, 20, '#1e2a16', 'none', { rx: 2 }) + rect(x + 32, 84, 16, 10, C.red, INK, { rx: 2, sw: 0.8 }) + T(x + 40, 89, 'MOB', { size: 6.5, weight: 800, fill: '#fff' });
         if (i === 3) s += person(x + 30, 50, { jacket: true, noLegs: true }) + line(x + 38, 64, x + 66, 56, SKIN, { sw: 3.5 }) + circ(x + 70, 55, 2.5, SKIN);
-        s += lines(x + 100, 56, a, { size: 9.8, lh: 12, fill: INK, weight: 600 });
+        s += lines(x + 72, 101, a, { size: 9.4, lh: 11.5, fill: INK, weight: 600 });   // captions below the icons so they never overlap
       });
     }
     // Panel B: track diagram, north up. Original course 045 from bottom-left.
@@ -10468,15 +10522,15 @@ window.BOAT = (function () {
     s += line(fx, gy, 620, fy(620), LOWRED, { sw: 2 });
     s += T(70, 150, 'WARM AIR', { size: 12, weight: 700, fill: LOWRED }) + T(545, 190, 'COLD AIR', { size: 12, weight: 700, fill: HIGHBLUE });
     // clouds in the warm air above the frontal surface: highest and thinnest far ahead (right), lowest near the front (left)
-    s += `<g stroke="${INK2}" stroke-width="1.4" fill="none">${[[556, 50], [572, 44], [588, 52]].map(([x, y]) => `<path d="M${x},${y} q10,-6 22,-2"/>`).join('')}</g>` + T(585, 70, 'cirrus', { size: 9.5, fill: MUTED });
-    s += rect(420, 60, 120, 10, '#e0e0e0', 'none', { rx: 5 }) + sun(480, 52, 6) + `<circle cx="480" cy="52" r="14" fill="none" stroke="${SUN}" stroke-width="1.2" opacity="0.8"/>` + T(480, 84, 'cirrostratus (halo)', { size: 9.5, fill: MUTED });
-    s += rect(300, 92, 120, 22, '#bdbdbd', 'none', { rx: 8 }) + T(360, 128, 'altostratus', { size: 9.5, fill: MUTED });
-    s += rect(140, 120, 160, 50, '#757575', 'none', { rx: 10 }) + T(220, 110, 'nimbostratus, steady rain', { size: 9.5, fill: MUTED });
+    s += `<g stroke="${INK2}" stroke-width="1.4" fill="none">${[[556, 50], [572, 44], [588, 52]].map(([x, y]) => `<path d="M${x},${y} q10,-6 22,-2"/>`).join('')}</g>` + T(585, 70, 'cirrus', { size: 9.5, fill: INK, weight: 600 });
+    s += rect(420, 60, 120, 10, '#e0e0e0', 'none', { rx: 5 }) + sun(480, 52, 6) + `<circle cx="480" cy="52" r="14" fill="none" stroke="${SUN}" stroke-width="1.2" opacity="0.8"/>` + T(480, 84, 'cirrostratus (halo)', { size: 9.5, fill: INK, weight: 600 });
+    s += rect(300, 92, 120, 22, '#bdbdbd', 'none', { rx: 8 }) + T(360, 128, 'altostratus', { size: 9.5, fill: INK, weight: 600 });
+    s += rect(140, 120, 160, 50, '#757575', 'none', { rx: 10 }) + T(220, 110, 'nimbostratus, steady rain', { size: 9.5, fill: INK, weight: 600 });
     for (let i = 0; i < 7; i++) s += line(155 + i * 22, 174, 151 + i * 22, 196, HIGHBLUE, { sw: 1.3 });
     // map symbol of a warm front moving east: red line with semicircles on the side it moves towards
     s += line(60, 162, 60, 212, LOWRED, { sw: 2 });
     [172, 188, 204].forEach(y => { s += `<path d="M60,${y - 7} a7,7 0 0 1 0,14 Z" fill="${LOWRED}"/>`; });
-    s += T(60, 226, 'map symbol', { size: 9, fill: MUTED });
+    s += T(60, 226, 'map symbol', { size: 9, fill: INK2 });
     // sea surface and the surface front
     s += rect(20, gy, 600, 6, WATER, 'none', { rx: 0 });
     s += line(20, gy + 3, 620, gy + 3, WATER2, { sw: 1 });
@@ -10543,10 +10597,10 @@ window.BOAT = (function () {
       if (opposing) {
         s += waves(50, 590, sy, 36, 11, WATER, WATER2, { bottom, steep: true });
         for (let x = 68; x < 590; x += 36) s += `<path d="M${x - 4},${sy - 10} q6,-3 12,2" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"/>`;
-        s += arrow([[500, sy + 28], [220, sy + 28]], '#0d47a1', { sw: 3.5 }) + T(360, sy + 42, 'Current 2 kn opposing the wind', { size: 11, weight: 700, fill: '#0d47a1' });
+        s += arrow([[500, sy + 28], [220, sy + 28]], '#0d47a1', { sw: 3.5 }) + T(360, sy + 42, 'Current 2 kn opposing the wind', { size: 11, weight: 700, fill: DARKINK });
       } else {
         s += waves(50, 590, sy, 90, 7, WATER, WATER2, { bottom });
-        s += arrow([[220, sy + 28], [500, sy + 28]], '#0d47a1', { sw: 3.5 }) + T(360, sy + 42, 'Current 2 kn, same direction as the wind', { size: 11, weight: 700, fill: '#0d47a1' });
+        s += arrow([[220, sy + 28], [500, sy + 28]], '#0d47a1', { sw: 3.5 }) + T(360, sy + 42, 'Current 2 kn, same direction as the wind', { size: 11, weight: 700, fill: DARKINK });
       }
     }
     strip(10, 'WIND WITH CURRENT: waves stretched out, longer and lower', false);
@@ -11079,7 +11133,7 @@ window.BOAT = (function () {
     // vapour cloud sinking
     for (let i = 0; i < 26; i++) { const x = 140 + (i * 37) % 440, y = 236 + ((i * 17) % 40); s += `<circle cx="${x}" cy="${y}" r="${4 + (i % 3)}" fill="${C.yellow}" opacity=".5"/>`; }
     s += arrow(420, 175, 420, 232, { color: C.orange, width: 3 });
-    s += lines(250, 262, ['PETROL VAPOUR: about 2.8 x heavier than air,', 'sinks and collects in the bilge'], 12, { weight: 700, fill: DARK });
+    s += lines(250, 262, ['PETROL VAPOUR: about 2.8 x heavier than air,', 'sinks and collects in the bilge'], 12, { weight: 700, fill: '#fff6d6' });
     // blower
     s += box(580, 100, 60, 30, { fill: PAPER, stroke: LINE }) + label(610, 115, 'BLOWER', 11, { weight: 700 });
     s += `<path d="M590,130 L590,255" fill="none" stroke="${INK}" stroke-width="3"/>` + `<path d="M585,255 L600,255" stroke="${INK}" stroke-width="3"/>`;
@@ -11113,7 +11167,7 @@ window.BOAT = (function () {
     // storm cloud
     s += `<path d="M470,160 q10,-18 28,-8 q8,-14 24,-4 q14,-4 16,12 q8,10 -6,14 l-56,0 q-14,-2 -6,-14z" fill="#8A8F98" stroke="${LINE}"/>`;
     s += dline(455, 182, 480, 182, MUTED, 2) + dline(462, 190, 492, 190, MUTED, 2);
-    s += lines(455, 205, ['head wind + waves', '= more fuel per mile'], 11, { anchor: 'start', fill: DARK, weight: 600 });
+    s += lines(455, 205, ['head wind + waves', '= more fuel per mile'], 11, { anchor: 'start', fill: '#fff6d6', weight: 600 });
     s += label(300, 385, 'Plan to arrive home with the tank still one-third full.', 14, { weight: 700 });
     return S.svg(600, 400, s, { width: 600, label: 'Fuel tank divided into thirds: out, back and reserve, with a map of the trip' });
   }
@@ -11217,7 +11271,7 @@ window.BOAT = (function () {
     s += label(360, 36, 'Engine START circuit: kept separate so lights and fridge cannot flatten it', 12, { fill: MUTED, weight: 600 });
     s += lines(300, 292, ['MAIN BATTERY SWITCH', 'OFF when leaving the boat;', 'isolates everything'], 11, { weight: 700 }, 13);
     s += lines(490, 345, ['FUSE PANEL: every circuit fused;', 'replace with the SAME rating'], 11, { weight: 700 }, 13);
-    s += label(650, 140, 'Navigation lights', 11, { anchor: 'start', weight: 600 }).replace('x="650"', 'x="676"');
+    s += box(672, 150, 104, 20, { fill: PAPER, stroke: 'none', rx: 4 }) + label(676, 160, 'Navigation lights', 11, { anchor: 'start', weight: 600 });
     s += label(700, 210, 'VHF / chart plotter', 11, { anchor: 'start', weight: 600 });
     s += lines(215, 398, ['Automatic BILGE PUMP: wired BEFORE the main switch,', 'with its own fuse, so it works when you are away'], 11, { anchor: 'start', weight: 600 }, 13);
     s += label(378, 372, 'Alternator / charger: charges both banks', 11, { weight: 600 });
@@ -11312,7 +11366,7 @@ window.BOAT = (function () {
     // birds
     [[230, 120], [290, 150], [250, 190]].forEach(p => { s += `<path d="M${p[0] - 14},${p[1]} q7,-10 14,0 q7,-10 14,0" fill="none" stroke="${INK}" stroke-width="2.5"/>`; });
     s += dline(380, 170, 450, 170, FUEL, 2) + label(415, 156, '50 m', 14, { fill: FUEL, weight: 800 });
-    if (!quiz) s += lines(260, 300, ['No landing; no boats, kayaks, paddleboards', 'or divers within 50 m of the shore'], 12, { fill: DARK, weight: 700 });
+    if (!quiz) s += lines(260, 309, ['No landing; no boats, kayaks, paddleboards', 'or divers within 50 m of the shore'], 12, { fill: INK, weight: 700 });
     s += label(260, 32, 'SEA-BIRD RESERVE', 15, { weight: 800 });
     // calendar
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

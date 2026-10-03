@@ -241,15 +241,15 @@
     s += line(fx, gy, 620, fy(620), LOWRED, { sw: 2 });
     s += T(70, 150, 'WARM AIR', { size: 12, weight: 700, fill: LOWRED }) + T(545, 190, 'COLD AIR', { size: 12, weight: 700, fill: HIGHBLUE });
     // clouds in the warm air above the frontal surface: highest and thinnest far ahead (right), lowest near the front (left)
-    s += `<g stroke="${INK2}" stroke-width="1.4" fill="none">${[[556, 50], [572, 44], [588, 52]].map(([x, y]) => `<path d="M${x},${y} q10,-6 22,-2"/>`).join('')}</g>` + T(585, 70, 'cirrus', { size: 9.5, fill: MUTED });
-    s += rect(420, 60, 120, 10, '#e0e0e0', 'none', { rx: 5 }) + sun(480, 52, 6) + `<circle cx="480" cy="52" r="14" fill="none" stroke="${SUN}" stroke-width="1.2" opacity="0.8"/>` + T(480, 84, 'cirrostratus (halo)', { size: 9.5, fill: MUTED });
-    s += rect(300, 92, 120, 22, '#bdbdbd', 'none', { rx: 8 }) + T(360, 128, 'altostratus', { size: 9.5, fill: MUTED });
-    s += rect(140, 120, 160, 50, '#757575', 'none', { rx: 10 }) + T(220, 110, 'nimbostratus, steady rain', { size: 9.5, fill: MUTED });
+    s += `<g stroke="${INK2}" stroke-width="1.4" fill="none">${[[556, 50], [572, 44], [588, 52]].map(([x, y]) => `<path d="M${x},${y} q10,-6 22,-2"/>`).join('')}</g>` + T(585, 70, 'cirrus', { size: 9.5, fill: INK, weight: 600 });
+    s += rect(420, 60, 120, 10, '#e0e0e0', 'none', { rx: 5 }) + sun(480, 52, 6) + `<circle cx="480" cy="52" r="14" fill="none" stroke="${SUN}" stroke-width="1.2" opacity="0.8"/>` + T(480, 84, 'cirrostratus (halo)', { size: 9.5, fill: INK, weight: 600 });
+    s += rect(300, 92, 120, 22, '#bdbdbd', 'none', { rx: 8 }) + T(360, 128, 'altostratus', { size: 9.5, fill: INK, weight: 600 });
+    s += rect(140, 120, 160, 50, '#757575', 'none', { rx: 10 }) + T(220, 110, 'nimbostratus, steady rain', { size: 9.5, fill: INK, weight: 600 });
     for (let i = 0; i < 7; i++) s += line(155 + i * 22, 174, 151 + i * 22, 196, HIGHBLUE, { sw: 1.3 });
     // map symbol of a warm front moving east: red line with semicircles on the side it moves towards
     s += line(60, 162, 60, 212, LOWRED, { sw: 2 });
     [172, 188, 204].forEach(y => { s += `<path d="M60,${y - 7} a7,7 0 0 1 0,14 Z" fill="${LOWRED}"/>`; });
-    s += T(60, 226, 'map symbol', { size: 9, fill: MUTED });
+    s += T(60, 226, 'map symbol', { size: 9, fill: INK2 });
     // sea surface and the surface front
     s += rect(20, gy, 600, 6, WATER, 'none', { rx: 0 });
     s += line(20, gy + 3, 620, gy + 3, WATER2, { sw: 1 });
@@ -316,10 +316,10 @@
       if (opposing) {
         s += waves(50, 590, sy, 36, 11, WATER, WATER2, { bottom, steep: true });
         for (let x = 68; x < 590; x += 36) s += `<path d="M${x - 4},${sy - 10} q6,-3 12,2" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"/>`;
-        s += arrow([[500, sy + 28], [220, sy + 28]], '#0d47a1', { sw: 3.5 }) + T(360, sy + 42, 'Current 2 kn opposing the wind', { size: 11, weight: 700, fill: '#0d47a1' });
+        s += arrow([[500, sy + 28], [220, sy + 28]], '#0d47a1', { sw: 3.5 }) + T(360, sy + 42, 'Current 2 kn opposing the wind', { size: 11, weight: 700, fill: DARKINK });
       } else {
         s += waves(50, 590, sy, 90, 7, WATER, WATER2, { bottom });
-        s += arrow([[220, sy + 28], [500, sy + 28]], '#0d47a1', { sw: 3.5 }) + T(360, sy + 42, 'Current 2 kn, same direction as the wind', { size: 11, weight: 700, fill: '#0d47a1' });
+        s += arrow([[220, sy + 28], [500, sy + 28]], '#0d47a1', { sw: 3.5 }) + T(360, sy + 42, 'Current 2 kn, same direction as the wind', { size: 11, weight: 700, fill: DARKINK });
       }
     }
     strip(10, 'WIND WITH CURRENT: waves stretched out, longer and lower', false);
