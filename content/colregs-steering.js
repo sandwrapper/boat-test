@@ -186,24 +186,25 @@
 
   // ---------- Illustration 8: the Rule 18 pecking order ----------
   function peckingLadder() {
-    const W = 480, H = 470, x0 = 24, bw = 300;
+    const W = 480, H = 530, x0 = 24, bw = 300, ix = x0 + bw - 18; // ix = icon column
     let g = rect(0, 0, W, H, PAPER2, 'none', { rx: 8 });
     g += txt(x0 + bw / 2, 22, 'Rule 18: who keeps out of the way of whom', { size: 14, weight: 700 });
-    const rung = (y, h, title, note, fill, stroke, dash) => rect(x0, y, bw, h, fill, stroke, { dash }) + txt(x0 + 12, y + 16, title, { size: 12.5, weight: 700, anchor: 'start' }) + txt(x0 + 12, y + h - 13, note, { size: 10.5, anchor: 'start', fill: INK2 });
     // top rung: NUC and RAM side by side (equal top tier, F65-F67)
-    g += rect(x0, 40, bw, 76, PAPER, INK) + txt(x0 + bw / 2, 54, 'HIGHEST PRIORITY', { size: 10, fill: MUTED, weight: 700 });
-    g += txt(x0 + 10, 72, 'Not under command', { size: 12, weight: 700, anchor: 'start' }) + txt(x0 + 10, 88, 'night: red over red', { size: 10.5, anchor: 'start', fill: INK2 }) + txt(x0 + 10, 102, 'day: two balls', { size: 10.5, anchor: 'start', fill: INK2 }) + lamp(x0 + 130, 84, C.red, 4) + lamp(x0 + 130, 98, C.red, 4);
-    g += line(x0 + 150, 48, x0 + 150, 108, LINE, 1);
-    g += txt(x0 + 160, 72, 'Restricted in ability', { size: 12, weight: 700, anchor: 'start' }) + txt(x0 + 160, 86, 'to manoeuvre', { size: 12, weight: 700, anchor: 'start' }) + txt(x0 + 160, 102, 'red-white-red / ball-diamond-ball', { size: 10, anchor: 'start', fill: INK2 }) + lamp(x0 + 288, 70, C.red, 4) + lamp(x0 + 288, 82, C.white, 4) + lamp(x0 + 288, 94, C.red, 4);
-    // CBD: a "do not impede" case, dashed (F68)
-    g += rung(124, 52, 'Constrained by her draught', 'everyone else avoids impeding her (Rule 18(d)) — three red lights / a cylinder', PAPER, INK2, '6 4') + lamp(x0 + 286, 136, C.red, 4) + lamp(x0 + 286, 148, C.red, 4) + lamp(x0 + 286, 160, C.red, 4);
-    g += rung(184, 52, 'Engaged in fishing', 'nets, lines, trawl that restrict manoeuvring (NOT trolling) — red over white / two cones', PAPER, INK) + lamp(x0 + 286, 198, C.red, 4) + lamp(x0 + 286, 212, C.white, 4);
-    g += rung(244, 52, 'Sailing vessel', 'under sail with the engine NOT in use', PAPER, INK) + boat(x0 + 282, 270, 0, 30, HULL, { sail: 1 });
-    g += rung(304, 52, 'Power-driven vessel', 'any vessel propelled by machinery, incl. a yacht motor-sailing', PAPER, INK) + boat(x0 + 282, 330, 0, 30, HULL, { power: true });
-    g += rect(x0, 366, bw, 34, 'none', INK2, { dash: '3 3' }) + txt(x0 + bw / 2, 383, 'Seaplane / WIG craft: keep well clear of everyone', { size: 11, fill: INK2 });
-    // side arrow
-    g += line(x0 + bw + 20, 350, x0 + bw + 20, 60, INK, 2.5) + head(x0 + bw + 20, 56, 0, INK, 10) + lines(x0 + bw + 32, 150, ['each rung', 'keeps out of', 'the way of', 'every rung', 'ABOVE it'], { size: 11.5, weight: 700, anchor: 'start', lh: 14 });
-    g += lines(x0 + bw + 32, 250, ['Overridden by:', 'Rule 13 overtaking,', 'Rule 9 narrow channel,', 'Rule 10 traffic lanes,', 'Norwegian Rules', '43 and 44 (small craft', 'keep clear of ferries', 'and commercial traffic', 'in confined waters)'], { size: 10.5, anchor: 'start', lh: 13, fill: INK2 });
+    g += rect(x0, 40, bw, 90, PAPER, INK) + txt(x0 + bw / 2, 52, 'HIGHEST PRIORITY', { size: 10, fill: MUTED, weight: 700 });
+    g += txt(x0 + 10, 70, 'Not under command', { size: 12, weight: 700, anchor: 'start' }) + lines(x0 + 10, 88, ['night: red over red', 'day: two balls'], { size: 10.5, anchor: 'start', fill: INK2, lh: 14 }) + lamp(x0 + 128, 94, C.red, 4) + lamp(x0 + 128, 108, C.red, 4);
+    g += line(x0 + 150, 48, x0 + 150, 122, LINE, 1);
+    g += lines(x0 + 160, 70, ['Restricted in ability', 'to manoeuvre'], { size: 12, weight: 700, anchor: 'start', lh: 14 }) + lines(x0 + 160, 102, ['red - white - red lights', 'ball - diamond - ball'], { size: 10.5, anchor: 'start', fill: INK2, lh: 14 }) + lamp(ix, 88, C.red, 4) + lamp(ix, 100, C.white, 4) + lamp(ix, 112, C.red, 4);
+    // lower rungs: title + two note lines + icon at the right
+    const rung = (y, title, n1, n2, icon, dash) => rect(x0, y, bw, 64, PAPER, dash ? INK2 : INK, { dash }) + txt(x0 + 10, y + 16, title, { size: 12.5, weight: 700, anchor: 'start' }) + lines(x0 + 10, y + 36, [n1, n2], { size: 10.5, anchor: 'start', fill: INK2, lh: 14 }) + icon;
+    g += rung(138, 'Constrained by her draught', 'everyone else avoids impeding her (18(d))', 'three red lights / a cylinder', lamp(ix, 152, C.red, 4) + lamp(ix, 164, C.red, 4) + lamp(ix, 176, C.red, 4), '6 4');
+    g += rung(210, 'Engaged in fishing', 'gear that restricts manoeuvring (not trolling)', 'red over white / two cones apex to apex', lamp(ix, 232, C.red, 4) + lamp(ix, 246, C.white, 4));
+    g += rung(282, 'Sailing vessel', 'under sail with the engine NOT in use', 'power-driven vessels keep clear of her', boat(ix, 314, 0, 30, HULL, { sail: 1 }));
+    g += rung(354, 'Power-driven vessel', 'any vessel propelled by machinery,', 'including a yacht that is motor-sailing', boat(ix, 386, 0, 30, HULL, { power: true }));
+    g += rect(x0, 426, bw, 34, 'none', INK2, { dash: '3 3' }) + txt(x0 + bw / 2, 443, 'Seaplane / WIG craft: keep well clear of everyone', { size: 11, fill: INK2 });
+    // side arrow and notes
+    const sx = x0 + bw + 20;
+    g += line(sx, 410, sx, 60, INK, 2.5) + head(sx, 56, 0, INK, 10) + lines(sx + 12, 150, ['each rung', 'keeps out of', 'the way of', 'every rung', 'ABOVE it'], { size: 11.5, weight: 700, anchor: 'start', lh: 14 });
+    g += lines(sx + 12, 250, ['Overridden by:', 'Rule 13 overtaking,', 'Rule 9 narrow', 'channel, Rule 10', 'traffic lanes, and', 'Norwegian Rules', '43 and 44 (small', 'craft keep clear of', 'ferries and ships', 'in confined waters)'], { size: 10.5, anchor: 'start', lh: 13, fill: INK2 });
     g += rect(0, H - 56, W, 56, PAPER, 'none', { rx: 0, opacity: .92 }) + caption(W / 2, H - 38, 'A vessel keeps out of the way of everything above her. Rowing boats and kayaks are vessels but have no rung: in Norway Rules 43 and 44 tell them to keep well clear; you still avoid them.', 92, { size: 11, lh: 13 });
     return S.svg(W, H, g, { label: 'Ladder of priority under Rule 18: not under command and restricted in ability to manoeuvre at the top, then constrained by draught, fishing, sailing, power-driven' });
   }
