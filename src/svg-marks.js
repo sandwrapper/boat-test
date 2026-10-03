@@ -342,3 +342,102 @@
     inner += `<rect x="${x0}" y="${Ht - 22}" width="12" height="12" fill="${LIGHT_COLOURS[colKey]}" stroke="${INK2}" stroke-width=".8"/>` + T(x0 + 18, Ht - 16, 'light on', { size: 11, anchor: 'start', fill: INK2 }) + `<rect x="${x0 + 80}" y="${Ht - 22}" width="12" height="12" fill="${C.night}"/>` + T(x0 + 98, Ht - 16, 'dark (eclipse)', { size: 11, anchor: 'start', fill: INK2 });
     return S.svg(Wd, Ht, inner, { label: `Light rhythm ${spec}: ${desc}; ${isCont ? 'continuous' : 'period ' + P + ' seconds'}; colour ${colKey}.` });
   }
+
+  /* ---------- sector lights ---------- */
+  function lighthouse(cx, cy, s) {
+    s = s || 1;
+    return `<g transform="translate(${cx},${cy}) scale(${s})"><rect x="-13" y="-6" width="26" height="24" fill="${W}" stroke="${INK}" stroke-width="1.2"/>` +
+      `<polygon points="-16,-6 16,-6 0,-22" fill="${R}" stroke="${INK}" stroke-width="1.2"/><rect x="-5" y="4" width="10" height="14" fill="${INK2}"/></g>`;
+  }
+  const SECTOR_PRESETS = {
+    /* angles are measured FROM THE LIGHT (0 = north, clockwise); the fairway runs south from the light so the boat heads north */
+    fairway: {
+      sectors: [[110, 170, 'G'], [170, 190, 'W'], [190, 250, 'R']],
+      boats: [{ a: 180, r: 320, label: ['on track in the WHITE sector', 'steer towards the light'] }],
+      ghosts: [{ a: 156, r: 300, label: ['too far to STARBOARD', 'you see GREEN — turn to port'] }, { a: 204, r: 300, label: ['too far to PORT', 'you see RED — turn to starboard'] }],
+      rocks: [[130, 150], [230, 150]], names: { W: 'WHITE = fairway' },
+    },
+    'two-fairways': {
+      sectors: [[110, 150, 'G'], [150, 170, 'W'], [170, 195, 'R'], [195, 220, 'G'], [220, 240, 'W'], [240, 290, 'R']],
+      boats: [{ a: 160, r: 330, label: ['fairway 1: heading for the light', 'red to port, green to starboard'] }, { a: 230, r: 330, label: ['fairway 2: heading for the light', 'red to port, green to starboard'] }],
+      ghosts: [], rocks: [[130, 150], [182, 170], [207, 150], [265, 150]], names: {},
+    },
+  };
+  /* sectorLight(opts) — plan view of a coast with a sector light; white = fairway, red/green = foul water. opts.preset: fairway | two-fairways */
+  function sectorLight(opts) {
+    opts = opts || {};
+    const preset = opts.preset || 'fairway';
+    const P = SECTOR_PRESETS[preset];
+    if (!P) throw bad('sectorLight preset', preset, Object.keys(SECTOR_PRESETS));
+    const Wd = 640, Ht = 560, lx = 320, ly = 118, RAD = 470;
+    const pt = (a, r) => [lx + r * Math.sin(deg(a)), ly - r * Math.cos(deg(a))];
+    let inner = `<rect width="${Wd}" height="${Ht}" fill="${SHALLOW}" rx="8"/>`;
+    /* sectors on the water (white drawn pale yellow, as on multicoloured charts) */
+    P.sectors.forEach(([a1, a2, c]) => { inner += c === 'W' ? S.sector(lx, ly, RAD, a1, a2, Y, .28) : S.sector(lx, ly, RAD, a1, a2, c === 'R' ? R : G, .32); });
+    /* sector limits with true bearings FROM THE SEA towards the light (= angle from the light + 180) */
+    const limits = []; P.sectors.forEach(s => { if (!limits.includes(s[0])) limits.push(s[0]); if (!limits.includes(s[1])) limits.push(s[1]); });
+    limits.forEach(a => {
+      const [x, y] = pt(a, RAD); inner += `<line x1="${lx}" y1="${ly}" x2="${fx(x)}" y2="${fx(y)}" stroke="${INK2}" stroke-width="1" stroke-dasharray="5 4" opacity=".8"/>`;
+      const [tx, ty] = pt(a, 408); inner += `<rect x="${fx(tx - 19)}" y="${fx(ty - 8)}" width="38" height="16" rx="3" fill="${PAPER}" opacity=".85"/>` + T(tx, ty, `${String(((a + 180) % 360)).padStart(3, '0')}°`, { size: 11.5, weight: 700 });
+    });
+    /* sector names */
+    P.sectors.forEach(([a1, a2, c]) => {
+      const [x, y] = pt((a1 + a2) / 2, c === 'W' ? 225 : 170);
+      const nm = c === 'W' ? (P.names.W || 'WHITE') : c === 'R' ? 'RED' : 'GREEN';
+      inner += T(x, y, nm, { size: c === 'W' ? 12 : 13, weight: 800, fill: c === 'W' ? INK : c === 'R' ? R : G }) + (c !== 'W' ? T(x, y + 15, 'foul water', { size: 11, fill: INK2 }) : '');
+    });
+    /* rocks inside the coloured sectors */
+    P.rocks.forEach(([a, r]) => { const [x, y] = pt(a, r); inner += rockBlob(x, y, 12, MUTED) + `<g stroke="${INK}" stroke-width="2"><line x1="${fx(x - 5)}" y1="${fx(y)}" x2="${fx(x + 5)}" y2="${fx(y)}"/><line x1="${fx(x)}" y1="${fx(y - 5)}" x2="${fx(x)}" y2="${fx(y + 5)}"/></g>`; });
+    /* land and the light */
+    inner += `<path d="M0,0 H${Wd} V70 Q560,95 480,100 Q400,105 360,122 Q320,140 280,122 Q240,105 160,100 Q80,95 0,70 Z" fill="${PAPER2}" stroke="${LINE}" stroke-width="1.5"/>`;
+    inner += `<circle cx="${lx}" cy="${ly}" r="5" fill="${INK}"/>` + lighthouse(lx, ly - 24, 1.1) + T(lx, 36, 'sector light (fyrlykt)', { size: 13, weight: 700 });
+    inner += T(lx, 54, 'Fl WRG 4s 21m 18-12M', { size: 12, fill: INK2 });
+    /* boats */
+    P.boats.forEach(b => { const [x, y] = pt(b.a, b.r); inner += boatPlan(x, y, (b.a + 180) % 360, 40); inner += T(x, y + 36, b.label[0], { size: 11.5, weight: 700 }) + T(x, y + 50, b.label[1], { size: 11 }); });
+    P.ghosts.forEach(b => { const [x, y] = pt(b.a, b.r); inner += `<g opacity=".75">${boatPlan(x, y, (b.a + 180) % 360, 36)}</g>`; inner += T(x, y + 34, b.label[0], { size: 11.5, weight: 700 }) + T(x, y + 48, b.label[1], { size: 11 }); });
+    inner += `<rect x="40" y="${Ht - 50}" width="${Wd - 80}" height="42" rx="6" fill="${PAPER}" opacity=".9"/>`;
+    inner += T(Wd / 2, Ht - 36, 'Heading TOWARDS the light in white: RED lies to PORT, GREEN to STARBOARD (IALA; all Norwegian sector lights since Nov 2025).', { size: 11.5, weight: 600 });
+    inner += T(Wd / 2, Ht - 20, 'Sector limits are true bearings from the sea towards the light. Shoals can still lie inside a white sector — check the chart.', { size: 11, fill: INK2 });
+    return S.svg(Wd, Ht, inner, { label: `Sector light plan view (${preset}): white sector marks the fairway; for a boat heading towards the light the red sector is on its port side and the green sector on its starboard side; red and green mean foul water. Sector limits given as true bearings from the sea.` });
+  }
+
+  /* leadingLine() — two leading marks in transit, with a boat on and off the line. */
+  function leadingLine() {
+    const Wd = 640, Ht = 520;
+    let inner = title(Wd, 22, 'Leading line (overett): two marks in line = you are on the track', 16);
+    const win = (x, y, w, h, offset, cap1, cap2, good) => {
+      let s = `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${PAPER}" stroke="${good ? C.green : LINE}" stroke-width="${good ? 2.5 : 1.2}"/>`;
+      const hz = y + h - 56, cx = x + w / 2;
+      s += `<path d="M${x + 4},${hz} Q${x + w * .3},${hz - 26} ${x + w * .55},${hz - 18} Q${x + w * .8},${hz - 10} ${x + w - 4},${hz - 20} V${hz} Z" fill="${PAPER2}"/>`;
+      s += `<rect x="${x + 4}" y="${hz}" width="${w - 8}" height="${y + h - hz - 4}" fill="${SHALLOW}"/>`;
+      /* front mark: lower, triangle apex UP; rear mark: higher, apex DOWN, displaced by offset */
+      const fxm = cx, rxm = cx + offset;
+      s += `<line x1="${rxm}" y1="${hz - 10}" x2="${rxm}" y2="${hz - 84}" stroke="${INK}" stroke-width="2"/>` + cone(rxm, hz - 56, 26, 28, false, R, `stroke="${INK}" stroke-width="1"`);
+      s += `<line x1="${fxm}" y1="${hz + 8}" x2="${fxm}" y2="${hz - 40}" stroke="${INK}" stroke-width="2.5"/>` + cone(fxm, hz - 12, 30, 30, true, R, `stroke="${INK}" stroke-width="1"`);
+      s += T(cx, y + h - 34, cap1, { size: 12, weight: 700, fill: good ? C.green : INK }) + T(cx, y + h - 18, cap2, { size: 11.5 });
+      return s;
+    };
+    inner += win(16, 40, 196, 186, 0, 'ON the line', 'rear mark exactly above front mark', true);
+    inner += win(222, 40, 196, 186, -30, 'You are LEFT of the line', 'rear mark appears LEFT → steer RIGHT', false);
+    inner += win(428, 40, 196, 186, 30, 'You are RIGHT of the line', 'rear mark appears RIGHT → steer LEFT', false);
+    inner += note(107, 70, 'rear mark', { size: 11, fill: MUTED }) + note(107, 86, '(higher, apex down)', { size: 11, fill: MUTED });
+    /* plan view */
+    const py = 245; inner += `<rect x="330" y="${py}" width="294" height="${Ht - py - 12}" rx="6" fill="${SHALLOW}"/>`;
+    inner += `<path d="M420,${py} H624 V${py + 130} Q560,${py + 120} 520,${py + 95} Q470,${py + 70} 440,${py + 60} Q400,${py + 40} 420,${py} Z" fill="${PAPER2}" stroke="${LINE}" stroke-width="1.2"/>`;
+    const brg = 25.5, F = [482, py + 72], Rm = [F[0] + 50 * Math.sin(deg(brg)), F[1] - 50 * Math.cos(deg(brg))];
+    const seaEnd = [F[0] - 215 * Math.sin(deg(brg)), F[1] + 215 * Math.cos(deg(brg))];
+    inner += `<line x1="${fx(F[0])}" y1="${fx(F[1])}" x2="${fx(seaEnd[0])}" y2="${fx(seaEnd[1])}" stroke="${INK}" stroke-width="2"/>`;
+    inner += `<line x1="${fx(F[0])}" y1="${fx(F[1])}" x2="${fx(Rm[0] + 20 * Math.sin(deg(brg)))}" y2="${fx(Rm[1] - 20 * Math.cos(deg(brg)))}" stroke="${INK}" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    [F, Rm].forEach((m, i) => { inner += `<circle cx="${fx(m[0])}" cy="${fx(m[1])}" r="5" fill="${R}" stroke="${INK}" stroke-width="1"/>` + T(m[0] + 14, m[1] + (i ? -4 : 6), i ? 'rear' : 'front', { size: 11, anchor: 'start' }); });
+    const bOn = [F[0] - 120 * Math.sin(deg(brg)), F[1] + 120 * Math.cos(deg(brg))];
+    inner += boatPlan(bOn[0], bOn[1], brg, 36) + T(bOn[0] - 24, bOn[1] + 4, 'on the line', { size: 11, weight: 700, anchor: 'end' });
+    const bOff = [bOn[0] + 72, bOn[1] + 40];
+    inner += `<g opacity=".8">${boatPlan(bOff[0], bOff[1], brg, 34)}</g>` + T(bOff[0] + 4, bOff[1] + 36, 'right of the line', { size: 11, weight: 700 }) + T(bOff[0] + 4, bOff[1] + 50, 'rear appears right → steer left', { size: 11 });
+    const mid = [F[0] - 190 * Math.sin(deg(brg)), F[1] + 190 * Math.cos(deg(brg))];
+    inner += `<rect x="${fx(mid[0] - 46)}" y="${fx(mid[1] - 9)}" width="92" height="18" rx="3" fill="${PAPER}"/>` + T(mid[0], mid[1], 'Ldg 025.5°', { size: 12, weight: 700, fill: MAGENTA });
+    /* explanation */
+    const ex = 24, ey = py + 20;
+    inner += T(ex, ey, 'Why the rear mark shows where you are', { size: 13, weight: 700, anchor: 'start' });
+    ['The front (nearer) mark swings across your view', 'faster than the distant rear mark, so the rear', 'mark appears displaced towards the side YOU are on.', '', 'Steer from the rear mark towards the front mark', 'until they line up again.', '', 'On the chart the line is drawn solid where it is', 'the track to follow and dashed beyond; the bearing', 'is given in degrees true towards the marks (Ldg 025.5°).', '', 'Daymarks: front triangle apex UP, rear triangle apex', 'DOWN; the rear mark is always the higher one.'].forEach((l, i) => { if (l) inner += T(ex, ey + 22 + i * 17, l, { size: 11.5, anchor: 'start', fill: INK2 }); });
+    return S.svg(Wd, Ht, inner, { label: 'Leading line: when the rear (higher, apex-down) mark is exactly above the front (lower, apex-up) mark you are on the line. Rear mark appearing left means you are left of the line, steer right; rear mark appearing right means you are right, steer left. Plan view shows the charted leading line Ldg 025.5 degrees, solid in the fairway and dashed beyond, with a boat on and a boat off the line.' });
+  }

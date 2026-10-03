@@ -1,7 +1,8 @@
 /* Validate ONE content file (or the illustration library) in a headless browser without touching dist/.
    Usage: node test/check-topic.js <slug>            -> loads src/*.js + content/<slug>.js, validates
           node test/check-topic.js <slug> --shots DIR -> also renders every illustration in the topic to DIR/*.png
-          node test/check-topic.js --gallery DIR      -> renders every BOAT_SVG.gallery entry to DIR/*.png */
+          node test/check-topic.js --gallery DIR      -> renders every BOAT_SVG.gallery entry to DIR/*.png
+          add --filter '<regex>' to render only gallery entries whose name matches; --dark for the dark theme */
 const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
@@ -11,6 +12,7 @@ const slug = args[0] && !args[0].startsWith('--') ? args[0] : null;
 const shotsDir = args.includes('--shots') ? args[args.indexOf('--shots') + 1] : null;
 const galleryDir = args.includes('--gallery') ? args[args.indexOf('--gallery') + 1] : null;
 const dark = args.includes('--dark');
+const filter = args.includes('--filter') ? new RegExp(args[args.indexOf('--filter') + 1]) : null;
 
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const srcFiles = [...indexHtml.matchAll(/<script src="(src\/[^"]+)"><\/script>/g)].map(m => m[1]).filter(f => fs.existsSync(path.join(root, f)));
@@ -94,7 +96,7 @@ fs.writeFileSync(tmp, html);
     // trainers too
     for (const id of report.trainers) { await page.evaluate(h => { location.hash = h; }, '#trainer.' + id); await page.waitForTimeout(300); await page.screenshot({ path: path.join(shotsDir, '_trainer-' + id + '.png'), fullPage: true }); }
   }
-  if (galleryDir) await renderAll(report.gallery, galleryDir);
+  if (galleryDir) await renderAll(filter ? report.gallery.filter(g => filter.test(g.name)) : report.gallery, galleryDir);
   await browser.close();
   fs.unlinkSync(tmp);
   const summary = { topic: report.topic, galleryEntries: report.gallery.length, trainers: report.trainers, problems: report.problems, errors };
