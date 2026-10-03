@@ -200,7 +200,7 @@
         s += label(cx + 10, cy + L / 2 + 108, 'boat moves astern', 10, { anchor: 'start', fill: MUTED });
       } else {
         s += arrow(cx + B / 2 + 4, cy + 70, cx + B / 2 + 40, cy + 70, { color: MUTED, width: 2.5, head: 9 });
-        s += lines(cx + B / 2 + 22, cy + 92, ['stern walks slightly', 'to starboard (small)'], 10, { fill: MUTED }, 12);
+        s += lines(cx + B / 2 + 8, cy + 92, ['stern walks slightly', 'to starboard (small)'], 10, { fill: MUTED, anchor: 'start' }, 12);
         s += arrow(cx, cy - L / 2 - 8, cx, cy - L / 2 - 36, { color: MUTED, width: 2 });
         s += label(cx + 8, cy - L / 2 - 22, 'boat moves ahead', 10, { anchor: 'start', fill: MUTED });
       }
@@ -229,37 +229,42 @@
     function panel(x0, title, offQuay) {
       let s = label(x0 + 160, 20, title, 13, { weight: 700 });
       s += `<rect x="${x0 + 8}" y="236" width="304" height="26" fill="${QUAY}"/>` + label(x0 + 160, 249, 'QUAY', 11, { fill: '#fff3e0', weight: 700 });
-      // wind arrows
-      for (let i = 0; i < 3; i++) {
-        const wx = x0 + 230 + i * 30;
-        s += offQuay ? arrow(wx, 225, wx, 170, { color: '#3b82c4', width: 2, head: 8 }) : arrow(wx, 60, wx, 115, { color: '#3b82c4', width: 2, head: 8 });
-      }
-      s += label(x0 + 260, offQuay ? 158 : 50, 'WIND', 11, { fill: '#3b82c4', weight: 700 });
       if (offQuay) {
-        // boat bow pointing down-left at about 40 degrees to the quay; bow near the quay
-        const cx = x0 + 150, cy = 150;
-        s += boatTop(cx, cy, 130, 46, { rot: 180 + 40, console: true });
-        // fenders on quay side (the port side faces the quay when heading down-left... bow down-left: starboard faces down-right; quay is below -> port side? bow points down-left => the hull's left side (port) faces up-left, starboard faces down-right. Fenders on starboard (lower) side.)
-        [[-20, 18], [8, 42], [36, 66]].forEach(([dx, dy]) => { s += `<ellipse cx="${cx + dx - 36}" cy="${cy + dy - 10}" rx="4" ry="7" fill="${C.orange}" transform="rotate(40 ${cx + dx - 36} ${cy + dy - 10})"/>`; });
-        // angle arc at the bow
-        const bx = cx - 65 * Math.sin(S.deg(40)) , by = cy + 65 * Math.cos(S.deg(40));
-        s += `<path d="M${(bx - 40).toFixed(1)},${(by + 3).toFixed(1)} A40,40 0 0 1 ${(bx - 40 * Math.cos(S.deg(40))).toFixed(1)},${(by + 3 - 40 * Math.sin(S.deg(40))).toFixed(1)}" fill="none" stroke="${C.red}" stroke-width="1.5"/>`;
-        s += `<line x1="${(bx - 60).toFixed(1)}" y1="${(by + 3).toFixed(1)}" x2="${(bx + 20).toFixed(1)}" y2="${(by + 3).toFixed(1)}" stroke="${C.red}" stroke-width="1" stroke-dasharray="3 3"/>`;
-        s += label(bx - 56, by - 26, '30–45°', 11, { fill: C.red, weight: 700 });
-        // bow line to quay
-        s += `<line x1="${(bx + 2).toFixed(1)}" y1="${(by + 2).toFixed(1)}" x2="${x0 + 40}" y2="238" stroke="${C.orange}" stroke-width="2"/>`;
-        s += badge(x0 + 40, 90, '1') + label(x0 + 56, 90, 'dead slow, short bursts in gear', 10, { anchor: 'start' });
-        s += badge(x0 + 40, 110, '2') + label(x0 + 56, 110, 'bow line ashore FIRST', 10, { anchor: 'start' });
-        s += badge(x0 + 40, 130, '3') + label(x0 + 56, 130, 'helm toward quay, touch of ahead:', 10, { anchor: 'start' }) + label(x0 + 72, 143, 'the stern swings in', 10, { anchor: 'start' });
-        s += badge(x0 + 40, 163, '4') + label(x0 + 56, 163, 'stern line', 10, { anchor: 'start' });
+        // wind arrows pointing away from the quay (up), on the right of the panel
+        for (let i = 0; i < 3; i++) { const wx = x0 + 240 + i * 28; s += arrow(wx, 226, wx, 176, { color: '#3b82c4', width: 2, head: 8 }); }
+        s += label(x0 + 268, 164, 'WIND', 11, { fill: '#3b82c4', weight: 700 });
+        // boat heading down-left at 40 degrees to the quay; bow touching the quay at (bx, by)
+        const rot = 220, bx = x0 + 120, by = 232, L = 130, B = 46;
+        const bd = [-Math.sin(S.deg(40)), Math.cos(S.deg(40))];          // unit vector bow direction (down-left)
+        const pd = [Math.cos(S.deg(40)), Math.sin(S.deg(40))];           // unit vector towards the quay-facing (port) side
+        const cx = bx - bd[0] * L / 2, cy = by - bd[1] * L / 2;
+        s += boatTop(cx, cy, L, B, { rot: rot, console: true });
+        [-32, 0, 32].forEach(t => { const fx = cx + bd[0] * t + pd[0] * (B / 2 + 3), fy = cy + bd[1] * t + pd[1] * (B / 2 + 3); s += `<ellipse cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" rx="4" ry="7" fill="${C.orange}" transform="rotate(40 ${fx.toFixed(1)} ${fy.toFixed(1)})"/>`; });
+        // angle between hull centreline and quay edge, drawn at the bow
+        s += `<line x1="${bx}" y1="${by}" x2="${bx + 90}" y2="${by}" stroke="${C.red}" stroke-width="1" stroke-dasharray="3 3"/>`;
+        s += `<line x1="${bx}" y1="${by}" x2="${(bx - bd[0] * 80).toFixed(1)}" y2="${(by - bd[1] * 80).toFixed(1)}" stroke="${C.red}" stroke-width="1" stroke-dasharray="3 3"/>`;
+        s += `<path d="M${bx + 48},${by} A48,48 0 0 0 ${(bx + 48 * Math.cos(S.deg(40))).toFixed(1)},${(by - 48 * Math.sin(S.deg(40))).toFixed(1)}" fill="none" stroke="${C.red}" stroke-width="1.5"/>`;
+        s += label(bx + 62, by - 14, '30–45°', 11, { fill: C.red, weight: 700, anchor: 'start' });
+        // bow line to the quay
+        s += `<line x1="${bx}" y1="${by - 2}" x2="${x0 + 48}" y2="240" stroke="${C.orange}" stroke-width="2.5"/>`;
+        s += badge(x0 + 28, 48, '1') + label(x0 + 44, 48, 'dead slow, short bursts in gear', 10, { anchor: 'start' });
+        s += badge(x0 + 28, 68, '2') + label(x0 + 44, 68, 'bow line ashore FIRST', 10, { anchor: 'start' });
+        s += badge(x0 + 28, 88, '3') + label(x0 + 44, 88, 'helm toward quay, touch of ahead:', 10, { anchor: 'start' }) + label(x0 + 60, 101, 'the stern swings in', 10, { anchor: 'start' });
+        s += badge(x0 + 28, 121, '4') + label(x0 + 44, 121, 'stern line', 10, { anchor: 'start' });
         s += label(x0 + 160, 290, 'Steep angle so the bow reaches the quay before the wind blows it off.', 10, { fill: MUTED });
       } else {
-        const cx = x0 + 150, cy = 150;
-        s += boatTop(cx, cy, 130, 46, { rot: 270 - 12, console: true });
-        [[-40, 0], [0, 0], [40, 0]].forEach(([dx]) => { s += `<ellipse cx="${cx + dx}" cy="${cy + 26 + dx * 0.21}" rx="4" ry="7" fill="${C.orange}" transform="rotate(-12 ${cx + dx} ${cy + 26 + dx * 0.21})"/>`; });
-        for (let i = 0; i < 3; i++) { const wx = cx - 50 + i * 50; s += arrow(wx, cy + 40, wx, cy + 76, { color: '#3b82c4', width: 1.5, head: 7, dash: '4 3' }); }
-        s += label(cx, cy - 46, 'stop about one boat-width off, nearly parallel (10–15°)', 10, {});
-        s += label(cx, cy + 92, 'the wind sets you gently onto the fenders', 10, { fill: '#3b82c4' });
+        // wind arrows pointing towards the quay (down), top-right corner
+        for (let i = 0; i < 3; i++) { const wx = x0 + 240 + i * 28; s += arrow(wx, 50, wx, 100, { color: '#3b82c4', width: 2, head: 8 }); }
+        s += label(x0 + 268, 40, 'WIND', 11, { fill: '#3b82c4', weight: 700 });
+        // boat nearly parallel, bow pointing left and slightly towards the quay (12 degrees)
+        const rot = 282, cx = x0 + 150, cy = 158, L = 130, B = 46;
+        const bd = [Math.sin(S.deg(rot)), -Math.cos(S.deg(rot))];
+        const pd = [-Math.cos(S.deg(rot)), -Math.sin(S.deg(rot))];        // port side faces the quay
+        s += boatTop(cx, cy, L, B, { rot: rot, console: true });
+        [-40, 0, 40].forEach(t => { const fx = cx + bd[0] * t + pd[0] * (B / 2 + 3), fy = cy + bd[1] * t + pd[1] * (B / 2 + 3); s += `<ellipse cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" rx="4" ry="7" fill="${C.orange}" transform="rotate(${rot} ${fx.toFixed(1)} ${fy.toFixed(1)})"/>`; });
+        for (let i = 0; i < 3; i++) { const wx = cx - 50 + i * 50; s += arrow(wx, cy + 36, wx, cy + 56, { color: '#3b82c4', width: 1.5, head: 7, dash: '4 3' }); }
+        s += label(cx, 118, 'stop about one boat-width off, nearly parallel (10–15°)', 10, {});
+        s += label(cx, cy + 66, 'the wind sets you gently onto the fenders', 10, { fill: '#3b82c4' });
         s += label(x0 + 160, 290, 'Stop short and let the wind do the last metre. Fenders out early.', 10, { fill: MUTED });
       }
       return s;
@@ -296,7 +301,6 @@
       s += label(320, 60, 'Bow line stops movement astern, stern line stops movement ahead,', 10, { fill: MUTED });
       s += label(320, 74, 'springs cross and stop surging fore and aft, breast lines stop sideways movement.', 10, { fill: MUTED });
     }
-    s += wind(560, 100, 560, 140, 'tide / waves: leave slack', { dy: -52, anchor: 'middle' });
     return S.svg(640, 290, s, { label: 'Mooring lines alongside a quay' });
   }
 
@@ -331,8 +335,8 @@
     s += anchorIcon(74, 270, 5, 1.1);
     s += label(135, 292, '5–8 m chain next to the anchor', 10, { fill: '#fff3e0', weight: 700 });
     s += label(330, 292, 'pull on the anchor stays nearly horizontal — it digs in', 10, { fill: '#fff3e0' });
-    s += label(250, 168, 'RODE LENGTH ~ 5 x D', 13, { weight: 800, fill: C.orange });
-    s += label(250, 186, '(3 x for all-chain in calm weather; 7–10 x in strong wind or poor holding)', 10, { fill: INK });
+    s += label(210, 150, 'RODE LENGTH ~ 5 x D', 13, { weight: 800, fill: C.orange });
+    s += label(210, 168, '(3 x for all-chain in calm weather;', 10, { fill: INK }) + label(210, 181, '7–10 x in strong wind or poor holding)', 10, { fill: INK });
     // depth arrow
     s += arrow(392, surf + 2, 392, bed - 2, { both: true, width: 1.5, head: 8 });
     s += lines(400, 196, ['DEPTH D', 'from bow roller to seabed', '(charted depth + freeboard', '+ rise of tide)'], 10, { anchor: 'start', weight: 600 }, 13);
@@ -342,8 +346,8 @@
     s += `<path d="M170,44 L176,34 L214,34 L220,44 Z" fill="${HULL}" stroke="${HULL_STROKE}"/>`;
     s += `<line x1="176" y1="44" x2="128" y2="92" stroke="${C.orange}" stroke-width="2.5"/>`;
     s += anchorIcon(112, 92, -40, 0.7);
-    s += `<path d="M94,70 L110,86 M110,70 L94,86" stroke="${C.red}" stroke-width="3"/>`;
-    s += lines(60, 56, ['WRONG: scope too short,', 'steep pull lifts the anchor', 'and it drags'], 9, { anchor: 'start', fill: C.red, weight: 700 }, 11);
+    s += `<path d="M138,78 L152,92 M152,78 L138,92" stroke="${C.red}" stroke-width="3"/>`;
+    s += lines(30, 54, ['WRONG: scope too short,', 'steep pull lifts the anchor', 'and it drags'], 9, { anchor: 'start', fill: C.red, weight: 700 }, 11);
     return S.svg(640, 340, s, { label: 'Anchoring: scope, chain, depth, anchor light and transit check' });
   }
 
@@ -361,10 +365,10 @@
       const ax = bx - dx;
       s += `<path d="M${bx},${surf} Q${(bx + ax) / 2},${bed + (dx > 60 ? 10 : 0)} ${ax},${bed - 2}" fill="none" stroke="${C.orange}" stroke-width="2.5"/>`;
       s += anchorIcon(ax - 18, bed, dx > 60 ? 5 : -35, 0.7);
-      s += badge(x0 + 24, 22, n);
+      s += badge(x0 + 24, 40, n);
       s += label(x0 + 106, 190, sub, 10, { fill: MUTED });
     });
-    s += label(320, 44, 'Same depth, rope-and-chain rode, light wind. Which boat has paid out a correct scope?', 11, { weight: 700 });
+    s += label(320, 16, 'Same depth, rope-and-chain rode, light wind. Which boat has paid out a correct scope?', 11, { weight: 700 });
     return S.svg(640, 205, s, { label: 'Three anchored boats with different scope' });
   }
 
@@ -377,7 +381,7 @@
     // bridle from the two stern cleats meeting one beam aft
     s += cleat(cx - 22, 160) + cleat(cx + 22, 160);
     s += `<path d="M${cx - 22},162 L${cx},218 L${cx + 22},162" fill="none" stroke="${C.orange}" stroke-width="3" stroke-linejoin="round"/>`;
-    s += label(cx + 36, 190, 'bridle between both stern cleats', 10, { anchor: 'start' }) + label(cx + 36, 203, '(centres the pull; the tug can still steer)', 10, { anchor: 'start', fill: MUTED });
+    s += lines(cx + 36, 184, ['bridle between', 'both stern cleats', '(centres the pull)'], 10, { anchor: 'start' }, 12);
     // towline with sag
     s += `<path d="M${cx},218 Q${cx + 14},270 ${cx},322" fill="none" stroke="${C.orange}" stroke-width="3"/>`;
     s += `<rect x="${cx - 36}" y="160" width="72" height="166" fill="${C.red}" opacity=".12"/>`;
@@ -394,15 +398,15 @@
     // night inset
     s += `<rect x="420" y="20" width="210" height="440" rx="10" fill="${C.night}"/>`;
     s += label(525, 38, 'At night (Rule 24, schematic)', 10, { fill: '#e8eef5', weight: 700 });
-    s += `<path d="${boatPath(525, 120, 120, 44)}" fill="#1f2d3d" stroke="#56708a" stroke-width="1.5"/>`;
-    s += lamp(525, 98, C.white, 5) + lamp(525, 118, C.white, 5);
-    s += label(548, 108, '2 masthead lights', 9, { fill: '#e8eef5', anchor: 'start' }) + label(548, 120, 'in a vertical line', 9, { fill: '#e8eef5', anchor: 'start' });
-    s += lamp(506, 128, C.red, 4) + lamp(544, 128, C.green, 4);
-    s += lamp(525, 162, C.yellow, 5) + lamp(525, 178, C.white, 5);
-    s += label(548, 162, 'YELLOW towing light', 9, { fill: C.yellow, anchor: 'start', weight: 700 }) + label(548, 178, 'above the sternlight', 9, { fill: '#e8eef5', anchor: 'start' });
-    s += `<line x1="525" y1="186" x2="525" y2="300" stroke="#9aa9b8" stroke-width="2"/>`;
-    s += `<path d="${boatPath(525, 350, 100, 40)}" fill="#1f2d3d" stroke="#56708a" stroke-width="1.5"/>`;
-    s += lamp(507, 352, C.red, 4) + lamp(543, 352, C.green, 4) + lamp(525, 398, C.white, 5);
+    s += `<path d="${boatPath(500, 120, 120, 44)}" fill="#1f2d3d" stroke="#56708a" stroke-width="1.5"/>`;
+    s += lamp(500, 98, C.white, 5) + lamp(500, 118, C.white, 5);
+    s += label(524, 100, '2 masthead lights', 9, { fill: '#e8eef5', anchor: 'start' }) + label(524, 112, 'in a vertical line', 9, { fill: '#e8eef5', anchor: 'start' });
+    s += lamp(481, 130, C.red, 4) + lamp(519, 130, C.green, 4);
+    s += lamp(500, 162, C.yellow, 5) + lamp(500, 178, C.white, 5);
+    s += label(524, 162, 'YELLOW towing light', 9, { fill: C.yellow, anchor: 'start', weight: 700 }) + label(524, 178, 'above the sternlight', 9, { fill: '#e8eef5', anchor: 'start' });
+    s += `<line x1="500" y1="186" x2="500" y2="300" stroke="#9aa9b8" stroke-width="2"/>`;
+    s += `<path d="${boatPath(500, 350, 100, 40)}" fill="#1f2d3d" stroke="#56708a" stroke-width="1.5"/>`;
+    s += lamp(482, 352, C.red, 4) + lamp(518, 352, C.green, 4) + lamp(500, 398, C.white, 5);
     s += label(525, 420, 'towed boat: sidelights + sternlight', 9, { fill: '#e8eef5' });
     s += label(525, 440, '3 masthead lights if tow > 200 m', 9, { fill: '#9aa9b8' });
     return S.svg(640, 475, s, { label: 'Towing arrangement with bridle, towline and Rule 24 lights' });
@@ -422,9 +426,9 @@
     s += boatTop(250, 110, 56, 22, { rot: 80, console: false });
     s += label(250, 136, '5 kn', 10, { weight: 700 });
     // fast boat outside, with wake
-    s += boatTop(90, 80, 70, 26, { rot: 95, console: false });
-    s += `<path d="M58,72 l-30,-16 M58,88 l-30,16" stroke="${WATER}" stroke-width="2"/>`;
-    s += label(90, 110, 'keep speed and wash down near the shore', 10, { fill: MUTED });
+    s += boatTop(110, 80, 70, 26, { rot: 95, console: false });
+    s += `<path d="M78,72 l-30,-16 M78,88 l-30,16" stroke="${WATER}" stroke-width="2"/>`;
+    s += label(110, 112, 'keep speed and wash down', 10, { fill: MUTED }) + label(110, 125, 'near the shore', 10, { fill: MUTED });
     // skier
     s += boatTop(540, 70, 70, 26, { rot: 100, console: false });
     s += `<line x1="505" y1="72" x2="430" y2="90" stroke="${C.orange}" stroke-width="2"/>` + dot(424, 92, 6, '#f1c27d');
@@ -608,23 +612,23 @@
         id: 'mooring-knots',
         title: 'Mooring lines, fenders and the knots you need',
         html: `
-<p>A boat alongside a quay moves in three ways: fore and aft along the quay, away from it, and up and down with tide and waves. Each movement has a line that stops it, and the exam asks you to name them.</p>
+<p>A boat alongside a quay moves fore and aft, away from the quay, and up and down with tide and waves. Each movement has a line that stops it, and the exam asks you to name them.</p>
 <ul>
 <li>The <strong>bow line</strong> runs from the bow forward to the quay and stops the boat moving astern. The <strong>stern line</strong> runs from the stern aft and stops movement ahead.</li>
-<li><strong>Springs</strong> run diagonally along the boat: the fore spring from the bow cleat aft, the aft spring from the stern cleat forward. They cross and stop the boat <strong>surging fore and aft</strong>. Bow line, stern line and two springs is the standard arrangement.</li>
-<li><strong>Breast lines</strong> run at right angles to the quay and stop sideways movement; they are optional and must be slack where the water level changes.</li>
+<li><strong>Springs</strong> run diagonally: the fore spring from the bow cleat aft, the aft spring from the stern cleat forward. They cross and stop the boat <strong>surging fore and aft</strong>. Bow line, stern line and two springs is the standard set.</li>
+<li><strong>Breast lines</strong> run at right angles to the quay and stop sideways movement; optional, and slack where the water level changes.</li>
 </ul>
-<p>Where tidal range or wave action is significant, use <strong>long lines and leave slack</strong>, or a falling tide leaves the boat hanging and a rising one tears out the cleats. Hang <strong>fenders</strong> between hull and quay at the bow, midships and stern.</p>
+<p>Where tide or waves move the boat, use <strong>long lines and leave slack</strong>, or a falling tide leaves the boat hanging and a rising one tears out the cleats.</p>
 <div class="table-wrap"><table><thead><tr><th>Knot</th><th>Use</th><th>Why</th></tr></thead><tbody>
-<tr><td><strong>Bowline</strong></td><td>Fixed loop over a bollard or through a ring; two bowlines join lines</td><td>Does not slip, easy to untie after load; cannot be tied or untied under load</td></tr>
-<tr><td><strong>Round turn and two half hitches</strong></td><td>Line to a ring, post or rail</td><td>The round turn takes the strain, so it can be tied and released under load</td></tr>
+<tr><td><strong>Bowline</strong></td><td>Fixed loop over a bollard or through a ring</td><td>Does not slip, easy to untie after load; cannot be tied or untied under load</td></tr>
+<tr><td><strong>Round turn and two half hitches</strong></td><td>Line to a ring, post or rail</td><td>The round turn takes the strain: can be tied and released under load</td></tr>
 <tr><td><strong>Cleat hitch</strong></td><td>Line on a cleat</td><td>One full turn round the base, one or two figure-eights, one locking hitch</td></tr>
-<tr><td><strong>Clove hitch</strong></td><td>Hanging fenders, temporary</td><td>Quick and adjustable but can slip; back it up with a half hitch</td></tr>
-<tr><td><strong>Sheet bend</strong></td><td>Joining two ropes, also of different thickness</td><td>Thicker rope forms the bight; tails on the same side; double it for slippery rope</td></tr>
-<tr><td><strong>Figure-eight</strong></td><td>Stopper in the end of a line</td><td>Will not jam, unlike an overhand knot</td></tr>
+<tr><td><strong>Clove hitch</strong></td><td>Hanging fenders, temporary</td><td>Quick but can slip; back it up with a half hitch</td></tr>
+<tr><td><strong>Sheet bend</strong></td><td>Joining two ropes, also of different thickness</td><td>Thicker rope forms the bight; tails on the same side</td></tr>
+<tr><td><strong>Figure-eight</strong></td><td>Stopper in the end of a line</td><td>Will not jam</td></tr>
 </tbody></table></div>
-<div class="callout warn"><p>The <strong>reef (square) knot</strong> is a binding knot for sail covers and reefing. Never use it to join two ropes under load: it capsizes and slips. Join with a sheet bend or two bowlines.</p></div>
-<p>Rope: <strong>nylon</strong> stretches and absorbs shocks (anchor rode, mooring lines in surge); <strong>polyester</strong> has little stretch and resists sun and chafe (sheets, halyards, marina lines); <strong>polypropylene</strong> floats but is weak and degrades in sunlight (heaving lines, ski lines, dinghy painters, never an anchor rode).</p>`,
+<div class="callout warn"><p>The <strong>reef (square) knot</strong> is a binding knot for sail covers. Never use it to join two ropes under load: it capsizes and slips. Use a sheet bend or two bowlines.</p></div>
+<p>Rope: <strong>nylon</strong> stretches and absorbs shocks (anchor rode, mooring lines); <strong>polyester</strong> has little stretch and resists sun and chafe (sheets, halyards); <strong>polypropylene</strong> floats but is weak and degrades in sunlight (ski lines, heaving lines, never an anchor rode).</p>`,
         illustration: () => illMooringLines(),
         caption: 'Bow line and stern line hold the boat in place; the crossed springs stop fore-and-aft surging; a breast line (dashed) is optional.',
         keyFacts: [
@@ -642,12 +646,11 @@
         title: 'Anchoring',
         html: `
 <p>An anchor holds because the pull on it is nearly horizontal and it digs in; make the pull steep and it lifts out. Everything about anchoring follows from that.</p>
-<p><strong>Choose the spot.</strong> You want shelter from wind and waves (never under a lee shore), enough depth for the whole stay allowing for the tide, swinging room clear of other boats, and a <strong>good holding bottom</strong>: sand, clay and mud hold well; rock, weed and gravel hold poorly. The chart shows the bottom type (S sand, M mud, G gravel). Keep out of fairways, cable areas, bathing areas, fish farms and nature reserves, and remember Rule 45: do not anchor so that you obstruct passage.</p>
-<p><strong>Anchor types.</strong> A fluke (Danforth) anchor is excellent in sand and mud but poor in gravel and weed. A plough (CQR/Delta) is moderately good on most bottoms, a Bruce or claw sets easily. The small <strong>grapnel</strong> common on Norwegian boats sets quickly in rock but holds poorly in sand, clay and mud.</p>
-<div class="callout rule"><p><strong>Scope.</strong> Pay out rode of at least <strong>about 5 times the depth</strong>, measured from the bow roller to the seabed and including freeboard and the rise of tide, and <strong>more (7–10 times) in strong wind</strong> or poor holding. All-chain in calm weather can manage 3 times. Fit <strong>5–8 m of chain</strong> between anchor and rope: its weight keeps the pull horizontal, its sag absorbs shocks and it resists chafe on the bottom. A floating rope is unsuitable as an anchor rode.</p></div>
-<p><strong>Setting.</strong> Head into the wind or current, stop over the spot and <strong>lower</strong> the anchor to the bottom; never throw it. Pay out rode under control as the boat drifts back so it lies straight, then apply gentle astern until the anchor digs in and the rode goes taut. Check for dragging with a transit or bearings on two shore objects, or a GPS anchor alarm. Example: 4 m of water plus 1 m of freeboard and tide gives D = 5 m, so pay out at least 25 m, 35–50 m if strong wind is forecast.</p>
-<p><strong>Signals (Rule 30).</strong> A vessel at anchor shows one all-round white light at night (vessels under 50 m) and one black ball by day. A vessel under 7 m anchored away from fairways, narrow channels and anchorages need not show them.</p>
-<p><strong>Retrieving.</strong> Motor slowly up to the anchor taking in the rode; directly above it a vertical pull breaks it out.</p>`,
+<p><strong>Choose the spot.</strong> Shelter from wind and waves (never under a lee shore), enough depth for the whole stay allowing for the tide, swinging room clear of other boats, and a <strong>good holding bottom</strong>: sand, clay and mud hold well; rock, weed and gravel hold poorly. The chart shows the bottom type (S sand, M mud, G gravel). Keep out of fairways, cable areas, bathing areas and fish farms; Rule 45 forbids anchoring so that you obstruct passage.</p>
+<p><strong>Anchor types.</strong> A fluke (Danforth) anchor is excellent in sand and mud but poor in gravel and weed. The small <strong>grapnel</strong> common on Norwegian boats sets quickly in rock but holds poorly in sand, clay and mud.</p>
+<div class="callout rule"><p><strong>Scope.</strong> Pay out rode of at least <strong>about 5 times the depth</strong>, measured from the bow roller to the seabed including freeboard and the rise of tide, and <strong>more (7–10 times) in strong wind</strong> or poor holding. All-chain in calm weather can manage 3 times. Fit <strong>5–8 m of chain</strong> next to the anchor: its weight keeps the pull horizontal, its sag absorbs shocks and it resists chafe.</p></div>
+<p><strong>Setting.</strong> Head into the wind or current, stop over the spot and <strong>lower</strong> the anchor; never throw it. Pay out rode as the boat drifts back so it lies straight, then apply gentle astern until the anchor digs in and the rode goes taut. Check for dragging with a transit on two shore objects or a GPS anchor alarm. Example: 4 m of water plus 1 m of freeboard and tide gives D = 5 m, so pay out at least 25 m, 35–50 m if strong wind is forecast.</p>
+<p><strong>Signals (Rule 30).</strong> At anchor a vessel under 50 m shows one all-round white light at night and one black ball by day. A vessel under 7 m anchored away from fairways, narrow channels and anchorages need not show them.</p>`,
         illustration: () => illAnchorScope(),
         caption: 'Rode about 5 times the depth measured from the bow roller, with chain nearest the anchor so the pull stays nearly horizontal. Check a transit ashore for dragging.',
         keyFacts: [
@@ -664,12 +667,12 @@
         id: 'towing',
         title: 'Assistance and towing',
         html: `
-<p>Seafarers help each other. Norwegian maritime law obliges a master after a collision to render all possible help to the other vessel and the people on board, as far as it can be done <strong>without serious danger to your own boat, crew and passengers</strong>. Norwegian courses teach the same principle for all assistance: help, but never put your own crew at risk. If you cannot help safely, call the coast radio station (telephone 120) or VHF channel 16 so that the rescue service can.</p>
-<p><strong>Agree the plan first.</strong> Who is in command, which VHF channel or hand signals you use, where you are going, how fast, and how either boat aborts. Brief everyone on both boats; everybody wears a life jacket.</p>
-<p><strong>Rig it properly.</strong> On the towed boat, attach the line to the bow eye or a through-bolted bow cleat (on a sailing boat, around the mast foot). On the towing boat, use a <strong>bridle</strong> between the two stern cleats so the pull is centred and you can still steer. Make the towline <strong>long</strong> in open water, about 4–5 boat lengths or more, adjusted so that <strong>both boats ride the wave crests at the same time</strong>; a long nylon line acts as a shock absorber. Shorten to about half in confined waters.</p>
-<div class="callout warn"><p>Keep everyone seated and <strong>well clear of the towline</strong> on both boats: a stretched nylon line that parts snaps back like a projectile. Keep a knife ready to cut the tow. Never go <strong>astern with the line in the water</strong>, and never reduce power suddenly, or the tow overruns you.</p></div>
-<p><strong>Towing.</strong> Take up the slack dead slow by bumping in and out of gear, then increase gradually to a slow towing speed of about <strong>3–5 knots</strong>, never planing speed. Make wide turns. On the towed boat a helmsman steers to follow the tug (she turns inside the tug's track), the outboard is raised, and a lookout keeps watch. In harbour shorten the tow or tow <strong>alongside</strong> with fenders, with the tug slightly aft of the tow's midships so the pair can be steered; enter bow into wind or current.</p>
-<p><strong>Lights (Rule 24).</strong> The towing vessel shows two masthead lights in a vertical line (three if the tow exceeds 200 m), sidelights, a sternlight and a <strong>yellow towing light above the sternlight</strong>; by day a diamond if the tow exceeds 200 m. The towed vessel shows only sidelights and a sternlight. A boat not normally used for towing that tows a vessel in distress need not show towing lights if impracticable, but must illuminate the towline.</p>`,
+<p>Seafarers help each other. Norwegian maritime law obliges a master after a collision to render all possible help to the other vessel and its people, as far as it can be done <strong>without serious danger to your own boat, crew and passengers</strong>; courses teach the same principle for all assistance. If you cannot help safely, call the coast radio station (telephone 120) or VHF channel 16 so that the rescue service can.</p>
+<p><strong>Agree the plan first.</strong> Who is in command, which VHF channel or hand signals you use, where you are going, how fast, and how either boat aborts.</p>
+<p><strong>Rig it properly.</strong> On the towed boat, attach the line to the bow eye or a through-bolted bow cleat. On the towing boat, use a <strong>bridle</strong> between the two stern cleats so the pull is centred and you can still steer. Make the towline <strong>long</strong> in open water, about 4–5 boat lengths or more, adjusted so that <strong>both boats ride the wave crests at the same time</strong>; a long nylon line is a shock absorber. Shorten to about half in confined waters.</p>
+<div class="callout warn"><p>Keep everyone seated and <strong>well clear of the towline</strong> on both boats: a stretched nylon line that parts snaps back like a projectile. Never go <strong>astern with the line in the water</strong>, and never reduce power suddenly, or the tow overruns you.</p></div>
+<p><strong>Towing.</strong> Take up the slack dead slow by bumping in and out of gear, then increase gradually to about <strong>3–5 knots</strong>, never planing speed, with wide turns. On the towed boat a helmsman steers to follow the tug, with the outboard raised. In harbour shorten the tow or tow <strong>alongside</strong> with fenders; enter bow into wind or current.</p>
+<p><strong>Lights (Rule 24).</strong> The towing vessel shows two masthead lights in a vertical line (three if the tow exceeds 200 m), sidelights, a sternlight and a <strong>yellow towing light above the sternlight</strong>; by day a diamond if the tow exceeds 200 m. The towed vessel shows only sidelights and a sternlight.</p>`,
         illustration: () => illTowing(),
         caption: 'Bridle between the stern cleats, a long sagging towline to the bow eye, and a snap-back zone nobody enters. Night: towing vessel two masthead lights and yellow over white at the stern; towed vessel sidelights and sternlight.',
         keyFacts: [
@@ -686,11 +689,11 @@
         id: 'waves-wash',
         title: 'Waves, wash and running aground',
         html: `
-<p>The CE category tells you what sea the boat was built for; seamanship is how you drive in it. <strong>Head seas</strong> give the best control: slow down, ease the throttle as you go down each wave so the bow does not bury, and take steep waves at a slight angle (about 30–45° off the bow) rather than dead on. <strong>Beam seas</strong> roll the boat most; if they are short and steep, zigzag with the sea first broad on the bow, then on the quarter, instead of lying beam-on.</p>
-<div class="callout warn"><p><strong>Following and quartering seas</strong> hold the greatest danger: <strong>broaching</strong>. An overtaking wave lifts the stern, the rudder loses grip, the boat slews beam-on and may capsize. Do not run at the same speed as the waves and do not surf down a face: add power on the back of the wave, ease it on the crest, and keep the stern square to the sea with firm steering. Keep weight low and centred.</p></div>
-<p>A planing boat that leaves the water and slams can injure people (high-energy injuries are a first-aid item in the curriculum) and damage the hull: <strong>reduce speed in waves</strong>.</p>
-<p><strong>Your wash is your responsibility.</strong> It can swamp small boats, damage moored boats and hurt people on pontoons. Rule 6 requires a safe speed at all times, Norwegian Rule 43 requires small vessels approaching others to manoeuvre with caution, reduce speed and if necessary stop, and the sea-sense rules tell you to show consideration. Many harbours and shore areas have local speed limits (typically 5, 8, 10 or 30 knots); look for the signs.</p>
-<p><strong>Running aground.</strong> Throttle to neutral and stop the engine; check people for injuries; check the bilge and hull for leaks; note what you hit. If there is <strong>no leak</strong>: raise the outboard or drive, shift weight away from the grounded part, push off with a boathook or paddle and try <strong>gentle astern only</strong>. Never rev hard in reverse: sand and weed are sucked into the cooling intake and the propeller is damaged. Alternatives are kedging off with the anchor or waiting for a rising tide. If there <strong>is a leak</strong>, stay put and call for help on VHF 16 or coast radio 120. After refloating, check the bilge again, run the engine slowly in gear to feel for vibration and watch the temperature gauge.</p>`,
+<p>The CE category tells you what sea the boat was built for; seamanship is how you drive in it. <strong>Head seas</strong> give the best control: slow down, ease the throttle as you go down each wave so the bow does not bury, and take steep waves at a slight angle (about 30–45° off the bow) rather than dead on. <strong>Beam seas</strong> roll the boat most; if they are short and steep, zigzag with the sea first broad on the bow, then on the quarter.</p>
+<div class="callout warn"><p><strong>Following and quartering seas</strong> hold the greatest danger: <strong>broaching</strong>. An overtaking wave lifts the stern, the rudder loses grip, the boat slews beam-on and may capsize. Do not run at the same speed as the waves and do not surf down a face: add power on the back of the wave, ease it on the crest, and keep the stern square to the sea. Keep weight low and centred.</p></div>
+<p>A planing boat that leaves the water and slams can injure people (high-energy injuries) and damage the hull: <strong>reduce speed in waves</strong>.</p>
+<p><strong>Your wash is your responsibility.</strong> It can swamp small boats, damage moored boats and hurt people on pontoons. Rule 6 requires a safe speed at all times, Norwegian Rule 43 requires small vessels approaching others to reduce speed and if necessary stop, and the sea-sense rules tell you to show consideration. Many harbours and shore areas have local speed limits (typically 5, 8, 10 or 30 knots).</p>
+<p><strong>Running aground.</strong> Throttle to neutral and stop the engine; check people for injuries; check the bilge and hull for leaks. If there is <strong>no leak</strong>: raise the outboard or drive, shift weight away from the grounded part, push off with a boathook and try <strong>gentle astern only</strong>. Never rev hard in reverse: sand and weed are sucked into the cooling intake and the propeller is damaged. Otherwise kedge off with the anchor or wait for a rising tide. If there <strong>is a leak</strong>, stay put and call VHF 16 or coast radio 120.</p>`,
         keyFacts: [
           'Head seas: slow down, ease the throttle down each wave, take steep waves at 30–45° off the bow.',
           'Following sea: danger is broaching; do not match wave speed, power on the back of the wave, stern square to the sea.',
@@ -725,16 +728,16 @@
         id: 'high-speed',
         title: 'Dangers of high speed (part 4, item 1.4.7)',
         html: `
-<p>This section is <strong>part 4, "particularly important topics"</strong>. The curriculum lists four dangers of high speed, and the exam asks about each of them: narrowed vision, delay in electronic equipment, proper distance from shore, and risk and consequences. Learn them as a list.</p>
+<p>This section is <strong>part 4, "particularly important topics"</strong>. The curriculum lists four dangers of high speed, and the exam asks about each: narrowed vision, delay in electronic equipment, proper distance from shore, and risk and consequences.</p>
 <ol>
 <li><strong>Tunnel vision.</strong> At speed your eyes lock on to a narrow cone straight ahead and your peripheral vision shrinks. You stop seeing the rock to one side, the swimmer, the small boat on your quarter. The faster you go, the narrower the tunnel.</li>
-<li><strong>Lag in electronic aids.</strong> A GPS or chart plotter updates with a delay, so at high speed the position on the screen is <strong>behind</strong> where the boat really is. At 30 knots you cover about 15 m every second; a few seconds of delay puts the screen boat tens of metres astern of you, and a narrow sound or a shoal is passed before the screen shows it. Navigate by eye and chart, and use the plotter as a check, not as a windscreen.</li>
+<li><strong>Lag in electronic aids.</strong> A GPS or chart plotter updates with a delay, so at high speed the position on the screen is <strong>behind</strong> where the boat really is. At 30 knots you cover about 15 m every second; a few seconds of delay puts the screen boat tens of metres astern of you. Navigate by eye and chart, and use the plotter as a check, not as a windscreen.</li>
 <li><strong>Little time to react.</strong> Distance to a hazard shrinks fast, and a turn or a stop needs room. Keep a <strong>proper distance from shore</strong>, rocks and other boats so that you have time and space to act.</li>
-<li><strong>Consequences.</strong> A collision or grounding at speed throws people against the boat or out of it and produces high-energy injuries; a boat that leaves the water in waves slams. Rule 6 demands a safe speed at all times, Norwegian Rule 43 demands reduced speed and caution when approaching other vessels, and the shore has speed limits.</li>
+<li><strong>Consequences.</strong> A collision or grounding at speed throws people against the boat or out of it: high-energy injuries. Rule 6 demands a safe speed at all times, Norwegian Rule 43 demands reduced speed and caution when approaching other vessels, and the shore has speed limits.</li>
 </ol>
 <div class="callout rule"><p><strong>Before you open the throttle:</strong> everyone seated low and holding on, flotation worn, the <strong>kill cord</strong> clipped around your leg (it stops the engine if you are thrown from the helm; test it every trip and carry a spare), the trim right, and a sea state within the boat's CE category.</p></div>
-<p>Two legal notes that belong with speed: within 50 m of bathers the limit is 5 knots, and since 1 June 2023 the operator of a motorised craft or personal watercraft that can reach <strong>50 knots or more</strong> must hold a separate high-speed certificate in addition to the boating licence.</p>
-<div class="callout tip"><p>Exam wording to expect: "At high speed the skipper's field of vision ...", "At high speed the position shown by the GPS ...", "Why keep a good distance from shore at high speed?". The answers are: narrows (tunnel vision); lags behind the true position; because there is little time and distance to react.</p></div>`,
+<p>Two legal notes: within 50 m of bathers the limit is 5 knots, and since 1 June 2023 the operator of a motorised craft or personal watercraft that can reach <strong>50 knots or more</strong> needs a separate high-speed certificate.</p>
+<div class="callout tip"><p>Expect: "the field of vision ..." narrows (tunnel vision); "the position shown by the GPS ..." lags behind; "why keep distance from shore?" little time to react.</p></div>`,
         illustration: () => illHighSpeed(),
         caption: 'At speed the field of view narrows to a tunnel, and the position shown on the plotter lags behind where the boat really is.',
         keyFacts: [
@@ -792,7 +795,7 @@
     questions: [
       /* ---- part 4, item 1.4.7: dangers of high speed (F69, syllabus 1.1 p) ---- */
       { id: 'seamanship-01', q: 'What happens to the skipper\'s field of vision as boat speed increases?', options: ['It narrows to a tunnel straight ahead, so hazards to the side are missed', 'It widens because the horizon moves faster', 'It is unchanged; speed affects only hearing', 'It improves because the bow lifts'], answer: 0, explanation: 'Tunnel vision is the first danger of high speed in the curriculum: the eyes lock on to a narrow cone ahead and peripheral vision shrinks (F69).', difficulty: 1, part: 4, p4: '1.4.7', tags: ['high-speed', 'tunnel-vision'] },
-      { id: 'seamanship-02', q: 'You are running at 30 knots using the chart plotter. Where is the position shown on the screen in relation to the boat?', options: ['Slightly ahead of the boat, because the plotter predicts movement', 'Exactly where the boat is; GPS has no delay', 'Behind the boat, because the display updates with a delay', 'To one side of the boat, depending on the current'], answer: 2, explanation: 'Electronic aids update with a delay, so at high speed the displayed position lags behind the real position. Navigate by eye and use the plotter as a check (F69).', difficulty: 2, part: 4, p4: '1.4.7', tags: ['high-speed', 'gps-lag'] },
+      { id: 'seamanship-02', q: 'You are running at 30 knots using the chart plotter. Where is the position shown on the screen in relation to the boat?', options: ['Slightly ahead of the boat, because the plotter predicts movement', 'Exactly where the boat is; GPS has no delay', 'Behind the boat, because the display updates with a delay', 'To one side of the boat, depending on the current'], answer: 2, explanation: 'Electronic aids update with a delay, so at high speed the displayed position lags behind the real position. Navigate by eye and use the plotter as a check (F69).', difficulty: 3, part: 4, p4: '1.4.7', tags: ['high-speed', 'gps-lag'] },
       { id: 'seamanship-03', q: 'Why should you keep a good distance from the shore when driving fast?', options: ['Because the water is colder close to the shore', 'Because there is little time and distance to react to rocks, swimmers and other boats', 'Because the GPS signal is weaker near land', 'Because the engine overheats in shallow water'], answer: 1, explanation: 'At speed distances shrink fast and a turn or stop needs room; a proper distance from shore gives you time to react (F69).', difficulty: 1, part: 4, p4: '1.4.7', tags: ['high-speed', 'distance'] },
       { id: 'seamanship-04', q: 'Which of these is one of the dangers of high speed listed in the curriculum?', options: ['Propeller walk', 'Free surface effect', 'Porpoising', 'Tunnel vision'], answer: 3, explanation: 'The curriculum item on high speed lists narrowed (tunnel) vision, delay in electronic equipment, proper distance from shore and the risk and consequences. Prop walk, free surface and porpoising are handling topics (F69).', difficulty: 1, part: 4, p4: '1.4.7', tags: ['high-speed'] },
       { id: 'seamanship-05', q: 'Look at the lower strip of the picture. What does it illustrate?', illustration: () => illHighSpeed(), options: ['That two boats must keep a safe passing distance', 'That at speed the plotter shows a position behind where the boat really is', 'That the boat ahead has right of way', 'That a following sea pushes the boat off course'], answer: 1, explanation: 'The grey boat is the position on the screen; the highlighted boat is where you really are. Delay multiplied by speed gives the gap: the plotter lags at high speed (F69).', difficulty: 2, part: 4, p4: '1.4.7', tags: ['high-speed', 'gps-lag', 'picture'] },
@@ -812,9 +815,9 @@
       { id: 'seamanship-17', q: 'Since 1 June 2023 a separate high-speed certificate is required for the operator of a motorised recreational craft or personal watercraft that can reach what speed?', options: ['30 knots or more', '40 knots or more', '60 knots or more', '50 knots or more'], answer: 3, explanation: 'The high-speed certificate applies to craft capable of 50 knots or more; the course can be taken from age 17 and the certificate issued from 18 (F4).', difficulty: 2, part: 2, tags: ['high-speed-certificate'] },
       /* ---- part 1: boat types and CE (F13–F15, F20, F21) ---- */
       { id: 'seamanship-18', q: 'What information must the CE builder\'s plate on a recreational boat show?', options: ['Top speed, engine serial number and hull colour', 'Manufacturer, maximum load including outboard, maximum number of persons, design category and the CE symbol', 'Owner\'s name, home port and registration number', 'Anchor size, chain length and rode length'], answer: 1, explanation: 'The plate shows the manufacturer, max load incl. optional outboard (kg), max persons, design category A–D and the CE mark. Maximum engine power is in the owner\'s manual (F14; sdir.no).', difficulty: 1, part: 1, tags: ['ce-plate'] },
-      { id: 'seamanship-19', q: 'Read the plate in the picture. Which statement is correct?', illustration: () => illCEPlate({ cat: 'B', persons: 8, load: 1100, quiz: true }), options: ['The boat may carry 8 persons and is designed for wind up to Beaufort 8 and waves up to 4 m', 'The boat may carry 8 persons and is designed for wind up to Beaufort 6 and waves up to 2 m', 'The boat may carry 1100 persons in sheltered waters', 'The boat is designed for any ocean conditions'], answer: 0, explanation: 'Category B means offshore: wind up to and including Beaufort 8 and significant waves up to 4 m. Max persons 8; 1100 kg is the maximum load including the outboard (F14, F15).', difficulty: 2, part: 1, tags: ['ce-plate', 'picture'] },
+      { id: 'seamanship-19', q: 'Read the plate in the picture. Which statement is correct?', illustration: () => illCEPlate({ cat: 'B', persons: 8, load: 1100, quiz: true }), options: ['The boat may carry 8 persons and is designed for wind up to Beaufort 8 and waves up to 4 m', 'The boat may carry 8 persons and is designed for wind up to Beaufort 6 and waves up to 2 m', 'The boat may carry 1100 persons in sheltered waters', 'The boat is designed for any ocean conditions'], answer: 0, explanation: 'Category B means offshore: wind up to and including Beaufort 8 and significant waves up to 4 m. Max persons 8; 1100 kg is the maximum load including the outboard (F14, F15).', difficulty: 3, part: 1, tags: ['ce-plate', 'picture'] },
       { id: 'seamanship-20', q: 'Which CE design category is the most limited, intended for sheltered waters only?', options: ['A', 'B', 'C', 'D'], answer: 3, explanation: 'Category D: wind up to Beaufort 4 and waves up to 0.3 m. A is the most seaworthy (ocean), B offshore, C inshore (F15).', difficulty: 1, part: 1, tags: ['ce-category'] },
-      { id: 'seamanship-21', q: 'Your boat is CE category C, the forecast is Beaufort 7 with 2.5 m waves. What do you conclude?', options: ['Fine: category C covers up to Beaufort 8', 'Fine if everyone wears flotation', 'The conditions exceed what the boat was designed for (Beaufort 6, 2 m): do not go', 'Fine in daylight, not at night'], answer: 2, explanation: 'Category C is designed for winds up to Beaufort 6 and waves up to 2 m. Beaufort 7 and 2.5 m are beyond the design limits (F15, S7).', difficulty: 2, part: 1, tags: ['ce-category', 'scenario'] },
+      { id: 'seamanship-21', q: 'Your boat is CE category C, the forecast is Beaufort 7 with 2.5 m waves. What do you conclude?', options: ['Fine: category C covers up to Beaufort 8', 'Fine if everyone wears flotation', 'The conditions exceed what the boat was designed for (Beaufort 6, 2 m): do not go', 'Fine in daylight, not at night'], answer: 2, explanation: 'Category C is designed for winds up to Beaufort 6 and waves up to 2 m. Beaufort 7 and 2.5 m are beyond the design limits (F15, S7).', difficulty: 3, part: 1, tags: ['ce-category', 'scenario'] },
       { id: 'seamanship-22', q: 'Why can a displacement hull not go faster however much engine power you add?', options: ['Because the propeller cavitates above 6 knots', 'Because its speed is limited by its waterline length: it cannot climb over its own bow wave', 'Because the rudder stalls', 'Because CE rules forbid it'], answer: 1, explanation: 'A displacement hull is carried by buoyancy alone; its practical top speed is about 1.34 times the square root of the waterline length in feet (about 6.7 knots for 25 ft). Only a planing hull climbs on to the water (F20, F21).', difficulty: 2, part: 1, tags: ['hull-types'] },
       { id: 'seamanship-23', q: 'What is a chine?', options: ['The flat stern surface where the outboard is mounted', 'The upper edge of the side of the boat', 'The centreline member along the bottom', 'The angle where the bottom of a planing hull meets its side'], answer: 3, explanation: 'Planing hulls typically have at least one chine, the edge between bottom and side. The flat stern is the transom, the upper edge of the side is the gunwale, the centreline member is the keel (F21, F89).', difficulty: 1, part: 1, tags: ['terminology'] },
       /* ---- part 1: stability, loading, trim (F16–F19, F66, F67, F90) ---- */
@@ -827,9 +830,9 @@
       { id: 'seamanship-30', q: 'Wind on the starboard bow is making the boat list. How do you use trim tabs to correct it?', options: ['Lower one tab: it lifts that side of the stern and lowers the opposite bow', 'Lower both tabs fully', 'Raise both tabs fully', 'Trim tabs cannot correct a list'], answer: 0, explanation: 'Lowering a single tab lifts that side of the stern and lowers the opposite bow, which is how a list from wind or uneven loading is corrected. Both tabs down pushes the bow down (F66).', difficulty: 3, part: 1, tags: ['trim-tabs'] },
       { id: 'seamanship-31', q: 'Why is an engine that is too powerful for the boat a safety problem?', options: ['It uses less fuel, so you forget to refuel', 'It makes the boat too stable', 'It adds weight to the transom, drives the hull faster than designed and makes the boat hard to control', 'It is only a problem for sailing boats'], answer: 2, explanation: 'The curriculum asks for the importance of an appropriately sized engine: excess weight aft trims the boat stern-heavy, and excess speed overruns the hull design. Follow the owner\'s manual maximum (syllabus 1.1 g; sdir.no).', difficulty: 2, part: 1, tags: ['engine-size'] },
       /* ---- part 1: handling (F22–F26, F33) ---- */
-      { id: 'seamanship-32', q: 'You are alongside a quay and want to leave by steering away with the bow. What happens?', options: ['The stern swings into the quay, because a boat pivots about a point near the bow and the stern swings outward', 'The boat leaves cleanly, like a car', 'The bow swings into the quay', 'Nothing, until you engage astern'], answer: 0, explanation: 'A boat steers from the stern and pivots about a point roughly one third of the length aft of the bow, so the stern swings outward in a turn. When leaving, move the stern clear first (F24, F25, F33).', difficulty: 2, part: 1, tags: ['pivot-point', 'leaving'] },
+      { id: 'seamanship-32', q: 'You are alongside a quay and want to leave by steering away with the bow. What happens?', options: ['The stern swings into the quay, because a boat pivots about a point near the bow and the stern swings outward', 'The boat leaves cleanly, like a car', 'The bow swings into the quay', 'Nothing, until you engage astern'], answer: 0, explanation: 'A boat steers from the stern and pivots about a point roughly one third of the length aft of the bow, so the stern swings outward in a turn. When leaving, move the stern clear first (F24, F25, F33).', difficulty: 3, part: 1, tags: ['pivot-point', 'leaving'] },
       { id: 'seamanship-33', q: 'The boat in the picture has a right-handed propeller and engages astern from rest. Which arrow shows how the stern moves?', illustration: () => illPropWalk({ quiz: true }), options: ['Arrow 2: the stern goes to starboard', 'Arrow 1: the stern goes to port', 'Neither: the stern goes straight back', 'It depends entirely on the rudder angle'], answer: 1, explanation: 'Propeller walk in astern with a right-handed prop kicks the stern to port and the bow to starboard. The picture has the bow up, so port is on the left: arrow 1 (F22).', difficulty: 2, part: 1, tags: ['prop-walk', 'picture'] },
-      { id: 'seamanship-34', q: 'Which side is easiest to berth on with a single right-handed propeller, and why?', options: ['Starboard side to, because the stern kicks to starboard in astern', 'Either side; prop walk has no practical use', 'Starboard side to, because the bow swings to port in astern', 'Port side to, because a burst of astern pulls the stern in towards the quay'], answer: 3, explanation: 'In astern the stern kicks to port, so lying port side to, a burst of astern brings the stern neatly alongside. The same boat pivots most tightly clockwise (F23).', difficulty: 2, part: 1, tags: ['prop-walk', 'berthing'] },
+      { id: 'seamanship-34', q: 'Which side is easiest to berth on with a single right-handed propeller, and why?', options: ['Starboard side to, because the stern kicks to starboard in astern', 'Either side; prop walk has no practical use', 'Starboard side to, because the bow swings to port in astern', 'Port side to, because a burst of astern pulls the stern in towards the quay'], answer: 3, explanation: 'In astern the stern kicks to port, so lying port side to, a burst of astern brings the stern neatly alongside. The same boat pivots most tightly clockwise (F23).', difficulty: 3, part: 1, tags: ['prop-walk', 'berthing'] },
       { id: 'seamanship-35', q: 'Why does an outboard-powered boat steer in reverse while a boat with a fixed propeller and rudder steers poorly in astern?', options: ['The outboard points its thrust, so it steers at any speed; a rudder needs water flowing past it', 'Outboards have two propellers', 'Rudders are locked in astern', 'Outboards are lighter'], answer: 0, explanation: 'An outboard or sterndrive steers by directing the thrust, even at zero speed with a burst of throttle. A rudder only works with water flow from boat speed or prop wash (F26).', difficulty: 2, part: 1, tags: ['steering'] },
       /* ---- part 1: berthing and mooring (F27–F34) ---- */
       { id: 'seamanship-36', q: 'How should you approach a quay to come alongside?', options: ['Fast and parallel, then full astern', 'Downwind, so the wind pushes you in', 'Heading into the stronger of wind or current, dead slow, in gear with short bursts, fenders and lines ready', 'In neutral from a long way off, coasting in'], answer: 2, explanation: 'Heading into wind or current lets nature brake you while the rudder keeps working. Use short bursts in gear rather than coasting in neutral, and prepare fenders and lines early (F27).', difficulty: 1, part: 1, tags: ['berthing'] },
@@ -837,7 +840,7 @@
       { id: 'seamanship-38', q: 'Before you engage gear to leave a berth, what must you check?', options: ['That no mooring line can reach the propeller and that only the line you still need is attached', 'That the anchor is lowered', 'That the fenders have been taken in first', 'That the engine is at full throttle'], answer: 0, explanation: 'A line in the propeller disables the boat instantly. Remove every line except the one you need, keep them clear of the prop, then swing the stern clear first (F33).', difficulty: 1, part: 1, tags: ['leaving'] },
       { id: 'seamanship-39', q: 'In the picture, which numbered lines are the springs?', illustration: () => illMooringLines({ quiz: true }), options: ['1 and 2', '2 and 5', '3 and 4', '1 and 5'], answer: 2, explanation: 'Springs run diagonally along the boat and cross: the fore spring (3) from the bow cleat aft, the aft spring (4) from the stern cleat forward. 1 is the bow line, 2 the stern line, 5 a breast line (F30).', difficulty: 2, part: 1, tags: ['mooring-lines', 'picture'] },
       { id: 'seamanship-40', q: 'What does the bow line do when a boat is moored alongside?', options: ['Stops the boat moving ahead', 'Runs forward from the bow and stops the boat moving astern', 'Stops the boat moving sideways', 'Holds the anchor'], answer: 1, explanation: 'The bow line leads forward and stops movement astern; the stern line leads aft and stops movement ahead; springs stop surging and breast lines stop sideways movement (F30).', difficulty: 1, part: 1, tags: ['mooring-lines'] },
-      { id: 'seamanship-41', q: 'You moor overnight in a harbour with a large tidal range. How do you arrange the lines?', options: ['Long lines with slack, so the boat can rise and fall without hanging or tearing out cleats', 'Short, tight lines so the boat cannot move', 'Only a breast line at midships', 'A single bow line to the highest bollard'], answer: 0, explanation: 'Where the water level changes, short lines leave the boat hanging on a falling tide or tear out fittings on a rising one; use long lines and leave slack, with fenders at bow, midships and stern (F31).', difficulty: 2, part: 1, tags: ['mooring', 'tide'] },
+      { id: 'seamanship-41', q: 'You moor overnight in a harbour with a large tidal range. How do you arrange the lines?', options: ['Long lines with slack, so the boat can rise and fall without hanging or tearing out cleats', 'Short, tight lines so the boat cannot move', 'Only a breast line at midships', 'A single bow line to the highest bollard'], answer: 0, explanation: 'Where the water level changes, short lines leave the boat hanging on a falling tide or tear out fittings on a rising one; use long lines and leave slack, with fenders at bow, midships and stern (F31).', difficulty: 3, part: 1, tags: ['mooring', 'tide'] },
       /* ---- part 1: knots and rope (F43–F49) ---- */
       { id: 'seamanship-42', q: 'Which knot makes a fixed loop that will not slip and is easy to untie after it has carried a load?', options: ['Clove hitch', 'Reef knot', 'Figure-eight', 'Bowline'], answer: 3, explanation: 'The bowline is the standard fixed loop for a bollard or ring. Remember it cannot be tied or untied while under load (F43).', difficulty: 1, part: 1, tags: ['knots'] },
       { id: 'seamanship-43', q: 'Which hitch can be tied and released while the line is under strain, for example when mooring to a ring in wind?', options: ['Bowline', 'Sheet bend', 'Round turn and two half hitches', 'Reef knot'], answer: 2, explanation: 'The round turn takes the load while you make the two half hitches, so the hitch can be made and released under strain. A bowline cannot be tied under load (F44).', difficulty: 2, part: 1, tags: ['knots'] },
@@ -846,7 +849,7 @@
       /* ---- part 1: anchoring (F35–F40) ---- */
       { id: 'seamanship-46', q: 'Which seabed gives the best holding for a fluke (Danforth) type anchor?', options: ['Rock', 'Thick weed', 'Sand or mud', 'Loose gravel'], answer: 2, explanation: 'Fluke anchors excel in sand and mud and do poorly in gravel and weed; rock suits a grapnel. The chart shows the bottom type (S sand, M mud, G gravel) (F35, F36).', difficulty: 1, part: 1, tags: ['anchoring'] },
       { id: 'seamanship-47', q: 'Why is a length of chain fitted between the anchor and the rope?', options: ['To make the anchor easier to throw', 'To keep the pull on the anchor nearly horizontal, absorb shocks and resist chafe on the bottom', 'To make the rode float clear of the propeller', 'Because the Rules of the Road require it'], answer: 1, explanation: 'The chain\'s weight lowers the angle of pull so the anchor digs in instead of lifting, its sag absorbs snatching, and it resists abrasion on the seabed. Norwegian courses recommend 5–8 m (F38).', difficulty: 2, part: 1, tags: ['anchoring'] },
-      { id: 'seamanship-48', q: 'Three boats are anchored in the same depth with rope-and-chain rodes in light wind. Which has paid out a correct scope?', illustration: () => illScopeCompare(), options: ['B', 'A', 'C', 'All three are acceptable in light wind'], answer: 0, explanation: 'Boat B has rode about five times the depth, so the pull on the anchor is nearly horizontal. Boat A (about equal to the depth) and boat C (about twice the depth) pull the anchor upward and it will drag (F37).', difficulty: 2, part: 1, tags: ['anchoring', 'scope', 'picture'] },
+      { id: 'seamanship-48', q: 'Three boats are anchored in the same depth with rope-and-chain rodes in light wind. Which has paid out a correct scope?', illustration: () => illScopeCompare(), options: ['B', 'A', 'C', 'All three are acceptable in light wind'], answer: 0, explanation: 'Boat B has rode about five times the depth, so the pull on the anchor is nearly horizontal. Boat A (about equal to the depth) and boat C (about twice the depth) pull the anchor upward and it will drag (F37).', difficulty: 3, part: 1, tags: ['anchoring', 'scope', 'picture'] },
       { id: 'seamanship-49', q: 'What is the correct way to set an anchor?', options: ['Throw it as far as possible from the bow while moving ahead', 'Drop it over the stern at speed so it digs in', 'Stop head to wind over the spot, lower it to the bottom, pay out rode as you drift back, then snub gently astern until it holds', 'Lower it, then motor ahead at full power to test it'], answer: 2, explanation: 'Never throw an anchor: lower it, let the boat drift back so the rode lies straight, then apply gentle astern until the rode goes taut and the anchor has dug in (F39).', difficulty: 2, part: 1, tags: ['anchoring'] },
       { id: 'seamanship-50', q: 'How can you tell that your anchor is dragging?', options: ['The rode goes slack and floats', 'The boat stops swinging', 'The anchor light goes out', 'A transit or bearings on two shore objects change, or the GPS anchor alarm sounds'], answer: 3, explanation: 'Line up two fixed objects ashore when the anchor has set; if they open or your bearings change, you are moving. A GPS anchor alarm does the same job (F39).', difficulty: 2, part: 1, tags: ['anchoring'] },
       /* ---- part 1: towing (F51–F58) ---- */
@@ -857,7 +860,7 @@
       /* ---- part 1: waves, grounding, consideration (F61–F65, F70–F71, F12) ---- */
       { id: 'seamanship-55', q: 'What is the greatest danger when running before a following sea in a small motorboat?', options: ['Prop walk', 'Excessive spray', 'Broaching: the wave lifts the stern, steering is lost and the boat slews beam-on', 'Porpoising'], answer: 2, explanation: 'Do not run at the same speed as the waves or surf down a face; add power on the back of the wave, ease it on the crest and keep the stern square to the sea (F63).', difficulty: 2, part: 1, tags: ['waves', 'broaching'] },
       { id: 'seamanship-56', q: 'Why should you not use full throttle astern to get off after grounding on sand?', options: ['Because it is forbidden by Rule 45', 'Because sand and weed are sucked into the cooling intake and the propeller is damaged', 'Because the boat will plane backwards', 'Because the anchor will drag'], answer: 1, explanation: 'Hard reverse in shallow water damages the engine and propeller. Lift the drive, shift weight away from the grounding point, push off and use gentle astern, or kedge off or wait for the tide (F71).', difficulty: 2, part: 1, tags: ['grounding'] },
-      { id: 'seamanship-57', q: 'Your water-skier has fallen and you circle back to pick her up. What do you do as you come alongside?', options: ['Engine in neutral, approach so that she is on the lee side, never reverse towards her', 'Reverse slowly towards her so she can grab the stern', 'Keep the engine in gear so you can hold position', 'Approach downwind at speed so you arrive quickly'], answer: 0, explanation: 'A person in the water near the boat is at risk from the propeller: neutral when alongside, never reverse towards them, and engine off before anyone uses the stern ladder. Approach slowly into the wind so the boat stops under control (F74, F75).', difficulty: 2, part: 1, tags: ['water-sports', 'propeller'] },
+      { id: 'seamanship-57', q: 'Your water-skier has fallen and you circle back to pick her up. What do you do as you come alongside?', options: ['Engine in neutral, approach so that she is on the lee side, never reverse towards her', 'Reverse slowly towards her so she can grab the stern', 'Keep the engine in gear so you can hold position', 'Approach downwind at speed so you arrive quickly'], answer: 0, explanation: 'A person in the water near the boat is at risk from the propeller: neutral when alongside, never reverse towards them, and engine off before anyone uses the stern ladder. Approach slowly into the wind so the boat stops under control (F74, F75).', difficulty: 3, part: 1, tags: ['water-sports', 'propeller'] },
       { id: 'seamanship-58', q: 'Which of the following is one of the seven sea-sense rules of the Norwegian Society for Sea Rescue?', options: ['Always anchor with 3 times the depth', 'Be rested and sober', 'Keep 10 knots in harbours', 'Tow only in daylight'], answer: 1, explanation: 'The seven rules: think safety; bring the necessary equipment; respect weather and waters; follow the collision regulations; wear a life jacket or flotation garment; be rested and sober; show consideration (F12).', difficulty: 1, part: 1, tags: ['good-seamanship'] },
     ],
   });

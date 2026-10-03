@@ -80,7 +80,7 @@
     'cardinal-w':        { name: 'West cardinal mark', bands: [[Y, .33], [B, .34], [Y, .33]], shape: 'pillar', top: 'cones-point', topColor: B, light: W, charText: 'VQ(9) 10s or Q(9) 15s W', pass: 'Safe water lies WEST of the mark — pass west of it', spar: 'blunt', reflex: [Y, Y], abbr: 'YBY', clock: '9 o’clock = 9 flashes' },
     'isolated-danger':   { name: 'Isolated danger mark', bands: [[B, .3], [R, .4], [B, .3]], shape: 'pillar', top: 'two-balls', topColor: B, light: W, charText: 'Fl(2) W', pass: 'Danger directly beneath; navigable water all around — pass either side at a safe distance', spar: 'blunt', reflex: [BU, R], abbr: 'BRB' },
     'safe-water':        { name: 'Safe water mark (centre fairway)', bands: [[R, 1], [W, 1], [R, 1], [W, 1], [R, 1], [W, 1]], vertical: true, shape: 'sphere', top: 'ball', topColor: R, light: W, charText: 'Iso W / Oc W / LFl 10s W / Mo(A) W', pass: 'Navigable water all around: mid-channel, landfall or best passage under a bridge', spar: 'blunt', reflex: [R, W], abbr: 'RW' },
-    'special':           { name: 'Special mark', bands: [[Y, 1]], shape: 'pillar', top: 'x', topColor: Y, light: Y, charText: 'Fl(4) Y (typical in Norway) — yellow, never a white-light rhythm', pass: 'Marks a special area or feature shown on the chart (fish farm, cable, bathing area, anchorage)', spar: 'blunt', reflex: [Y], abbr: 'Y' },
+    'special':           { name: 'Special mark', bands: [[Y, 1]], shape: 'pillar', top: 'x', topColor: Y, light: Y, charText: 'Fl(4) Y typical — any rhythm not used for white', pass: 'Marks a special area or feature shown on the chart (fish farm, cable, bathing area, anchorage)', spar: 'blunt', reflex: [Y], abbr: 'Y' },
     'wreck':             { name: 'Emergency wreck marking buoy', bands: [[BU, 1], [Y, 1], [BU, 1], [Y, 1], [BU, 1], [Y, 1]], vertical: true, shape: 'pillar', top: 'plus', topColor: Y, light: [BU, Y], charText: 'Al Bu/Y: 1 s blue, 1 s yellow, 0.5 s dark between', pass: 'A NEW danger (wreck) — keep well clear and check Notices to Mariners', spar: 'blunt', reflex: [BU, Y], abbr: 'BuY' },
   };
   const KIND_NAMES = Object.keys(KINDS);
@@ -257,8 +257,9 @@
     inner += boatPlan(290, 450, 0, 44);
     inner += T(305, 490, 'entering:', { size: 12, weight: 700 }) + T(305, 505, 'red to PORT,', { size: 11.5 }) + T(305, 519, 'green to STARBOARD', { size: 11.5 });
     /* boat leaving */
-    inner += boatPlan(190, 215, 180, 44);
-    inner += T(178, 250, 'leaving:', { size: 12, weight: 700 }) + T(178, 265, 'red on STARBOARD,', { size: 11.5 }) + T(178, 279, 'green on PORT', { size: 11.5 });
+    inner += boatPlan(192, 215, 180, 44);
+    inner += T(66, 206, 'leaving:', { size: 12, weight: 700 }) + T(66, 221, 'red on STARBOARD,', { size: 11.5 }) + T(66, 235, 'green on PORT', { size: 11.5 });
+    inner += `<line x1="118" y1="226" x2="172" y2="219" stroke="${INK2}" stroke-width="1" stroke-dasharray="3 3"/>`;
     inner += note(240, 560, 'With the direction of buoyage: red cans on your left, green cones on your right', { size: 11 });
     return S.svg(Wd, Ht, inner, { label: 'Channel entered from seaward (bottom) to the harbour (top). Magenta arrow shows the direction of buoyage. Red can marks with even numbers on the left (port), green cone marks with odd numbers on the right (starboard). A boat entering keeps red to port and green to starboard; a boat leaving has red on its starboard and green on its port side.' });
   }
@@ -319,10 +320,11 @@
     const colKey = opts.color || (p.colours && p.colours.length === 1 ? p.colours[0] : 'W');
     if (!LIGHT_COLOURS[colKey]) throw bad('lightRhythm colour', colKey, Object.keys(LIGHT_COLOURS));
     const { on, P } = rhythmIntervals(p);
-    const Wd = 640, Ht = 170, x0 = 46, x1 = 606, by = 64, bh = 48, sx = (x1 - x0) / P;
-    let inner = title(Wd, 22, spec + (p.type === 'Al' ? '' : ' ' + (p.colours ? '' : colKey)).trim(), 18);
+    const Wd = 640, Ht = 186, x0 = 46, x1 = 606, by = 78, bh = 48, sx = (x1 - x0) / P;
+    const heading = (p.type === 'Al' || p.colours) ? spec : `${spec} ${colKey}`;
+    let inner = title(Wd, 22, heading, 18);
     const desc = TYPE_NAMES[p.type] + (p.group && p.type !== 'Mo' && p.type !== 'Al' ? `, group of ${p.group}` : '') + (p.plusLFl ? ' plus one long flash' : '') + (p.type === 'Mo' ? ` "${(p.group || 'A').toUpperCase()}"` : '');
-    inner += note(Wd / 2, 42, desc, { size: 12.5 });
+    inner += note(Wd / 2, 41, desc, { size: 12.5 });
     inner += `<rect x="${x0}" y="${by}" width="${x1 - x0}" height="${bh}" fill="${C.night}" rx="3"/>`;
     on.forEach(iv => {
       const col = LIGHT_COLOURS[iv[2] || colKey];
@@ -336,10 +338,10 @@
     for (let t = 0; t <= P + 1e-9; t += step) {
       const x = x0 + t * sx; inner += `<line x1="${fx(x)}" y1="${by + bh}" x2="${fx(x)}" y2="${by + bh + 7}" stroke="${INK2}" stroke-width="1"/>` + T(x, by + bh + 19, `${t}`, { size: 11, fill: INK2 });
     }
-    inner += T(Wd / 2, by + bh + 36, 'seconds', { size: 11, fill: MUTED });
+    inner += T(Wd / 2, by + bh + 34, 'seconds', { size: 11, fill: MUTED });
     const isCont = (p.type === 'Q' || p.type === 'VQ' || p.type === 'UQ') && !p.group;
     inner += `<path d="M${x0},${by - 8} v-5 H${x1} v5" fill="none" stroke="${INK2}" stroke-width="1"/>` + T((x0 + x1) / 2, by - 18, isCont ? `continuous (${P} s shown)` : p.type === 'F' ? 'steady (no period)' : `one period = ${P} s`, { size: 11.5, fill: INK2, weight: 600 });
-    inner += `<rect x="${x0}" y="${Ht - 22}" width="12" height="12" fill="${LIGHT_COLOURS[colKey]}" stroke="${INK2}" stroke-width=".8"/>` + T(x0 + 18, Ht - 16, 'light on', { size: 11, anchor: 'start', fill: INK2 }) + `<rect x="${x0 + 80}" y="${Ht - 22}" width="12" height="12" fill="${C.night}"/>` + T(x0 + 98, Ht - 16, 'dark (eclipse)', { size: 11, anchor: 'start', fill: INK2 });
+    inner += `<rect x="${x0 + 380}" y="${Ht - 22}" width="12" height="12" fill="${LIGHT_COLOURS[colKey]}" stroke="${INK2}" stroke-width=".8"/>` + T(x0 + 398, Ht - 16, 'light on', { size: 11, anchor: 'start', fill: INK2 }) + `<rect x="${x0 + 460}" y="${Ht - 22}" width="12" height="12" fill="${C.night}"/>` + T(x0 + 478, Ht - 16, 'dark (eclipse)', { size: 11, anchor: 'start', fill: INK2 });
     return S.svg(Wd, Ht, inner, { label: `Light rhythm ${spec}: ${desc}; ${isCont ? 'continuous' : 'period ' + P + ' seconds'}; colour ${colKey}.` });
   }
 
@@ -476,7 +478,7 @@
     'wreck-dangerous': { draw: (x, y) => wreckSym(x, y) + dotCircle(x, y, 22), title: 'Dangerous wreck, depth unknown', sub: 'wreck symbol inside a dotted danger circle (INT1 K28)', water: true },
     'wreck-non-dangerous': { draw: (x, y) => wreckSym(x, y) + T(x + 24, y + 2, 'Wk', { size: 12, anchor: 'start' }), title: 'Wreck not dangerous to surface navigation', sub: 'no danger circle: at least 20 m of water over it (INT1 K29)', water: true },
     'light': { draw: (x, y) => `<circle cx="${x}" cy="${y}" r="3.5" fill="${INK}"/>` + flare(x, y) + T(x + 2, y + 22, 'Fl R 3s 6m 4M', { size: 12, anchor: 'start' }), title: 'Light', sub: 'position dot with a magenta flare; description beside it (INT1 P1)', water: false },
-    'sector-light': { draw: (x, y) => { let s = ''; [[200, 240, G], [240, 275, Y], [275, 320, R]].forEach(([a, b, c]) => { const p = a2 => [x + 46 * Math.sin(deg(a2)), y - 46 * Math.cos(deg(a2))]; const [x1, y1] = p(a), [x2, y2] = p(b); s += `<path d="M${fx(x1)},${fx(y1)} A46,46 0 0,1 ${fx(x2)},${fx(y2)}" fill="none" stroke="${c}" stroke-width="${c === Y ? 3 : 5}"/>`; }); [200, 240, 275, 320].forEach(a => { s += `<line x1="${x}" y1="${y}" x2="${fx(x + 52 * Math.sin(deg(a)))}" y2="${fx(y - 52 * Math.cos(deg(a)))}" stroke="${INK2}" stroke-width=".8" stroke-dasharray="2 2"/>`; }); return s + `<circle cx="${x}" cy="${y}" r="3.5" fill="${INK}"/>` + flare(x, y) + T(x + 8, y + 20, 'Fl WRG 4s', { size: 12, anchor: 'start' }) + T(x - 60, y - 30, 'W = fairway', { size: 11, fill: INK2 }); }, title: 'Sector light', sub: 'arcs show the sectors; white drawn yellow on colour charts (P40)', water: false },
+    'sector-light': { draw: (x, y) => { let s = ''; [[200, 240, G], [240, 275, Y], [275, 320, R]].forEach(([a, b, c]) => { const p = a2 => [x + 46 * Math.sin(deg(a2)), y - 46 * Math.cos(deg(a2))]; const [x1, y1] = p(a), [x2, y2] = p(b); s += `<path d="M${fx(x1)},${fx(y1)} A46,46 0 0,1 ${fx(x2)},${fx(y2)}" fill="none" stroke="${c}" stroke-width="${c === Y ? 3 : 5}"/>`; }); [200, 240, 275, 320].forEach(a => { s += `<line x1="${x}" y1="${y}" x2="${fx(x + 52 * Math.sin(deg(a)))}" y2="${fx(y - 52 * Math.cos(deg(a)))}" stroke="${INK2}" stroke-width=".8" stroke-dasharray="2 2"/>`; }); return s + `<circle cx="${x}" cy="${y}" r="3.5" fill="${INK}"/>` + flare(x, y) + T(x + 8, y + 20, 'Fl WRG 4s', { size: 12, anchor: 'start' }) + T(x - 62, y + 40, 'W = fairway', { size: 11, fill: INK2 }); }, title: 'Sector light', sub: 'arcs show the sectors; white drawn yellow on colour charts (P40)', water: false },
     'beacon-port': { draw: (x, y) => beaconSym(x, y + 14, 'lateral-port'), title: 'Port-hand beacon (red)', sub: 'fixed mark; only the topmark has meaning (INT1 Q130)', water: false },
     'beacon-starboard': { draw: (x, y) => beaconSym(x, y + 14, 'lateral-starboard'), title: 'Starboard-hand beacon (green)', sub: 'fixed mark with green cone topmark (INT1 Q130)', water: false },
     'anchorage': { draw: (x, y) => dotCircle(x, y, 34).replace('stroke-dasharray="2.5 3"', `stroke-dasharray="6 4" stroke="${MAGENTA}"`) + anchorSym(x, y, MAGENTA) + T(x, y + 50, '24h', { size: 11, fill: MAGENTA }), title: 'Anchorage area', sub: 'anchor symbol inside a dashed boundary (INT1 N12)', water: true },
@@ -565,7 +567,7 @@
   /* ---------- extra helpers from the fact sheet (IL-11, IL-12, IL-15) ---------- */
   /* sparRule() — Norwegian spar buoys without topmarks: identify by colour and top shape. */
   function sparRule() {
-    const Wd = 640, Ht = 420, wl = 300;
+    const Wd = 640, Ht = 436, wl = 300;
     const kinds = ['lateral-port', 'lateral-starboard', 'cardinal-n', 'cardinal-e', 'cardinal-s', 'cardinal-w'];
     let inner = title(Wd, 22, 'Norwegian spar buoys: no topmark — read the colour and the top', 16) + water(0, wl, Wd, 40);
     kinds.forEach((k, i) => {
@@ -574,8 +576,9 @@
       inner += T(x, wl + 58, KINDS[k].name.replace(' mark', '').replace('-hand lateral', ''), { size: 12, weight: 700 });
       inner += T(x, wl + 74, KINDS[k].spar.toUpperCase() + ' top', { size: 11.5, fill: INK2 });
     });
-    inner += note(Wd / 2, Ht - 36, 'Red laterals are BLUNT, green laterals POINTED. Cardinals: black on top (N, E) = POINTED; yellow on top (S, W) = BLUNT.', { size: 12, weight: 600 });
-    inner += note(Wd / 2, Ht - 18, 'Reflective bands show the colours at night; BLUE tape stands for black (N: blue over yellow, E: two blue, S: yellow over blue, W: two yellow).', { size: 11 });
+    inner += note(Wd / 2, Ht - 48, 'Red laterals are BLUNT, green laterals POINTED.', { size: 12, weight: 600 });
+    inner += note(Wd / 2, Ht - 32, 'Cardinals: black on top (N, E) = POINTED; yellow on top (S, W) = BLUNT.', { size: 12, weight: 600 });
+    inner += note(Wd / 2, Ht - 14, 'Reflective bands show the colours at night; BLUE tape stands for black (N: blue/yellow, E: 2 blue, S: yellow/blue, W: 2 yellow).', { size: 11 });
     return S.svg(Wd, Ht, inner, { label: 'Six Norwegian spar buoys: red blunt-topped port lateral, green pointed starboard lateral, black-over-yellow pointed north cardinal, black-yellow-black pointed east cardinal, yellow-over-black blunt south cardinal, yellow-black-yellow blunt west cardinal; reflective bands with blue standing for black.' });
   }
   /* pointerPole(variant) — Norwegian iron pole with a pointer arm: the arm points towards navigable water. variant: left | right | both */
@@ -593,12 +596,12 @@
     if (variant === 'right') inner += boat(370, 'pass HERE (deep water)') + T(110, wl + 56, 'shallow — do not pass', { size: 11.5, fill: MUTED }) + `<text x="110" y="${wl + 20}" font-size="22" fill="${C.red}" text-anchor="middle">✕</text>`;
     if (variant === 'both') inner += boat(110, 'either side') + boat(370, 'either side');
     inner += note(cx, 60, variant === 'both' ? 'Two arms + white reflector: the mark can be passed on both sides' : 'The arm points TOWARDS navigable water — never towards the rock', { size: 12.5, weight: 600 });
-    inner += note(cx, Ht - 16, variant === 'both' ? 'Reflector colour: red = leave to port, green = leave to starboard, white = either side (in the direction of buoyage).' : 'Pointers can be bent by ice and collisions: always check the chart (Den norske los).', { size: 11 });
+    inner += note(cx, Ht - 16, variant === 'both' ? 'Reflector: red = leave to port, green = leave to starboard, white = either side.' : 'Pointers can be bent by ice and collisions: always check the chart (Den norske los).', { size: 11 });
     return S.svg(Wd, Ht, inner, { label: `Norwegian iron pole on a rock with ${variant === 'both' ? 'two pointer arms and a white reflector: pass on either side' : 'a pointer arm pointing ' + variant + ': the arm points towards navigable water, pass on the ' + variant}.` });
   }
   /* lightDecoder() — full light description decoded: Fl(3) WRG 15s 21m 15-11M */
   function lightDecoder() {
-    const Wd = 640, Ht = 300;
+    const Wd = 640, Ht = 326;
     let inner = title(Wd, 24, 'Reading a light description on the chart', 16);
     const parts = [['Fl(3)', 'group flashing', '3 flashes in a group', INK], ['WRG', 'colours', 'white, red and green sectors', INK], ['15s', 'period', 'one full cycle of flashes and darkness', INK], ['21m', 'elevation', 'height above MEAN HIGH WATER', INK], ['15-11M', 'nominal range', 'white 15 M, green 11 M, red in between', INK]];
     const xs = [70, 185, 285, 375, 500];
@@ -608,7 +611,7 @@
       inner += T(x, 156 + (i % 2) * 50, what, { size: 13, weight: 700 }) + T(x, 173 + (i % 2) * 50, how, { size: 11.5, fill: INK2 });
     });
     /* timing bar for Fl(3) 15s */
-    const x0 = 60, x1 = 580, by = 240, sx = (x1 - x0) / 15;
+    const x0 = 60, x1 = 580, by = 262, sx = (x1 - x0) / 15;
     inner += `<rect x="${x0}" y="${by}" width="${x1 - x0}" height="22" fill="${C.night}" rx="3"/>`;
     [0, 1, 2].forEach(t => { inner += `<rect x="${fx(x0 + t * sx)}" y="${by + 3}" width="${fx(.5 * sx)}" height="16" fill="${W}" rx="2"/>`; });
     for (let t = 0; t <= 15; t++) inner += `<line x1="${fx(x0 + t * sx)}" y1="${by + 22}" x2="${fx(x0 + t * sx)}" y2="${by + 27}" stroke="${INK2}"/>` + (t % 5 === 0 ? T(x0 + t * sx, by + 36, t + ' s', { size: 11, fill: INK2 }) : '');

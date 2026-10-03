@@ -144,7 +144,7 @@
     if (!chg) fail('compassRose', `opts.change ${JSON.stringify(change)} is not chart style`, `"8'W" or "10'E" (minutes per year with E or W)`);
     const delta = (+chg[1]) * (chg[2].toUpperCase() === 'E' ? 1 : -1);
     const increasing = v === 0 ? delta > 0 : Math.sign(delta) === Math.sign(v);
-    const W = 480, H = 580, cx = 240, cy = 275, R = 200, Ri = 128;
+    const W = 480, H = 580, cx = 240, cy = 275, R = 200, Ri = 140;
     let s = '';
     // wedge between true and magnetic north so even a small variation is visible
     s += S.sector(cx, cy, R - 12, Math.min(0, v), Math.max(0, v), MAGENTA, .28);
@@ -170,25 +170,20 @@
       const len = a % 10 === 0 ? 12 : 7, [ux, uy] = dirv(a);
       inner += line(cx + ux * Ri, cy + uy * Ri, cx + ux * (Ri - len), cy + uy * (Ri - len), { stroke: MAGENTA, width: a % 10 === 0 ? 1.3 : .7 });
     }
-    for (let a = 30; a < 360; a += 30) {   // the inner "0" is replaced by the magnetic north arrow
-      const [ux, uy] = dirv(a), rr = Ri - 24;
-      inner += `<text x="${r1(cx + ux * rr)}" y="${r1(cy + uy * rr)}" font-size="11" font-weight="600" fill="${MAGENTA}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${a} ${r1(cx + ux * rr)} ${r1(cy + uy * rr)})">${a}</text>`;
+    for (let a = 10; a < 360; a += 10) {   // numbered every 10° like a printed rose; the inner "0" is replaced by the magnetic north arrow
+      const [ux, uy] = dirv(a), rr = Ri - 20, big = a % 30 === 0;
+      inner += `<text x="${r1(cx + ux * rr)}" y="${r1(cy + uy * rr)}" font-size="${big ? 11 : 8}" font-weight="${big ? 700 : 500}" fill="${MAGENTA}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${a} ${r1(cx + ux * rr)} ${r1(cy + uy * rr)})">${a}</text>`;
     }
-    // magnetic north arrow with a half arrowhead, and the chart annotation along it
+    // magnetic north arrow with a half arrowhead, and the chart annotation written along the arrow
+    // (rotated with the inner ring, inside the pink wedge) exactly as on the printed rose
     const ay = cy - Ri - 24;
     inner += line(cx, cy, cx, ay, { stroke: MAGENTA, width: 2.2 });
     inner += `<polygon points="${cx},${ay} ${cx},${ay + 24} ${cx - 11},${ay + 22}" fill="${MAGENTA}"/>`;
     inner += T(cx, cy + 60, 'MAGNETIC', { size: 11, weight: 700, fill: MAGENTA });
+    const ann = `${Math.abs(v)}° ${ew(v)} ${year} (${change})`, tx = cx + (v < 0 ? -9 : 9), ty = cy - 64;
+    inner += `<text x="${tx}" y="${ty}" font-size="10.5" font-weight="700" fill="${MAGENTA}" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 ${tx} ${ty})">${S.esc(ann)}</text>`;
     s += `<g transform="rotate(${v} ${cx} ${cy})">${inner}</g>`;
-    // chart annotation as a horizontal callout in the top corner on the magnetic side, outside both rings
-    // so no ring numerals are hidden; a thin leader points at the pink wedge between the two norths
-    const ann = `${Math.abs(v)}° ${ew(v)} ${year} (${change})`, aw = 16 + ann.length * 7.2, axx = v >= 0 ? W - 10 - aw : 10, ayy = 38;
-    const [wx, wy] = dirv(v), lead = [cx + wx * (R + 10), cy + wy * (R + 10)];   // magnetic edge of the wedge, clear of the star
-    s += line(v >= 0 ? axx : axx + aw, ayy + 22, lead[0], lead[1], { stroke: MAGENTA, width: 1 });
-    s += `<circle cx="${r1(lead[0])}" cy="${r1(lead[1])}" r="2" fill="${MAGENTA}"/>`;
-    s += `<rect x="${r1(axx)}" y="${ayy}" width="${r1(aw)}" height="22" rx="4" fill="${PAPER}" stroke="${MAGENTA}"/>`;
-    s += T(axx + aw / 2, ayy + 11, ann, { size: 12, weight: 700, fill: MAGENTA });
-    s += T(cx, cy + R - 50, 'TRUE', { size: 11, weight: 700 });
+    s += T(cx, cy + R - 48, 'TRUE', { size: 10, weight: 700 });
     // annotation of the angle
     s += T(cx, 14, `Magnetic north lies ${Math.abs(v)}° to the ${v >= 0 ? 'right (east)' : 'left (west)'} of true north`, { size: 11, fill: INK2 });
     // caption
@@ -276,9 +271,10 @@
     lines.forEach(l => {
       const L = dists[l.o.i] + 55;
       s += line(l.x, l.y, l.x + l.ux * L, l.y + l.uy * L, { stroke: INK, width: 1.6 });
-      // bearing label beside the line, beyond the angle labels (which sit 46–64 px from the fix)
-      const [bx, by] = dirv(l.o.b), lx = fx + bx * 84, ly = fy + by * 84;
-      s += T(lx - by * 18, ly + bx * 18, `${deg3(l.o.b)} T`, { size: 12, weight: 700, fill: INK });
+      // bearing label beside the line, 96 px out and on the anticlockwise side, so it never sits next to
+      // an angle label (those sit 46–64 px from the fix on the bisector, i.e. clockwise of the first line)
+      const [bx, by] = dirv(l.o.b), lx = fx + bx * 96, ly = fy + by * 96;
+      s += T(lx + by * 18, ly - bx * 18, `${deg3(l.o.b)} T`, { size: 12, weight: 700, fill: INK });
     });
     // fix: intersections (cocked hat) or the single point
     let cx = fx, cy = fy;
@@ -341,14 +337,18 @@
       s += `<circle cx="${r1(ax)}" cy="${ay}" r="3" fill="${INK}"/>`;
       s += T(ax + 12, ay + 10, 'A', { size: 12, weight: 700 }); s += T(bx + 12, by - 8, 'B', { size: 12, weight: 700 });
       s += dividers(ax, ay, bx, by, { height: 56 });          // hinge to the lower right of the leg
-      // the same opening moved straight across to the left border, level with the leg
-      const sx = g.x0 - g.band / 2, sy1 = ay, sy2 = ay - L;
+      // the same opening moved straight across to the left border, level with the leg: both points of
+      // the dividers travel horizontally (two level guides), then the opening is swung upright on the scale
+      const sx = g.x0 - g.band / 2, sy1 = ay, sy2 = ay - L, shift = sx - ax;
       s += arrow(ax - 10, ay, sx + 12, ay, { stroke: MAGENTA, width: 1.2, dash: '5 3' });
-      s += line(bx, by, sx + 12, sy2, { stroke: MAGENTA, width: 1, dash: '5 3' });
+      s += line(bx - 10, by, bx + shift, by, { stroke: MAGENTA, width: 1.2, dash: '5 3' });
+      s += arcPath(sx, sy1, L, 0, 45, { stroke: MAGENTA, width: 1, dash: '5 3' });   // swing the upper point to vertical
+      s += head(sx, sy2, 270, 8, MAGENTA);
       s += dividers(sx, sy1, sx, sy2, { height: 50, stroke: MAGENTA });
       s += T(sx - 58, (sy1 + sy2) / 2 - 10, '5′ = 5 NM', { size: 13, weight: 700, fill: MAGENTA, anchor: 'end' });
       s += T(sx - 58, (sy1 + sy2) / 2 + 8, 'read here', { size: 11, fill: MAGENTA, anchor: 'end' });
       s += T(ax + 60, ay + 44, 'move straight across', { size: 11, fill: MAGENTA });
+      s += T(sx + L * Math.sin(S.deg(22)) + 30, sy1 - L * Math.cos(S.deg(22)) - 12, 'same opening, set upright', { size: 10, fill: MAGENTA });
       // wrong: dividers on the longitude scale with a red cross
       const wx1 = g.x0 + 8 * pxLon, wx2 = wx1 + L, wy = g.y0 + g.h + g.band / 2;
       s += dividers(wx1, wy, wx2, wy, { height: 44, flip: true, stroke: MUTED });
@@ -422,7 +422,8 @@
       s += box(fx, y, 118, 40, [f[0]], { size: 17, fill: PAPER });
       s += T(fx + 130, y + 20, f[1], { size: 12, anchor: 'start', fill: INK2 });
     });
-    s += box(fx, 216, 250, 40, ['minutes ÷ 60 = hours   (40 min = 0.667 h)'], { size: 12, fill: PAPER2, stroke: MAGENTA, ink: MAGENTA });
+    const hrs = Math.round(ex1.minutes / 60 * 1000) / 1000;   // the strip quotes the first worked example's time
+    s += box(fx, 216, 250, 40, [`minutes ÷ 60 = hours   (${num(ex1.minutes)} min = ${hrs} h)`], { size: 12, fill: PAPER2, stroke: MAGENTA, ink: MAGENTA });
     s += T(fx + 125, 274, '6-minute rule: in 6 min you cover 1/10 of your speed in NM', { size: 11, fill: MUTED });
     // worked boxes
     [ex1, ex2].forEach((e, i) => {
