@@ -274,7 +274,8 @@
       // bearing label beside the line, 96 px out and on the anticlockwise side, so it never sits next to
       // an angle label (those sit 46–64 px from the fix on the bisector, i.e. clockwise of the first line)
       const [bx, by] = dirv(l.o.b), lx = fx + bx * 96, ly = fy + by * 96;
-      s += T(lx + by * 18, ly - bx * 18, `${deg3(l.o.b)} T`, { size: 12, weight: 700, fill: INK });
+      const off = Math.abs(by) * 22 + Math.abs(bx) * 6 + 5;   // half extent of the horizontal text box across the line, plus a gap
+      s += T(lx + by * off, ly - bx * off, `${deg3(l.o.b)} T`, { size: 12, weight: 700, fill: INK });
     });
     // fix: intersections (cocked hat) or the single point
     let cx = fx, cy = fy;

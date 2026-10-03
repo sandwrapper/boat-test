@@ -172,7 +172,7 @@
   function propSymbol(cx, cy, dir) {
     // small 3-blade propeller seen from astern with a curved rotation arrow (dir 1 = clockwise)
     let s = '';
-    for (let k = 0; k < 3; k++) s += `<ellipse cx="${cx}" cy="${cy - 9}" rx="4" ry="9" fill="${HULL_STROKE}" transform="rotate(${k * 120} ${cx} ${cy})"/>`;
+    for (let k = 0; k < 3; k++) s += `<ellipse cx="${cx}" cy="${cy - 9}" rx="4" ry="9" fill="${INK}" transform="rotate(${k * 120} ${cx} ${cy})"/>`;
     s += `<circle cx="${cx}" cy="${cy}" r="3" fill="#888"/>`;
     const r = 17, a0 = dir > 0 ? 200 : 160, a1 = dir > 0 ? 340 : 20;
     const p = a => [cx + r * Math.sin(S.deg(a)), cy - r * Math.cos(S.deg(a))];
@@ -305,9 +305,9 @@
   }
 
   /* ---------- ILL-4 anchor scope (F37–F41) ---------- */
-  function anchorIcon(x, y, tilt, scale) {
-    scale = scale || 1;
-    return `<g transform="translate(${x} ${y}) rotate(${tilt || 0}) scale(${scale})"><path d="M0,0 L28,-12 M0,0 L6,6 L22,8 L8,-4 Z" fill="${HULL_STROKE}" stroke="${HULL_STROKE}" stroke-width="3" stroke-linejoin="round"/></g>`;
+  function anchorIcon(x, y, tilt, scale, col) {
+    scale = scale || 1; col = col || HULL_STROKE;
+    return `<g transform="translate(${x} ${y}) rotate(${tilt || 0}) scale(${scale})"><path d="M0,0 L28,-12 M0,0 L6,6 L22,8 L8,-4 Z" fill="${col}" stroke="${col}" stroke-width="3" stroke-linejoin="round"/></g>`;
   }
   function illAnchorScope() {
     const surf = 112, bed = 270;
@@ -345,7 +345,7 @@
     s += `<line x1="24" y1="44" x2="228" y2="44" stroke="${WATER}" stroke-width="2"/><line x1="24" y1="96" x2="228" y2="96" stroke="${SEABED}" stroke-width="4"/>`;
     s += `<path d="M170,44 L176,34 L214,34 L220,44 Z" fill="${HULL}" stroke="${HULL_STROKE}"/>`;
     s += `<line x1="176" y1="44" x2="128" y2="92" stroke="${C.orange}" stroke-width="2.5"/>`;
-    s += anchorIcon(112, 92, -40, 0.7);
+    s += anchorIcon(112, 92, -40, 0.7, INK);
     s += `<path d="M138,78 L152,92 M152,78 L138,92" stroke="${C.red}" stroke-width="3"/>`;
     s += lines(30, 54, ['WRONG: scope too short,', 'steep pull lifts the anchor', 'and it drags'], 9, { anchor: 'start', fill: C.red, weight: 700 }, 11);
     return S.svg(640, 340, s, { label: 'Anchoring: scope, chain, depth, anchor light and transit check' });
