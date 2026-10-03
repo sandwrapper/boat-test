@@ -183,13 +183,18 @@
     let form = opts.form || 'buoy';
     if (!FORMS.includes(form)) throw bad('mark form', form, FORMS);
     if ((form === 'can' || form === 'cone') && !LATERALS.includes(kind)) throw new Error(`mark form "${form}" is only for lateral kinds (${LATERALS.join(', ')})`);
+    if ((form === 'spar' || form === 'perch') && NO_NORWEGIAN_FORMS.includes(kind)) throw new Error(`mark form "${form}" is not available for "${kind}": preferred-channel marks are not used in Norwegian waters (INT1 Q130). Use form "buoy".`);
+    if (form === 'perch' && NO_PERCH.includes(kind)) throw new Error(`mark form "perch" is not available for "${kind}": the emergency wreck marking buoy is a floating pillar or spar buoy (IALA). Use form "buoy" or "spar".`);
     if (form === 'buoy') form = defaultForm(kind);
     const k = KINDS[kind], Wd = 360, Ht = 440, wl = 330, cx = Wd / 2;
     const m = drawMark(kind, form, { light: !!opts.light });
     const sc = Math.min(1.3, 262 / (-m.top + 8)); /* fill the space above the waterline */
-    let inner = water(0, wl, Wd, 42) + `<g transform="translate(${cx},${wl}) scale(${fx(sc)})">${m.svg}</g>`;
+    let inner = water(0, wl, Wd, 42);
+    /* isolated danger: the danger lies directly beneath the mark (IL-7) */
+    if (kind === 'isolated-danger' && form !== 'perch') inner += `<g opacity=".75">${rockBlob(cx, wl + 36, 30, MUTED)}</g>` + T(cx, wl + 30, 'rock', { size: 11, weight: 700, fill: PAPER });
+    inner += `<g transform="translate(${cx},${wl}) scale(${fx(sc)})">${m.svg}</g>`;
     inner += title(Wd, 26, k.name, 18);
-    const sub = form === 'spar' ? `Norwegian spar buoy: ${k.spar} top, no topmark, reflective band${k.reflex.length > 1 ? 's' : ''}` :
+    const sub = form === 'spar' ? (k.spar ? `Norwegian spar buoy: ${k.spar} top, no topmark, reflective band${k.reflex.length > 1 ? 's' : ''}` : `Spar form: no topmark — identify it by its colours${k.reflex.length ? ' and reflective bands' : ''}`) :
       form === 'perch' ? 'Norwegian fixed perch on a rock — the topmark gives the meaning' : '';
     if (sub) inner += note(cx, 48, sub, { size: 12, fill: MUTED });
     inner += note(cx, wl + 62, 'Light: ' + k.charText, { size: 12.5, weight: 600, fill: INK });
@@ -197,7 +202,7 @@
     const words = k.pass.split(' '); let l1 = '', l2 = '';
     words.forEach(w => { if (l1.length < 52 && !l2) l1 += (l1 ? ' ' : '') + w; else l2 += (l2 ? ' ' : '') + w; });
     inner += note(cx, wl + 84, l1) + (l2 ? note(cx, wl + 101, l2) : '');
-    const label = `${k.name}: ${form === 'spar' ? 'Norwegian spar buoy, ' + k.spar + ' top, ' : ''}${k.vertical ? 'vertical stripes' : 'colour bands top to bottom'} ${k.bands.map(b => colourName(b[0])).join(k.vertical ? '/' : ' over ')}${m.H && form !== 'spar' ? ', topmark ' + topmarkName(k.top) : ''}. Light ${k.charText}. ${k.pass}.`;
+    const label = `${k.name}: ${form === 'spar' ? 'spar buoy without topmark, ' + (k.spar ? k.spar + ' top, ' : '') : ''}${k.vertical ? 'vertical stripes' : 'colour bands top to bottom'} ${k.bands.map(b => colourName(b[0])).join(k.vertical ? '/' : ' over ')}${m.H && form !== 'spar' ? ', topmark ' + topmarkName(k.top) : ''}. Light ${k.charText}. ${k.pass}.`;
     return S.svg(Wd, Ht, inner, { label });
   }
   function colourName(c) { return c === R ? 'red' : c === G ? 'green' : c === Y ? 'yellow' : c === B ? 'black' : c === W ? 'white' : c === BU ? 'blue' : 'colour'; }
@@ -210,7 +215,7 @@
     inner += title(Wd, 24, 'Cardinal marks: the name says on which side to pass', 17);
     /* quadrant boundaries NW–NE, NE–SE, SE–SW, SW–NW (true bearings 315°, 045°, 135°, 225° from the danger) */
     [45, 135, 225, 315].forEach(a => {
-      const x = cx + 300 * Math.sin(deg(a)), y = cy - 300 * Math.cos(deg(a));
+      const x = cx + 240 * Math.sin(deg(a)), y = cy - 240 * Math.cos(deg(a));
       inner += `<line x1="${cx}" y1="${cy}" x2="${fx(x)}" y2="${fx(y)}" stroke="${MUTED}" stroke-width="1.2" stroke-dasharray="6 5"/>`;
       const lx = cx + 215 * Math.sin(deg(a)), ly = cy - 215 * Math.cos(deg(a));
       inner += T(lx, ly, { 45: 'NE 045°', 135: 'SE 135°', 225: 'SW 225°', 315: 'NW 315°' }[a], { size: 11, fill: MUTED });
@@ -317,7 +322,13 @@
         code.split('').forEach(c => { const d = c === '.' ? .5 : 1.5; on.push([t, t + d]); t += d + .5; });
         break;
       }
-      case 'Al': { const cs = p.colours || ['W', 'R']; P = P || 4; const d = P / cs.length; cs.forEach((c, i) => on.push([i * d, (i + 1) * d, c])); break; }
+      case 'Al': {
+        const cs = p.colours || ['W', 'R'];
+        if (cs.includes('Bu')) { /* emergency wreck buoy: 1 s blue, 0.5 s dark, 1 s yellow, 0.5 s dark (IALA Table 11, F45) */
+          P = P || 3; const d = (P - 1) / 2; on.push([0, d, 'Bu']); on.push([d + .5, 2 * d + .5, cs.includes('Y') ? 'Y' : cs[1] || 'Y']);
+        } else { P = P || 4; const d = P / cs.length; cs.forEach((c, i) => on.push([i * d, (i + 1) * d, c])); }
+        break;
+      }
     }
     return { on, P };
   }
@@ -332,7 +343,9 @@
     const Wd = 640, Ht = 186, x0 = 46, x1 = 606, by = 78, bh = 48, sx = (x1 - x0) / P;
     const heading = (p.type === 'Al' || p.colours) ? spec : `${spec} ${colKey}`;
     let inner = title(Wd, 22, heading, 18);
-    const desc = TYPE_NAMES[p.type] + (p.group && p.type !== 'Mo' && p.type !== 'Al' ? `, group of ${p.group}` : '') + (p.plusLFl ? ' plus one long flash' : '') + (p.type === 'Mo' ? ` "${(p.group || 'A').toUpperCase()}"` : '');
+    const wreckAl = p.type === 'Al' && p.colours && p.colours.includes('Bu');
+    const desc = wreckAl ? 'Alternating blue / yellow with 0.5 s dark between (emergency wreck buoy)' :
+      TYPE_NAMES[p.type] + (p.group && p.type !== 'Mo' && p.type !== 'Al' ? `, group of ${p.group}` : '') + (p.plusLFl ? ' plus one long flash' : '') + (p.type === 'Mo' ? ` "${(p.group || 'A').toUpperCase()}"` : '');
     inner += note(Wd / 2, 41, desc, { size: 12.5 });
     inner += `<rect x="${x0}" y="${by}" width="${x1 - x0}" height="${bh}" fill="${C.night}" rx="3"/>`;
     on.forEach(iv => {
@@ -480,35 +493,36 @@
       T(x + 14, y - 12, kind === 'lateral-port' ? 'R' : 'G', { size: 12, anchor: 'start', weight: 700 });
   }
   const SYMS = {
-    'rock-awash': { draw: (x, y) => plusSym(x, y, 12, 2.2) + [[-6, -6], [6, -6], [-6, 6], [6, 6]].map(d => `<circle cx="${x + d[0]}" cy="${y + d[1]}" r="2" fill="${INK}"/>`).join(''), title: 'Rock awash at chart datum', sub: '(skvalpeskjaer, INT1 K12): between CD and 0.5 m below', water: true },
-    'rock-submerged': { draw: (x, y) => plusSym(x, y, 12, 2.2), title: 'Underwater rock, depth unknown', sub: 'dangerous to surface navigation (INT1 K13)', water: true },
-    'rock-drying': { draw: (x, y) => `<g stroke="${INK}" stroke-width="2.2" stroke-linecap="round">${[0, 60, 120].map(a => `<line x1="${fx(x + 12 * Math.sin(deg(a)))}" y1="${fx(y - 12 * Math.cos(deg(a)))}" x2="${fx(x - 12 * Math.sin(deg(a)))}" y2="${fx(y + 12 * Math.cos(deg(a)))}"/>`).join('')}</g>`, title: 'Rock that covers and uncovers', sub: 'drying rock, between chart datum and MHW (INT1 K11)', water: true },
-    'rock-above-water': { draw: (x, y) => rockBlob(x, y, 14, PAPER2) + T(x + 22, y + 2, '(1,7)', { size: 12, anchor: 'start' }), title: 'Islet / rock always above water', sub: 'height in metres above MHW in brackets (INT1 K10)', water: true },
-    'wreck-dangerous': { draw: (x, y) => wreckSym(x, y) + dotCircle(x, y, 22), title: 'Dangerous wreck, depth unknown', sub: 'wreck symbol inside a dotted danger circle (INT1 K28)', water: true },
-    'wreck-non-dangerous': { draw: (x, y) => wreckSym(x, y) + T(x + 24, y + 2, 'Wk', { size: 12, anchor: 'start' }), title: 'Wreck not dangerous to surface navigation', sub: 'no danger circle: at least 20 m of water over it (INT1 K29)', water: true },
-    'light': { draw: (x, y) => `<circle cx="${x}" cy="${y}" r="3.5" fill="${INK}"/>` + flare(x, y) + T(x + 2, y + 22, 'Fl R 3s 6m 4M', { size: 12, anchor: 'start' }), title: 'Light', sub: 'position dot with a magenta flare; description beside it (INT1 P1)', water: false },
+    'rock-awash': { scale: 1.8, draw: (x, y) => plusSym(x, y, 12, 2.2) + [[-6, -6], [6, -6], [-6, 6], [6, 6]].map(d => `<circle cx="${x + d[0]}" cy="${y + d[1]}" r="2" fill="${INK}"/>`).join(''), title: 'Rock awash at chart datum', sub: '(skvalpeskjaer, INT1 K12): between CD and 0.5 m below', water: true },
+    'rock-submerged': { scale: 1.8, draw: (x, y) => plusSym(x, y, 12, 2.2), title: 'Underwater rock, depth unknown', sub: 'dangerous to surface navigation (INT1 K13)', water: true },
+    'rock-drying': { scale: 1.8, draw: (x, y) => `<g stroke="${INK}" stroke-width="2.2" stroke-linecap="round">${[0, 60, 120].map(a => `<line x1="${fx(x + 12 * Math.sin(deg(a)))}" y1="${fx(y - 12 * Math.cos(deg(a)))}" x2="${fx(x - 12 * Math.sin(deg(a)))}" y2="${fx(y + 12 * Math.cos(deg(a)))}"/>`).join('')}</g>`, title: 'Rock that covers and uncovers', sub: 'drying rock, between chart datum and MHW (INT1 K11)', water: true },
+    'rock-above-water': { scale: 1.5, draw: (x, y) => rockBlob(x, y, 14, PAPER2) + T(x + 22, y + 2, '(1,7)', { size: 12, anchor: 'start' }), title: 'Islet / rock always above water', sub: 'height in metres above MHW in brackets (INT1 K10)', water: true },
+    'wreck-dangerous': { scale: 1.5, draw: (x, y) => wreckSym(x, y) + dotCircle(x, y, 22), title: 'Dangerous wreck, depth unknown', sub: 'wreck symbol inside a dotted danger circle (INT1 K28)', water: true },
+    'wreck-non-dangerous': { scale: 1.6, draw: (x, y) => wreckSym(x, y) + T(x + 24, y + 2, 'Wk', { size: 12, anchor: 'start' }), title: 'Wreck not dangerous to surface navigation', sub: 'no danger circle: at least 20 m of water over it (INT1 K29)', water: true },
+    'light': { scale: 1.3, draw: (x, y) => `<circle cx="${x}" cy="${y}" r="3.5" fill="${INK}"/>` + flare(x, y) + T(x + 2, y + 22, 'Fl R 3s 6m 4M', { size: 12, anchor: 'start' }), title: 'Light', sub: 'position dot with a magenta flare; description beside it (INT1 P1)', water: false },
     'sector-light': { draw: (x, y) => { let s = ''; [[200, 240, G], [240, 275, Y], [275, 320, R]].forEach(([a, b, c]) => { const p = a2 => [x + 46 * Math.sin(deg(a2)), y - 46 * Math.cos(deg(a2))]; const [x1, y1] = p(a), [x2, y2] = p(b); s += `<path d="M${fx(x1)},${fx(y1)} A46,46 0 0,1 ${fx(x2)},${fx(y2)}" fill="none" stroke="${c}" stroke-width="${c === Y ? 3 : 5}"/>`; }); [200, 240, 275, 320].forEach(a => { s += `<line x1="${x}" y1="${y}" x2="${fx(x + 52 * Math.sin(deg(a)))}" y2="${fx(y - 52 * Math.cos(deg(a)))}" stroke="${INK2}" stroke-width=".8" stroke-dasharray="2 2"/>`; }); return s + `<circle cx="${x}" cy="${y}" r="3.5" fill="${INK}"/>` + flare(x, y) + T(x + 8, y + 20, 'Fl WRG 4s', { size: 12, anchor: 'start' }) + T(x - 62, y + 40, 'W = fairway', { size: 11, fill: INK2 }); }, title: 'Sector light', sub: 'arcs show the sectors; white drawn yellow on colour charts (P40)', water: false },
-    'beacon-port': { draw: (x, y) => beaconSym(x, y + 14, 'lateral-port'), title: 'Port-hand beacon (red)', sub: 'fixed mark; only the topmark has meaning (INT1 Q130)', water: false },
-    'beacon-starboard': { draw: (x, y) => beaconSym(x, y + 14, 'lateral-starboard'), title: 'Starboard-hand beacon (green)', sub: 'fixed mark with green cone topmark (INT1 Q130)', water: false },
+    'beacon-port': { scale: 1.4, draw: (x, y) => beaconSym(x, y + 14, 'lateral-port'), title: 'Port-hand beacon (red)', sub: 'fixed mark; only the topmark has meaning (INT1 Q130)', water: false },
+    'beacon-starboard': { scale: 1.4, draw: (x, y) => beaconSym(x, y + 14, 'lateral-starboard'), title: 'Starboard-hand beacon (green)', sub: 'fixed mark with green cone topmark (INT1 Q130)', water: false },
     'anchorage': { draw: (x, y) => dotCircle(x, y, 34).replace('stroke-dasharray="2.5 3"', `stroke-dasharray="6 4" stroke="${MAGENTA}"`) + anchorSym(x, y, MAGENTA) + T(x, y + 50, '24h', { size: 11, fill: MAGENTA }), title: 'Anchorage area', sub: 'anchor symbol inside a dashed boundary (INT1 N12)', water: true },
     'cable': { draw: (x, y) => wavy(x - 60, y - 8, x + 60) + `<polyline points="${x - 12},${y + 12} ${x - 4},${y + 18} ${x - 10},${y + 22} ${x - 2},${y + 30}" fill="none" stroke="${MAGENTA}" stroke-width="1.6"/>` + wavy(x - 60, y + 22, x - 14) + wavy(x - 2, y + 22, x + 60) + T(x + 2, y - 20, 'Kabler', { size: 11, fill: MAGENTA }), title: 'Submarine cable (top) and power cable', sub: 'wavy magenta line; zigzags = power cable (INT1 L30–L31)', water: true },
-    'pipeline': { draw: (x, y) => `<line x1="${x - 60}" y1="${y}" x2="${x + 60}" y2="${y}" stroke="${MAGENTA}" stroke-width="1.8" stroke-dasharray="14 4 1.5 4" stroke-linecap="round"/>` + T(x, y - 14, 'Gas', { size: 11, fill: MAGENTA }), title: 'Pipeline', sub: 'magenta long dash – dot – long dash (INT1 L40)', water: true },
+    'pipeline': { scale: 1.2, draw: (x, y) => `<line x1="${x - 60}" y1="${y}" x2="${x + 60}" y2="${y}" stroke="${MAGENTA}" stroke-width="1.8" stroke-dasharray="14 4 1.5 4" stroke-linecap="round"/>` + T(x, y - 14, 'Gas', { size: 11, fill: MAGENTA }), title: 'Pipeline', sub: 'magenta long dash – dot – long dash (INT1 L40)', water: true },
     'depth-contour': { draw: (x, y) => `<path d="M${x - 75},${y - 50} Q${x - 30},${y - 10} ${x - 70},${y + 50}" fill="${SHALLOW}" stroke="${C.blue}" stroke-width="1.2"/><path d="M${x - 40},${y - 50} Q${x + 10},${y} ${x - 30},${y + 50}" fill="none" stroke="${C.blue}" stroke-width="1.2"/>` + T(x - 58, y - 38, '5', { size: 10, fill: C.blue }) + T(x - 22, y - 38, '10', { size: 10, fill: C.blue }) + `<text x="${x + 18}" y="${y - 10}" font-size="13" ${ITAL} fill="${INK}">12</text><text x="${x + 44}" y="${y + 28}" font-size="13" ${ITAL} fill="${INK}">7,3</text><text x="${x + 10}" y="${y + 34}" font-size="13" font-weight="700" fill="${INK}">4</text>` + dotCircle(x + 14, y + 30, 10), title: 'Depth contours and soundings', sub: 'blue contours; italic = depth, upright in a circle = shoal', water: false },
-    'leading-line': { draw: (x, y) => `<line x1="${x - 70}" y1="${y + 50}" x2="${x + 20}" y2="${y - 20}" stroke="${INK}" stroke-width="1.8"/><line x1="${x + 20}" y1="${y - 20}" x2="${x + 52}" y2="${y - 45}" stroke="${INK}" stroke-width="1.4" stroke-dasharray="5 4"/>` + `<circle cx="${x + 20}" cy="${y - 20}" r="3" fill="${INK}"/><circle cx="${x + 40}" cy="${y - 35.5}" r="3" fill="${INK}"/>` + flare(x + 20, y - 20, 50) + flare(x + 40, y - 35.5, 50) + T(x - 30, y + 40, 'Ldg Lts 052°', { size: 11.5, weight: 700 }), title: 'Leading line / leading lights', sub: 'solid where it is the track, dashed beyond; true bearing (P20)', water: true },
-    'buoyage-direction': { draw: (x, y) => arrow(x - 40, y + 20, x + 50, y - 25, MAGENTA, { width: 2.4, head: 14, open: true }) + `<circle cx="${x - 48}" cy="${y + 18}" r="3" fill="${MAGENTA}"/><circle cx="${x - 42}" cy="${y + 28}" r="3" fill="${MAGENTA}"/>`, title: 'Direction of buoyage', sub: 'magenta arrow where the direction is not obvious (Q130.2)', water: true },
-    'foul': { draw: (x, y) => `<g stroke="${INK}" stroke-width="1.8"><line x1="${x - 8}" y1="${y - 12}" x2="${x - 4}" y2="${y + 12}"/><line x1="${x + 4}" y1="${y - 12}" x2="${x + 8}" y2="${y + 12}"/><line x1="${x - 12}" y1="${y - 5}" x2="${x + 12}" y2="${y - 5}"/><line x1="${x - 12}" y1="${y + 5}" x2="${x + 12}" y2="${y + 5}"/></g>` + T(x + 18, y + 2, 'Foul', { size: 12, anchor: 'start' }), title: 'Foul ground', sub: 'not dangerous to surface navigation; do not anchor (INT1 K31)', water: true },
-    'obstruction': { draw: (x, y) => dotCircle(x, y, 20) + T(x, y + 1, 'Obstn', { size: 11.5 }), title: 'Obstruction', sub: 'danger circle with "Obstn" (INT1 K40)', water: true },
+    'leading-line': { draw: (x, y) => `<line x1="${x - 70}" y1="${y + 50}" x2="${x + 20}" y2="${y - 20}" stroke="${INK}" stroke-width="1.8"/><line x1="${x + 20}" y1="${y - 20}" x2="${x + 52}" y2="${y - 45}" stroke="${INK}" stroke-width="1.4" stroke-dasharray="5 4"/>` + `<circle cx="${x + 20}" cy="${y - 20}" r="3" fill="${INK}"/><circle cx="${x + 40}" cy="${y - 35.5}" r="3" fill="${INK}"/>` + flare(x + 20, y - 20, 50) + flare(x + 40, y - 35.5, 50) + T(x + 16, y + 42, 'Ldg Lts 052°', { size: 11.5, weight: 700 }), title: 'Leading line / leading lights', sub: 'solid where it is the track, dashed beyond; true bearing (P20)', water: true },
+    'buoyage-direction': { scale: 1.2, draw: (x, y) => arrow(x - 40, y + 20, x + 50, y - 25, MAGENTA, { width: 2.4, head: 14, open: true }) + `<circle cx="${x - 48}" cy="${y + 18}" r="3" fill="${MAGENTA}"/><circle cx="${x - 42}" cy="${y + 28}" r="3" fill="${MAGENTA}"/>`, title: 'Direction of buoyage', sub: 'magenta arrow where the direction is not obvious (Q130.2)', water: true },
+    'foul': { scale: 1.6, draw: (x, y) => `<g stroke="${INK}" stroke-width="1.8"><line x1="${x - 8}" y1="${y - 12}" x2="${x - 4}" y2="${y + 12}"/><line x1="${x + 4}" y1="${y - 12}" x2="${x + 8}" y2="${y + 12}"/><line x1="${x - 12}" y1="${y - 5}" x2="${x + 12}" y2="${y - 5}"/><line x1="${x - 12}" y1="${y + 5}" x2="${x + 12}" y2="${y + 5}"/></g>` + T(x + 18, y + 2, 'Foul', { size: 12, anchor: 'start' }), title: 'Foul ground', sub: 'not dangerous to surface navigation; do not anchor (INT1 K31)', water: true },
+    'obstruction': { scale: 1.5, draw: (x, y) => dotCircle(x, y, 20) + T(x, y + 1, 'Obstn', { size: 11.5 }), title: 'Obstruction', sub: 'danger circle with "Obstn" (INT1 K40)', water: true },
   };
-  ['n', 'e', 's', 'w'].forEach(d => { const kind = 'cardinal-' + d; SYMS['buoy-cardinal-' + d] = { draw: (x, y) => chartBuoy(kind, x - 6, y + 20, true) + T(x + 28, y + 6, KINDS[kind].abbr, { size: 12, anchor: 'start', weight: 700 }), title: `${KINDS[kind].name} (buoy)`, sub: `colours ${KINDS[kind].abbr}; topmark not charted in Norway (Q130)`, water: true }; });
-  [['buoy-port', 'lateral-port'], ['buoy-starboard', 'lateral-starboard'], ['buoy-isolated-danger', 'isolated-danger'], ['buoy-safe-water', 'safe-water'], ['buoy-special', 'special']].forEach(([key, kind]) => { SYMS[key] = { draw: (x, y) => chartBuoy(kind, x - 6, y + 20, true) + T(x + 28, y + 6, KINDS[kind].abbr, { size: 12, anchor: 'start', weight: 700 }), title: `${KINDS[kind].name} (buoy)`, sub: `colour abbreviation ${KINDS[kind].abbr}`, water: true }; });
+  /* buoy symbols: INT1 international style with the topmark; Norwegian charts omit topmarks (Q130 note 1), so the colour letters are what you read */
+  ['n', 'e', 's', 'w'].forEach(d => { const kind = 'cardinal-' + d; SYMS['buoy-cardinal-' + d] = { scale: 1.8, draw: (x, y) => chartBuoy(kind, x - 6, y + 20, true) + T(x + 28, y + 6, KINDS[kind].abbr, { size: 12, anchor: 'start', weight: 700 }), title: `${KINDS[kind].name} (buoy)`, sub: `${KINDS[kind].abbr} = ${KINDS[kind].bands.map(b => colourName(b[0])).join('-')}; Norwegian charts omit the topmark`, water: true }; });
+  [['buoy-port', 'lateral-port'], ['buoy-starboard', 'lateral-starboard'], ['buoy-isolated-danger', 'isolated-danger'], ['buoy-safe-water', 'safe-water'], ['buoy-special', 'special']].forEach(([key, kind]) => { SYMS[key] = { scale: 1.8, draw: (x, y) => chartBuoy(kind, x - 6, y + 20, true) + T(x + 28, y + 6, KINDS[kind].abbr, { size: 12, anchor: 'start', weight: 700 }), title: `${KINDS[kind].name} (buoy)`, sub: `colour abbreviation ${KINDS[kind].abbr}; Norwegian charts omit the topmark`, water: true }; });
   const SYM_NAMES = Object.keys(SYMS);
   /* chartSymbol(kind) — one INT1-style symbol on a chart-paper square with its meaning. */
   function chartSymbol(kind) {
     const s = SYMS[kind]; if (!s) throw bad('chartSymbol kind', kind, SYM_NAMES);
-    const Wd = 360, Ht = 250;
+    const Wd = 360, Ht = 250, sc = s.scale || 1;
     let inner = `<rect x="90" y="12" width="180" height="150" rx="4" fill="${PAPER}" stroke="${LINE}" stroke-width="1.2"/>`;
     if (s.water) inner += `<rect x="91" y="13" width="178" height="148" rx="4" fill="${SHALLOW}" opacity=".6"/>`;
-    inner += `<g>${s.draw(180, 87)}</g>`;
+    inner += `<g transform="translate(180,87) scale(${sc}) translate(-180,-87)">${s.draw(180, 87)}</g>`;
     inner += T(Wd / 2, 190, s.title, { size: 14, weight: 700 }) + note(Wd / 2, 212, s.sub, { size: 11.5 });
     inner += note(Wd / 2, 236, 'chart symbol (INT1 style)', { size: 11, fill: MUTED });
     return S.svg(Wd, Ht, inner, { label: `Chart symbol: ${s.title} — ${s.sub}` });
@@ -636,8 +650,8 @@
   KIND_NAMES.forEach(k => {
     g.push({ name: `mark ${k}`, svg: () => mark(k) });
     g.push({ name: `mark ${k} light`, svg: () => mark(k, { light: true }) });
-    g.push({ name: `mark ${k} perch`, svg: () => mark(k, { form: 'perch' }) });
-    g.push({ name: `mark ${k} spar`, svg: () => mark(k, { form: 'spar' }) });
+    if (!NO_PERCH.includes(k)) g.push({ name: `mark ${k} perch`, svg: () => mark(k, { form: 'perch' }) });
+    if (!NO_NORWEGIAN_FORMS.includes(k)) g.push({ name: `mark ${k} spar`, svg: () => mark(k, { form: 'spar' }) });
   });
   g.push({ name: 'mark lateral-starboard cone light', svg: () => mark('lateral-starboard', { form: 'cone', light: true }) });
   g.push({ name: 'mark lateral-port can form light', svg: () => mark('lateral-port', { form: 'can', light: true }) });
@@ -651,7 +665,7 @@
   g.push({ name: 'leadingLine', svg: () => leadingLine() });
   SYM_NAMES.forEach(k => g.push({ name: `chartSymbol ${k}`, svg: () => chartSymbol(k) }));
   g.push({ name: 'chartExcerpt', svg: () => chartExcerpt() });
-  g.push({ name: 'sparRule', svg: () => sparRule() });
-  ['left', 'right', 'both'].forEach(v => g.push({ name: `pointerPole ${v}`, svg: () => pointerPole(v) }));
-  g.push({ name: 'lightDecoder', svg: () => lightDecoder() });
+  g.push({ name: 'mark sparRule (Norwegian top shapes)', svg: () => sparRule() });
+  ['left', 'right', 'both'].forEach(v => g.push({ name: `perch pointerPole ${v}`, svg: () => pointerPole(v) }));
+  g.push({ name: 'lightRhythm decoder Fl(3) WRG 15s 21m 15-11M', svg: () => lightDecoder() });
 })();

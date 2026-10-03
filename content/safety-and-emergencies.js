@@ -166,7 +166,7 @@
     x = px(2); y = py(0);
     s += tile(x, y, tw, th, 3, 'Turn the boat');
     s += wind(x + 40, y + 48, Math.PI / 2, 'wind');
-    s += boatPlan(x + 100, y + 95, 70, 26, C.hullLight, 0) + flames(x + 100, y + 128, 0.55) + circ(x + 100, y + 72, 3.5, INK2) + circ(x + 92, y + 78, 3.5, INK2) + circ(x + 108, y + 78, 3.5, INK2);
+    s += boatPlan(x + 100, y + 95, 70, 26, C.hullLight, 0) + flames(x + 100, y + 128, 0.72) + circ(x + 100, y + 72, 3.5, INK2) + circ(x + 92, y + 78, 3.5, INK2) + circ(x + 108, y + 78, 3.5, INK2);
     s += T(x + 100, y + 150, 'people upwind, fire downwind', { size: 9.5, weight: 700, fill: INK2 });
     s += lines(x + 150, y + 70, ['fire aft:', 'head into', 'the wind'], { size: 9.5, lh: 11, fill: INK2 });
     // 4 life jackets
@@ -341,7 +341,7 @@
     if (kind === 'smoke') s += rect(90, 70, 40, 50, C.orange, INK, { rx: 4, sw: 0.9 }) + `<path d="M110,70 C100,50 130,40 120,20" fill="none" stroke="${C.orange}" stroke-width="9" stroke-linecap="round" opacity="0.8"/>` + T(110, 138, 'orange smoke, daytime', { size: 10, fill: INK2 });
     if (kind === 'white') s += rect(95, 40, 30, 80, INK2, 'none', { rx: 4 }) + rect(92, 30, 36, 14, C.white, INK, { rx: 3, sw: 0.9 }) + T(110, 138, 'hand-held, burning white', { size: 10, fill: INK2 });
     if (kind === 'arms') s += circ(110, 40, 8, SKIN, INK, 0.8) + rect(100, 50, 20, 34, C.orange, INK, { rx: 3, sw: 0.8 }) + line(100, 56, 70, 36, SKIN, { sw: 4 }) + line(120, 56, 150, 36, SKIN, { sw: 4 }) + arrow([[66, 48], [66, 78]], INK2) + arrow([[66, 78], [66, 48]], INK2) + arrow([[154, 48], [154, 78]], INK2) + arrow([[154, 78], [154, 48]], INK2) + T(110, 138, 'arms outstretched, raised and lowered slowly', { size: 9.5, fill: INK2 });
-    if (kind === 'flags') s += rect(60, 30, 100, 36, C.white, INK, { rx: 0, sw: 1 }) + `<rect x="60" y="30" width="25" height="18" fill="${C.blue}"/><rect x="85" y="30" width="25" height="18" fill="${C.white}"/><rect x="110" y="30" width="25" height="18" fill="${C.blue}"/><rect x="135" y="30" width="25" height="18" fill="${C.white}"/><rect x="60" y="48" width="25" height="18" fill="${C.white}"/><rect x="85" y="48" width="25" height="18" fill="${C.blue}"/><rect x="110" y="48" width="25" height="18" fill="${C.white}"/><rect x="135" y="48" width="25" height="18" fill="${C.blue}"/>` + `<rect x="60" y="74" width="100" height="36" fill="${C.blue}" stroke="${INK}"/><rect x="60" y="83" width="100" height="18" fill="${C.white}"/><rect x="60" y="88" width="100" height="8" fill="${C.red}"/>` + T(110, 128, 'N over C', { size: 10, weight: 700, fill: INK2 });
+    if (kind === 'flags') s += rect(60, 30, 100, 36, C.white, INK, { rx: 0, sw: 1 }) + [0, 1, 2, 3].map(r => [0, 1, 2, 3].map(c => `<rect x="${60 + c * 25}" y="${30 + r * 9}" width="25" height="9" fill="${(r + c) % 2 === 0 ? C.blue : C.white}"/>`).join('')).join('') + `<rect x="60" y="74" width="100" height="36" fill="${C.blue}" stroke="${INK}"/><rect x="60" y="83" width="100" height="18" fill="${C.white}"/><rect x="60" y="88" width="100" height="8" fill="${C.red}"/>` + T(110, 128, 'N over C', { size: 10, weight: 700, fill: INK2 });
     return S.svg(W, H, s, { label: 'Signal: ' + kind });
   }
 
@@ -420,16 +420,18 @@
     // left: HELP side view
     s += rect(20, 34, 300, 196, PAPER, LINE) + T(170, 50, 'HELP position (alone)', { size: 12, weight: 700 });
     s += water(22, 120, 296, 108);
-    // person: head out, collar, torso tilted back, knees up, arms folded
+    // person: head out, collar, torso tilted back, knees drawn up, arms folded across the chest
     const hx = 150, hy = 100;
     s += `<path d="M${hx - 16},${hy + 12} Q${hx - 18},${hy - 8} ${hx},${hy - 10} Q${hx + 18},${hy - 8} ${hx + 16},${hy + 12} Z" fill="${C.orange}" stroke="${INK}" stroke-width="0.8"/>`;
     s += circ(hx, hy, 9, SKIN, INK, 0.8);
     s += `<path d="M${hx - 14},${hy + 10} L${hx - 22},${hy + 44} L${hx + 14},${hy + 50} L${hx + 16},${hy + 10} Z" fill="${C.orange}" stroke="${INK}" stroke-width="0.8"/>`;
-    s += `<path d="M${hx - 16},${hy + 20} q10,10 26,8" fill="none" stroke="${SKIN}" stroke-width="5" stroke-linecap="round"/>`;
-    s += `<path d="M${hx - 4},${hy + 48} q24,-20 30,-2 q-6,18 -22,22" fill="none" stroke="${INK2}" stroke-width="7" stroke-linecap="round"/>`;
-    s += arrow([[60, 86], [hx - 24, hy + 24]], INK2) + lines(58, 70, ['arms clamp', 'the armpits'], { size: 9.5, lh: 11, fill: INK2 });
-    s += arrow([[260, 160], [hx + 30, hy + 52]], INK2) + lines(272, 150, ['knees up', 'protect the groin'], { size: 9.5, lh: 11, fill: INK2 });
-    s += arrow([[250, 70], [hx + 18, hy - 4]], INK2) + lines(262, 60, ['head out,', 'collar supports'], { size: 9.5, lh: 11, fill: INK2 });
+    // thighs drawn up toward the chest, shins hanging down
+    s += `<path d="M${hx + 2},${hy + 48} L${hx + 30},${hy + 26} L${hx + 40},${hy + 52}" fill="none" stroke="${INK2}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`;
+    // upper arms along the sides, forearms folded across the chest
+    s += `<path d="M${hx - 14},${hy + 16} L${hx - 10},${hy + 34} L${hx + 12},${hy + 28}" fill="none" stroke="${SKIN}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
+    s += arrow([[70, 86], [hx - 16, hy + 26]], INK2) + lines(60, 66, ['arms clamp', 'the armpits'], { size: 9.5, lh: 11, fill: INK2 });
+    s += arrow([[238, 158], [hx + 38, hy + 34]], INK2) + lines(256, 166, ['knees up,', 'protect the groin'], { size: 9.5, lh: 11, fill: INK2 });
+    s += arrow([[236, 86], [hx + 16, hy - 2]], INK2) + lines(238, 70, ['head out,', 'collar supports'], { size: 9.5, lh: 11, fill: INK2, anchor: 'start' });
     s += lines(170, 196, ['Cuts heat loss by about one third.', 'Only works with a life jacket on.'], { size: 10, lh: 12.5, fill: INK, weight: 600 });
     // right: huddle top view
     s += rect(336, 34, 284, 196, PAPER, LINE) + T(478, 50, 'Huddle (several people)', { size: 12, weight: 700 });
