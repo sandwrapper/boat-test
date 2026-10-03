@@ -144,23 +144,23 @@
     [2, 'Light breeze', '1.6-3.3', '4-6', '0.2', 'small wavelets'],
     [3, 'Gentle breeze', '3.4-5.4', '7-10', '0.6', 'scattered white horses'],
     [4, 'Moderate breeze', '5.5-7.9', '11-16', '1', 'frequent white horses'],
-    [5, 'Fresh breeze', '8.0-10.7', '17-21', '2', 'many white horses, spray'],
+    [5, 'Fresh breeze', '8.0-10.7', '17-21', '2', 'many white horses'],
     [6, 'Strong breeze', '10.8-13.8', '22-27', '3', 'foam crests everywhere'],
     [7, 'Near gale', '13.9-17.1', '28-33', '4', 'foam blown in streaks'],
-    [8, 'Gale', '17.2-20.7', '34-40', '5.5', 'moderately high, spindrift'],
-    [9, 'Strong gale', '20.8-24.4', '41-47', '7', 'spray affects visibility'],
-    [10, 'Storm', '24.5-28.4', '48-55', '9', 'very high waves, white sea'],
-    [11, 'Violent storm', '28.5-32.6', '56-63', '11.5', 'exceptionally high waves'],
-    [12, 'Hurricane', '32.7 or more', '64 or more', '14 or more', 'air filled with foam'],
+    [8, 'Gale', '17.2-20.7', '34-40', '5.5', 'high waves, spindrift'],
+    [9, 'Strong gale', '20.8-24.4', '41-47', '7', 'spray cuts visibility'],
+    [10, 'Storm', '24.5-28.4', '48-55', '9', 'very high, white sea'],
+    [11, 'Violent storm', '28.5-32.6', '56-63', '11.5', 'exceptionally high'],
+    [12, 'Hurricane', '32.7+', '64+', '14+', 'air filled with foam'],
   ];
   const BF_BG = ['#e8f5e9', '#e8f5e9', '#e8f5e9', '#e8f5e9', '#c8e6c9', '#fff176', '#ffb300', '#fb8c00', '#e65100', '#c62828', '#c62828', '#c62828', '#4a0000'];
   const BF_FG = ['#2e7d32', '#2e7d32', '#2e7d32', '#2e7d32', '#1b5e20', '#5d4037', '#3e2723', '#3e2723', '#ffffff', '#ffffff', '#ffffff', '#ffffff', '#ffffff'];
   const BF_KN = [0, 0, 5, 10, 15, 20, 25, 30, 35, 45, 50, 60, 65]; // barb values per IL-1 spec
   function beaufortStrip(o) {
     o = o || {};
-    const W = 640, H = 500, y0 = 64, rh = 28, x0 = 12, tw = 540;
+    const W = 640, H = 530, y0 = 64, rh = 28, x0 = 12, tw = 548;
     let s = T(W / 2, 20, 'The Beaufort scale as MET Norway uses it (mean wind, 10-minute average)', { size: 14, weight: 700 });
-    const cols = [[x0 + 16, 'F', 'middle'], [x0 + 36, 'Name', 'start'], [x0 + 150, 'm/s', 'start'], [x0 + 232, 'knots', 'start'], [x0 + 300, 'wave m', 'start'], [x0 + 356, 'what the sea looks like', 'start'], [x0 + 500, 'barb', 'middle']];
+    const cols = [[x0 + 16, 'F', 'middle'], [x0 + 36, 'Name', 'start'], [x0 + 150, 'm/s', 'start'], [x0 + 232, 'knots', 'start'], [x0 + 296, 'wave m', 'start'], [x0 + 346, 'what the sea looks like', 'start'], [x0 + 512, 'barb', 'middle']];
     cols.forEach(([x, l, a]) => s += T(x, y0 - 12, l, { size: 10, weight: 700, fill: MUTED, anchor: a }));
     BEAUFORT.forEach((r, i) => {
       const y = y0 + i * rh;
@@ -170,15 +170,15 @@
       s += T(x0 + 36, y + rh / 2 - 1, r[1], { size: 12, weight: 700, fill: fg, anchor: 'start' });
       s += T(x0 + 150, y + rh / 2 - 1, r[2], { size: 11.5, fill: fg, anchor: 'start' });
       s += T(x0 + 232, y + rh / 2 - 1, r[3], { size: 11.5, fill: fg, anchor: 'start' });
-      s += T(x0 + 300, y + rh / 2 - 1, r[4], { size: 11.5, fill: fg, anchor: 'start' });
-      s += T(x0 + 356, y + rh / 2 - 1, r[5], { size: 10.5, fill: fg, anchor: 'start' });
-      if (BF_KN[i] > 0) s += barb(x0 + 478, y + rh / 2 + 2, 0, BF_KN[i], fg, 44);
-      else s += line(x0 + 478, y + rh / 2, x0 + 522, y + rh / 2, fg, { sw: 1.2, dash: '2 3' });
+      s += T(x0 + 296, y + rh / 2 - 1, r[4], { size: 11.5, fill: fg, anchor: 'start' });
+      s += T(x0 + 346, y + rh / 2 - 1, r[5], { size: 10.5, fill: fg, anchor: 'start' });
+      if (BF_KN[i] > 0) s += barb(x0 + 494, y + rh / 2 + 2, 0, BF_KN[i], fg, 42);
+      else s += line(x0 + 494, y + rh / 2, x0 + 536, y + rh / 2, fg, { sw: 1.2, dash: '2 3' });
     });
     // gale warning marker between row 6 and row 7
     const gy = y0 + 7 * rh - 1;
     s += line(x0, gy, x0 + tw, gy, BAD, { sw: 2.5, dash: '8 4' });
-    s += rect(x0 + 352, gy - 9, 182, 18, PAPER, BAD, { rx: 3, sw: 1 }) + T(x0 + 443, gy, 'MET coastal gale warning: 15 m/s', { size: 10, weight: 700, fill: BAD });
+    s += rect(x0 + 150, gy - 9, 190, 18, PAPER, BAD, { rx: 3, sw: 1 }) + T(x0 + 245, gy, 'MET coastal gale warning: 15 m/s', { size: 10, weight: 700, fill: BAD });
     // CE brackets on the right
     const bx = x0 + tw + 14;
     const br = [[0, 4, 'D'], [0, 6, 'C'], [0, 8, 'B'], [9, 12, 'A']];
@@ -188,17 +188,17 @@
       s += T(x + 1, yb + 11, l, { size: 11, weight: 700, fill: INK2 });
     });
     s += T(bx + 26, y0 - 12, 'CE', { size: 10, weight: 700, fill: MUTED });
-    s += lines(W / 2, H - 36, ['CE design category (builder\'s plate): D up to force 4 and 0.3 m waves; C up to force 6 and 2 m; B up to force 8 and 4 m; A above force 8 and 4 m.', 'MET issues a coastal gale warning at 15 m/s mean wind, which lies inside the force-7 (near gale) band; near gale is "dangerous for small boats".'], { size: 10.5, fill: INK2, lh: 14 });
+    s += lines(W / 2, H - 56, ['CE design category (builder\'s plate): D up to force 4 and 0.3 m waves; C up to force 6 and 2 m;', 'B up to force 8 and 4 m; A above force 8 and 4 m.', 'MET issues a coastal gale warning at 15 m/s mean wind, inside the force-7 (near gale) band;', 'MET calls near gale "dangerous for small boats".'], { size: 10.5, fill: INK2, lh: 14 });
     return S.svg(W, H, s, { label: 'Beaufort scale 0 to 12 with m/s, knots, wave heights, sea state, wind barbs, CE categories and the gale-warning threshold' });
   }
 
   // ---------- IL-2 Low and high pressure, northern hemisphere (F39-F42) ----------
   function pressureSystems(o) {
     o = o || {};
-    const W = 640, H = 470;
+    const W = 640, H = 480;
     let s = T(W / 2, 20, 'Northern hemisphere: anticlockwise into a LOW, clockwise out of a HIGH', { size: 14, weight: 700 });
     function system(cx, cy, low) {
-      let g = T(cx, cy - 150, 'N', { size: 12, weight: 700, fill: INK2 }) + arrow([[cx, cy - 142], [cx, cy - 160]], INK2, { sw: 1.5, head: 7 });
+      let g = T(cx, cy - 168, 'N', { size: 12, weight: 700, fill: INK2 }) + arrow([[cx, cy - 140], [cx, cy - 158]], INK2, { sw: 1.5, head: 7 });
       const gaps = low ? [36, 66, 96] : [48, 84, 120];
       const labels = low ? ['990', '1000', '1010'] : ['1025', '1015', '1005'];
       gaps.forEach((r, i) => { g += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ISO}" stroke-width="1.3"/>`; g += rect(cx + r * 0.72 - 14, cy - r * 0.72 - 7, 28, 14, PAPER, 'none', { rx: 2 }) + T(cx + r * 0.72, cy - r * 0.72, labels[i], { size: 9.5, fill: MUTED }); });
@@ -219,11 +219,11 @@
     s += lines(480, 352, ['Air flows clockwise and outwards.', 'Sinking air: fair, settled weather, light winds.', 'Isobars far apart: light wind.'], { size: 11, fill: INK2, lh: 14 });
     // Buys Ballot inset
     const by = 430;
-    s += rect(150, by - 28, 340, 56, SHALLOW, 'none');
+    s += rect(150, by - 30, 340, 66, SHALLOW, 'none');
     s += arrow([[198, by], [236, by]], SEA, { sw: 2.5 }) + T(190, by - 14, 'wind', { size: 10, fill: SEA, weight: 700 });
     s += `<circle cx="252" cy="${by}" r="9" fill="${INK2}"/>` + line(252, by - 9, 252, by - 14, INK2, { sw: 3 });
-    s += T(252, by + 22, 'you, back to the wind', { size: 9.5, fill: MUTED });
-    s += T(262, by - 16, 'L', { size: 18, weight: 800, fill: LOWRED }) + T(236, by + 16, 'H', { size: 18, weight: 800, fill: HIGHBLUE });
+    s += T(252, by + 30, 'you, back to the wind', { size: 9.5, fill: MUTED });
+    s += T(266, by - 16, 'L', { size: 18, weight: 800, fill: LOWRED }) + T(232, by + 14, 'H', { size: 18, weight: 800, fill: HIGHBLUE });
     s += lines(400, by - 6, ['Buys Ballot: back to the wind, the LOW is on', 'your LEFT (and a little ahead), the HIGH on your right.'], { size: 10.5, fill: INK2, lh: 13, weight: 600 });
     return S.svg(W, H, s, { label: 'Circulation around a low and a high in the northern hemisphere, with Buys Ballot\'s law' });
   }
@@ -236,12 +236,12 @@
     s += rect(20, 40, 600, gy - 40, SHALLOW, 'none', { rx: 0, opacity: 0.6 });
     s += `<polygon points="200,${gy} 620,40 620,${gy}" fill="#ffcdd2" opacity="0.55"/>`;
     s += line(200, gy, 620, 40, LOWRED, { sw: 2 });
-    s += T(540, 150, 'WARM AIR', { size: 12, weight: 700, fill: LOWRED }) + T(110, 150, 'COLD AIR', { size: 12, weight: 700, fill: HIGHBLUE });
+    s += T(572, 120, 'WARM AIR', { size: 12, weight: 700, fill: LOWRED }) + T(110, 150, 'COLD AIR', { size: 12, weight: 700, fill: HIGHBLUE });
     // clouds along the slope
     s += `<g stroke="${INK2}" stroke-width="1.4" fill="none">${[[40, 62], [52, 58], [64, 66]].map(([x, y]) => `<path d="M${x},${y} q10,-6 22,-2"/>`).join('')}</g>` + T(58, 82, 'cirrus', { size: 9.5, fill: MUTED });
     s += rect(120, 58, 130, 10, '#e0e0e0', 'none', { rx: 5 }) + sun(185, 50, 7) + `<circle cx="185" cy="50" r="15" fill="none" stroke="${SUN}" stroke-width="1.2" opacity="0.8"/>` + T(185, 82, 'cirrostratus (halo)', { size: 9.5, fill: MUTED });
     s += rect(230, 100, 150, 22, '#bdbdbd', 'none', { rx: 8 }) + T(305, 136, 'altostratus', { size: 9.5, fill: MUTED });
-    s += rect(330, 140, 190, 48, '#757575', 'none', { rx: 10 }) + T(425, 202, 'nimbostratus, steady rain', { size: 9.5, fill: MUTED });
+    s += rect(330, 140, 190, 48, '#757575', 'none', { rx: 10 }) + T(425, 130, 'nimbostratus, steady rain', { size: 9.5, fill: MUTED });
     for (let i = 0; i < 8; i++) s += line(345 + i * 22, 192, 341 + i * 22, 214, HIGHBLUE, { sw: 1.3 });
     // ground, sea, front symbol
     s += rect(20, gy, 600, 6, WATER, 'none', { rx: 0 });
@@ -251,7 +251,7 @@
     s += arrow([[200, gy - 22], [150, gy - 22]], LOWRED, { sw: 2 }) + T(176, gy - 34, 'front moves this way', { size: 9.5, fill: LOWRED });
     s += lines(110, gy + 24, ['Ahead: wind S to SE, backing;', 'barometer falling; swell building'], { size: 10.5, fill: INK2, lh: 13 });
     s += lines(470, gy + 24, ['Behind: wind veers to SW, warmer,', 'barometer steadies, drizzle'], { size: 10.5, fill: INK2, lh: 13 });
-    s += T(W / 2, H - 8, 'West (ahead of the front)                                                 East (behind it)', { size: 9.5, fill: MUTED });
+    s += T(30, H - 8, 'West (ahead of the front)', { size: 9.5, fill: MUTED, anchor: 'start' }) + T(610, H - 8, 'East (behind the front)', { size: 9.5, fill: MUTED, anchor: 'end' });
     return S.svg(W, H, s, { label: 'Cross-section of a warm front with the cloud sequence cirrus, cirrostratus, altostratus, nimbostratus' });
   }
 
@@ -276,7 +276,7 @@
         s += T(480, gy - 86, 'warm air rises', { size: 10, fill: LOWRED, weight: 700 });
         s += arrow([[80, gy - 18], [300, gy - 18]], HIGHBLUE, { sw: 6, head: 16 });
         s += T(190, gy - 36, 'SEA BREEZE (onshore), afternoon', { size: 12, weight: 800, fill: HIGHBLUE });
-        s += arrow([[420, y + 24], [140, y + 24]], '#607d8b', { sw: 1.6, dash: '5 4' }) + T(280, y + 14, 'return flow aloft', { size: 9.5, fill: '#455a64' });
+        s += arrow([[420, y + 24], [140, y + 24]], '#607d8b', { sw: 1.6, dash: '5 4' }) + T(280, y + 36, 'return flow aloft', { size: 9.5, fill: '#455a64' });
         s += T(60, y + 60, 'H', { size: 22, weight: 800, fill: HIGHBLUE }) + T(60, y + 80, 'cool', { size: 10, fill: '#37474f' });
         s += T(600, y + 76, 'L', { size: 22, weight: 800, fill: LOWRED }) + T(600, y + 96, 'warm', { size: 10, fill: '#37474f' });
       } else {
@@ -285,7 +285,7 @@
         s += T(480, gy - 86, 'land cools', { size: 10, fill: '#90caf9', weight: 700 });
         s += arrow([[300, gy - 18], [120, gy - 18]], '#90caf9', { sw: 3.5, head: 11 });
         s += T(210, gy - 36, 'LAND BREEZE (offshore), weak', { size: 12, weight: 800, fill: '#e3f2fd' });
-        s += arrow([[140, y + 24], [420, y + 24]], '#90a4ae', { sw: 1.4, dash: '5 4' }) + T(280, y + 14, 'return flow aloft', { size: 9.5, fill: '#cfd8dc' });
+        s += arrow([[140, y + 24], [420, y + 24]], '#90a4ae', { sw: 1.4, dash: '5 4' }) + T(280, y + 36, 'return flow aloft', { size: 9.5, fill: '#cfd8dc' });
         s += T(60, y + 70, 'L', { size: 22, weight: 800, fill: '#ef9a9a' }) + T(600, y + 76, 'H', { size: 22, weight: 800, fill: '#90caf9' });
       }
       s += T(night ? 330 : 330, y + 12, night ? 'NIGHT' : 'DAY', { size: 11, weight: 800, fill: fg, anchor: 'middle' });
@@ -306,7 +306,7 @@
       s += rect(20, y, 600, 118, SHALLOW, 'none', { rx: 8, opacity: 0.5 });
       s += T(30, y + 14, title, { size: 12.5, weight: 800, anchor: 'start' });
       s += T(30, sy - 6, 'W', { size: 11, weight: 700, fill: MUTED }) + T(610, sy - 6, 'E', { size: 11, weight: 700, fill: MUTED });
-      s += arrow([[200, y + 34], [440, y + 34]], INK2, { sw: 5, head: 14 }) + T(320, y + 20, 'Wind 10 m/s from the west', { size: 11, weight: 700, fill: INK2 });
+      s += arrow([[200, y + 46], [440, y + 46]], INK2, { sw: 5, head: 14 }) + T(320, y + 32, 'Wind 10 m/s from the west', { size: 11, weight: 700, fill: INK2 });
       if (opposing) {
         s += waves(50, 590, sy, 36, 11, WATER, WATER2, { bottom, steep: true });
         for (let x = 68; x < 590; x += 36) s += `<path d="M${x - 4},${sy - 10} q6,-3 12,2" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"/>`;
@@ -326,11 +326,11 @@
     s += `<path d="M50,${bottom} L50,${y + 112} L300,${y + 100} L470,${y + 78} L590,${y + 68} L590,${bottom} Z" fill="${SOIL}"/>`;
     // waves increasing amplitude
     let d = `M50,${sy}`;
-    for (let x = 50; x <= 590; x += 4) { const A = 4 + (x - 50) / 540 * 14; const L = 80 - (x - 50) / 540 * 40; const ph = (x - 50) / L * Math.PI * 2; d += ` L${x},${(sy - A * Math.sin(ph)).toFixed(1)}`; }
+    for (let x = 50; x <= 590; x += 4) { const A = 3 + (x - 50) / 540 * 13; const L = 80 - (x - 50) / 540 * 40; const ph = (x - 50) / L * Math.PI * 2; d += ` L${x},${(sy - A * Math.sin(ph)).toFixed(1)}`; }
     s += `<path d="${d} L590,${y + 68} L470,${y + 78} L300,${y + 100} L50,${y + 112} Z" fill="${WATER}" stroke="${WATER2}" stroke-width="1.5"/>`;
     s += `<path d="M520,${sy - 20} q8,-4 16,3" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/><path d="M560,${sy - 20} q8,-4 16,3" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>`;
-    s += arrow([[120, y + 30], [260, y + 30]], INK2, { sw: 3 }) + T(190, y + 20, 'wind and waves', { size: 10, fill: INK2 });
-    s += lines(430, y + 34, ['waves break when the depth is only', 'about 1.3 x the wave height'], { size: 10.5, fill: INK2, lh: 13, weight: 600 });
+    s += arrow([[60, y + 34], [170, y + 34]], INK2, { sw: 3 }) + T(115, y + 46, 'wind and waves', { size: 10, fill: INK2 });
+    s += lines(330, y + 28, ['waves break when the depth is only', 'about 1.3 x the wave height'], { size: 10.5, fill: INK2, lh: 12, weight: 600 });
     s += T(330, bottom - 6, 'seabed rising towards a shoal, bar or beach', { size: 9.5, fill: '#efebe9' });
     return S.svg(W, H, s, { label: 'Wind with current gives long low waves; wind against current gives short steep breaking waves; shallow water makes waves break' });
   }
@@ -367,9 +367,10 @@
     s += waves(x0, x1, yNow, 50, 3, WATER, WATER2, { bottom: yNow + 6 });
     s += boat(200, yNow + 1, 90, '#eceff1');
     // level lines
-    const lv = [[yHAT, 'HAT  highest astronomical tide', MUTED, '3 4'], [yHAT + 30, 'MHWS  mean high water springs', MUTED, '3 4'], [(yHAT + yLAT) / 2, 'MSL  mean sea level', MUTED, '3 4'], [yLAT - 28, 'MLWS  mean low water springs', MUTED, '3 4'], [yLAT, 'LAT = CHART DATUM (zero for charted depths and tide heights)', INK, null]];
+    const lv = [[yHAT, 'HAT  highest astronomical tide', MUTED, '3 4'], [yHAT + 30, 'MHWS  mean high water springs', MUTED, '3 4'], [(yHAT + yLAT) / 2, 'MSL  mean sea level', MUTED, '3 4'], [yLAT - 28, 'MLWS  mean low water springs', MUTED, '3 4'], [yLAT, 'LAT = CHART DATUM', INK, null]];
     lv.forEach(([y, l, col, dash]) => { s += line(x0, y, x1 + 8, y, col, { sw: dash ? 1 : 2.5, dash }); s += T(x1 + 14, y, l, { size: 10.5, fill: col, anchor: 'start', weight: dash ? 500 : 700 }); });
     s += line(x0, yNow, x1 + 8, yNow, INK2, { sw: 1.5 }) + T(x1 + 14, yNow, 'water level now', { size: 10.5, fill: INK2, anchor: 'start', weight: 700 });
+    s += T(x1 + 14, yLAT + 13, 'zero for charted depths and tide heights', { size: 9.5, fill: MUTED, anchor: 'start' });
     // dimension arrows
     const dx = 40;
     s += arrow([[dx, yLAT], [dx, ySea - 2]], INK2, { sw: 1.5, head: 7 }) + arrow([[dx, ySea], [dx, yLAT + 2]], INK2, { sw: 1.5, head: 7 });
@@ -377,7 +378,7 @@
     s += arrow([[dx + 25, yLAT], [dx + 25, yNow + 2]], OK, { sw: 1.5, head: 7 }) + arrow([[dx + 25, yNow], [dx + 25, yLAT - 2]], OK, { sw: 1.5, head: 7 });
     s += `<g transform="rotate(-90 ${dx + 15} ${(yLAT + yNow) / 2})">${T(dx + 15, (yLAT + yNow) / 2, 'height of tide', { size: 10, weight: 700, fill: OK })}</g>`;
     s += rect(x1 + 14, 250, 216, 44, PAPER2, LINE) + lines(x1 + 122, 264, ['depth now = charted depth + height of tide', '(plus or minus the weather effect)'], { size: 10.5, weight: 700, lh: 14 });
-    s += lines(x1 + 122, 312, ['Chart datum = LAT everywhere except: inner Oslofjord 30 cm', 'below LAT; Swedish border to Utsira 20 cm below LAT.'], { size: 9.5, fill: MUTED, lh: 12 });
+    s += lines(x1 + 122, 310, ['Chart datum = LAT, except inner Oslofjord', '(30 cm below LAT) and Swedish border', 'to Utsira (20 cm below LAT).'], { size: 9.5, fill: MUTED, lh: 12 });
     return S.svg(W, H, s, { label: 'Tide levels: chart datum (LAT), height of tide, charted depth and the depth available now' });
   }
 
