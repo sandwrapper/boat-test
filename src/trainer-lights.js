@@ -182,7 +182,7 @@
     SR('ram', 'ahead', 'ram', 'All-round RED–WHITE–RED only, no masthead light or sidelights: restricted in her ability to manoeuvre and not making way (Rule 27(b)).', { making: false }),
     SR('cbd', 'port', 'cbd', 'THREE all-round RED lights in a vertical line together with ordinary power-driven lights: constrained by her draught (Rule 28).'),
     SR('pilot', 'port', 'pilot', 'All-round WHITE over RED at the masthead: "white over red, pilot ahead" (Rule 29). Sidelight and sternlight because she is underway.'),
-    SR('pilot', 'ahead', 'pilot', 'All-round WHITE over RED only: a pilot vessel on duty, here not underway (Rule 29). Do not confuse with red over white (fishing).', { making: false }),
+    SR('pilot', 'ahead', 'pilot', 'All-round WHITE over RED only: a pilot vessel on duty. Rule 29 adds sidelights and a sternlight whenever she is UNDERWAY (even stopped), so with none showing she is not underway; at anchor she would add anchor lights. Do not confuse with red over white (fishing).', { making: false }),
     SR('towing', 'port', 'towing', 'Two white masthead lights in a VERTICAL line plus sidelight: a vessel towing astern (Rule 24(a)). From astern she would also show a yellow towing light above her sternlight.'),
     SR('towing', 'astern', 'towing', 'A YELLOW light above the white sternlight is the towing light (Rule 24(a)(iv)): she is towing something astern — keep well clear of the tow line.'),
     SR('sail', 'port', 'sail', 'A sidelight with NO white light above it: she is under sail (Rule 25(a)). A white light above a sidelight would make her power-driven.'),
@@ -201,7 +201,9 @@
     sheR18: 'She keeps out of my way — a power-driven vessel has priority under Rule 18',   // always wrong: power is lowest (S-F70)
   };
   const C_ALL = Object.keys(C);
-  const GW = (type, view, answer, explain, traps, opts) => ({ type, view, answer, explain, traps: traps || [], opts: opts || null });
+  // traps = the two wrong options most worth offering; avoid = options that would ALSO be a true statement for this picture
+  // (they are never offered, not even as a random filler, so every round has exactly one correct choice).
+  const GW = (type, view, answer, explain, traps, opts, avoid) => ({ type, view, answer, explain, traps: traps || [], opts: opts || null, avoid: avoid || [] });
   // Power-driven vs power-driven: D2 (port/starboard), D3 (ahead), D4 (astern).
   const POWER_WHY = {
     port: 'Her RED sidelight under a white masthead light: a power-driven vessel showing you her PORT side. With a steady bearing she is crossing from your starboard side towards your port side, so she is on YOUR starboard side: the vessel which has the other on her starboard side keeps out of the way (Rule 15). Alter to starboard early and pass astern of her. "If to starboard red appear, it is your duty to keep clear."',
@@ -235,9 +237,10 @@
     GW('nuc', 'starboard', 'r18', 'Red over red all-round: not under command. Her green sidelight changes nothing: she cannot manoeuvre, and Rule 18(a)(i) makes you keep out of her way.', ['sheGives', 'iGive']),
     GW('ram', 'port', 'r18', 'Red–white–red all-round: a vessel restricted in her ability to manoeuvre, making way. A power-driven vessel keeps out of the way of such a vessel (Rule 18(a)(ii)).', ['iGive', 'sheGives']),
     GW('ram', 'ahead', 'r18', 'Red–white–red all-round with both sidelights: restricted in her ability to manoeuvre and coming towards you. Not a Rule 14 case: you keep out of her way (Rule 18(a)(ii)).', ['headOn', 'sheGives']),
-    // CBD: Rule 18(d) "avoid impeding" (S-F68). Compare D2: on the port aspect she is on your starboard side anyway.
-    GW('cbd', 'port', 'cbd', 'Three all-round red lights with power-driven lights: constrained by her draught. Any vessel other than NUC/RAM must avoid impeding her safe passage (Rule 18(d)); she is also on your starboard side, so keep well clear early.', ['sheGives', 'sheR18']),
-    GW('cbd', 'starboard', 'cbd', 'Three all-round red lights with power-driven lights: constrained by her draught. Even though she shows you her starboard side, you avoid impeding her safe passage (Rule 18(d)) — she cannot leave the deep water.', ['sheGives', 'iGive']),
+    // CBD: Rule 18(d) "avoid impeding" (S-F68). Compare D2: on the port aspect she is on your starboard side anyway, so the plain
+    // Rule 15 option ("I give way") would also be true and is never offered; likewise the generic Rule 18 option, since 18(d) IS Rule 18.
+    GW('cbd', 'port', 'cbd', 'Three all-round red lights with power-driven lights: constrained by her draught. Any vessel other than NUC/RAM must avoid impeding her safe passage (Rule 18(d)); she is also on your starboard side, so keep well clear early.', ['sheGives', 'sheR18'], null, ['iGive', 'r18']),
+    GW('cbd', 'starboard', 'cbd', 'Three all-round red lights with power-driven lights: constrained by her draught. She shows you her starboard side, so between two ordinary power-driven vessels she would be the give-way vessel (Rule 15) — but Rule 18(d) and Rule 8(f) require you to take EARLY action so that you do not impede her safe passage: she cannot leave the deep water, so do not rely on standing on.', ['sheGives', 'iGive'], null, ['r18']),
   ];
 
   /* ---------- (d) day-shape rounds ---------- */
@@ -274,7 +277,7 @@
     { kind: 'two-cones', where: 'on your PORT bow', answer: 'r18', explain: 'Two cones apexes together: engaged in fishing (Rule 26). A power-driven vessel keeps out of the way of a vessel engaged in fishing whatever the aspect (Rule 18(a)(iii)), so her being on your port side does not make you stand-on.', traps: ['sheGives', 'iGive'] },
     { kind: 'two-balls', where: 'on your PORT bow', answer: 'r18', explain: 'Two balls: not under command (Rule 27(a)). A power-driven vessel keeps out of the way of a vessel not under command (Rule 18(a)(i)) — she cannot manoeuvre at all.', traps: ['sheGives', 'iGive'] },
     { kind: 'ball-diamond-ball', where: 'on your STARBOARD bow', answer: 'r18', explain: 'Ball–diamond–ball: restricted in her ability to manoeuvre (Rule 27(b)). A power-driven vessel keeps out of the way of such a vessel (Rule 18(a)(ii)), on any aspect.', traps: ['iGive', 'sheGives'] },
-    { kind: 'cylinder', where: 'on your PORT bow', answer: 'cbd', explain: 'A cylinder: constrained by her draught (Rule 28). Any vessel other than NUC/RAM avoids impeding her safe passage (Rule 18(d)); she cannot leave the deep channel, so do not rely on being stand-on.', traps: ['sheGives', 'r18'] },
+    { kind: 'cylinder', where: 'on your PORT bow', answer: 'cbd', explain: 'A cylinder: constrained by her draught (Rule 28). Any vessel other than NUC/RAM avoids impeding her safe passage (Rule 18(d)); she cannot leave the deep channel, so do not rely on being stand-on.', traps: ['sheGives', 'iGive'], avoid: ['r18'] },
   ];
 
   /* ---------- round builders ---------- */
@@ -301,14 +304,15 @@
     const d = K.distractors(pool.concat([r.status]), r.status, 3);
     return { key: 'b:' + r.type + r.view + (r.opts ? 'x' : ''), art: nightArt(r.type, r.view, r.opts), prompt: PROMPT_B, hint: 'Night · status', choices: d.choices.map(s => ST[s]), answer: d.answer, explain: r.explain };
   }
-  function choicesFor(answer, traps) {
-    let pool = dedupe(B.shuffle(traps.filter(t => t !== answer)).slice(0, 2));
-    pool = pool.concat(B.shuffle(C_ALL.filter(k => k !== answer && !pool.includes(k))).slice(0, 3 - pool.length));
+  function choicesFor(answer, traps, avoid) {
+    avoid = avoid || [];
+    let pool = dedupe(B.shuffle(traps.filter(t => t !== answer && !avoid.includes(t))).slice(0, 2));
+    pool = pool.concat(B.shuffle(C_ALL.filter(k => k !== answer && !pool.includes(k) && !avoid.includes(k))).slice(0, 3 - pool.length));
     const d = K.distractors(pool.concat([answer]), answer, 3);
     return { choices: d.choices.map(k => C[k]), answer: d.answer };
   }
   function giveWayRound(g) {
-    const c = choicesFor(g.answer, g.traps);
+    const c = choicesFor(g.answer, g.traps, g.avoid);
     return { key: 'c:' + g.type + g.view, art: nightArt(g.type, g.view, g.opts), prompt: PROMPT_C, hint: 'Night · who gives way?', choices: c.choices, answer: c.answer, explain: g.explain };
   }
   function dayRound() {
@@ -318,7 +322,7 @@
       return { key: 'd:' + kind, art: dayArt(kind), prompt: PROMPT_D, hint: 'Day shape', choices: d.choices.map(k => SHAPE_MEANING[k]), answer: d.answer, explain: SHAPE_WHY[kind] };
     }
     const g = K.pick(DAY_GW);
-    const c = choicesFor(g.answer, g.traps);
+    const c = choicesFor(g.answer, g.traps, g.avoid);
     return { key: 'dg:' + g.kind + g.where, art: dayArt(g.kind), prompt: `By day. You are a power-driven vessel underway; this vessel is ${g.where} and her bearing is steady. Who gives way?`, hint: 'Day · who gives way?', choices: c.choices, answer: c.answer, explain: g.explain };
   }
   const FORMS = [() => identityRound(K.pick(IDENTITY)), () => statusRound(K.pick(STATUS)), () => giveWayRound(K.pick(GIVEWAY)), dayRound];
