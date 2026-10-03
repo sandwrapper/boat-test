@@ -108,8 +108,8 @@
     s += label(600, 165, 'Cowling: engine (powerhead) inside', 14, { weight: 700 });
     s += leader(602, 240, 650, 300) + lines(652, 302, ['Spark plug', '(petrol engines only)'], 12, { anchor: 'start', fill: MUTED });
     s += label(462, 352, 'Drive shaft', 12, { anchor: 'end', fill: MUTED }) + leader(495, 352, 466, 352);
-    s += lines(600, 356, ['TELLTALE (pee stream):', 'steady stream = cooling pump OK'], 13, { anchor: 'start', fill: WATER, weight: 700 });
-    s += leader(545, 372, 596, 364, WATER);
+    s += lines(590, 356, ['TELLTALE (pee stream):', 'steady stream =', 'cooling pump OK'], 13, { anchor: 'start', fill: WATER, weight: 700 }, 17);
+    s += leader(545, 372, 586, 364, WATER);
     s += lines(640, 432, ['Anti-ventilation plate: at the', 'water surface when running'], 12, { anchor: 'start' });
     s += leader(555, 420, 636, 432);
     s += lines(640, 482, ['Propeller: diameter x pitch,', 'e.g. 13 x 19 inches'], 12, { anchor: 'start' });
@@ -123,8 +123,8 @@
     s += label(180, 366, 'Portable fuel tank', 13, { fill: '#fff', weight: 700 });
     s += label(150, 305, 'VENT: OPEN when running', 12, { weight: 700 });
     s += label(325, 212, 'Primer bulb: squeeze until firm', 12);
-    s += lines(212, 282, ['Fuel filter /', 'water separator'], 12, { anchor: 'end' });
-    s += label(462, 326, 'Kill switch', 11, { anchor: 'end', fill: '#eee' }).replace('fill="#eee"', `fill="${PAPER}"`);
+    s += lines(212, 262, ['Fuel filter /', 'water separator'], 12, { anchor: 'end' });
+    s += label(416, 288, 'Kill switch', 11, { anchor: 'start', fill: PAPER });
     s += label(140, 430, 'Kill cord: clipped to the driver', 12, { fill: FUEL, weight: 700 });
     // legend
     s += box(14, 548, 250, 44, { fill: PAPER, stroke: LINE });
@@ -180,7 +180,7 @@
   /* ---------- ILL-2 one-third rule (F29) ---------- */
   function illThirds() {
     let s = box(60, 50, 160, 300, { fill: PAPER, stroke: INK, sw: 3, rx: 14 });
-    const bands = [['#2A9D8F', '1/3 OUT', 'fuel used to reach your destination'], ['#E9C46A', '1/3 BACK', 'fuel to return home'], ['#E76F51', '1/3 RESERVE', 'never planned to be used: weather,', 'current, detours, mistakes']];
+    const bands = [['#2A9D8F', '1/3 OUT', 'fuel used to reach your destination'], ['#E9C46A', '1/3 BACK', 'fuel to return home'], ['#E76F51', '1/3 RESERVE', 'never planned to', 'be used: weather,', 'current, detours,', 'mistakes']];
     bands.forEach((b, i) => {
       const y = 50 + i * 100;
       s += `<rect x="63" y="${y + (i === 0 ? 3 : 0)}" width="154" height="${i === 0 ? 97 : i === 2 ? 97 : 100}" fill="${b[0]}" ${i === 0 ? 'rx="11"' : i === 2 ? 'rx="11"' : ''}/>`;
@@ -196,7 +196,7 @@
     s += `<ellipse cx="520" cy="95" rx="45" ry="28" fill="${LAND}" stroke="${LINE}"/>` + label(520, 95, 'Destination', 11, { fill: DARK, weight: 600 });
     s += `<path d="M400,300 C440,220 420,160 500,120" fill="none" stroke="#2A9D8F" stroke-width="3" stroke-dasharray="7 5"/>` + head(500, 120, -0.5, 10, '#2A9D8F');
     s += `<path d="M545,125 C560,210 500,260 420,318" fill="none" stroke="#C99A2E" stroke-width="3" stroke-dasharray="7 5"/>` + head(420, 318, 2.5, 10, '#C99A2E');
-    s += label(410, 200, 'out', 13, { fill: '#2A9D8F', weight: 800 }) + label(540, 230, 'back', 13, { fill: '#C99A2E', weight: 800 });
+    s += label(410, 200, 'out', 13, { fill: '#2A9D8F', weight: 800 }) + label(525, 285, 'back', 13, { fill: '#C99A2E', weight: 800 });
     // storm cloud
     s += `<path d="M470,160 q10,-18 28,-8 q8,-14 24,-4 q14,-4 16,12 q8,10 -6,14 l-56,0 q-14,-2 -6,-14z" fill="#8A8F98" stroke="${LINE}"/>`;
     s += dline(455, 182, 480, 182, MUTED, 2) + dline(462, 190, 492, 190, MUTED, 2);
@@ -215,7 +215,7 @@
     s += arrow(470, 114, 550, 114, { color: INK }) + label(510, 102, 'YES', 12, { weight: 800, fill: '#2A9D8F' });
     s += box(20, 150, 290, 190, { fill: PAPER, stroke: FUEL, sw: 2 });
     s += label(165, 170, 'Electrical or interlock fault', 14, { weight: 700, fill: FUEL });
-    s += lines(34, 196, ['1. Gear lever in NEUTRAL', '2. Kill-cord clip in place', '3. Main battery switch ON', '4. Battery cables tight and clean', '5. Battery charge (12.7 V = full)', '6. Fuse'], 13, { anchor: 'start' }, 22);
+    s += lines(34, 196, ['1. Gear lever in NEUTRAL', '2. Kill-cord clip in place', '3. Main battery switch ON', '4. Battery cables tight and clean', '5. Battery charge (12.7 V = full)', 'Also: the fuse'], 13, { anchor: 'start' }, 22);
     s += box(390, 150, 290, 190, { fill: PAPER, stroke: '#2A9D8F', sw: 2 });
     s += label(535, 170, 'Fuel first, then spark', 14, { weight: 700, fill: '#2A9D8F' });
     s += lines(404, 196, ['6. Fuel reaching the engine? (tank)', '7. Fuel hose intact and tight', '8. Tank VENT open', '9. Primer bulb pumped until firm', 'Then: spark plugs wet or fouled?', '(petrol only; diesel has no plugs)'], 13, { anchor: 'start' }, 22);
@@ -228,17 +228,17 @@
   function illProp() {
     let s = '';
     // face-on prop
-    const cx = 150, cy = 170, R = 110;
+    const cx = 150, cy = 150, R = 100;
     s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${MUTED}" stroke-width="1.5" stroke-dasharray="6 5"/>`;
     for (let i = 0; i < 3; i++) s += `<ellipse cx="${cx}" cy="${cy}" rx="34" ry="${R * 0.5}" fill="#8A8F98" stroke="${LINE}" transform="rotate(${i * 120} ${cx} ${cy}) translate(0 -${R * 0.5})"/>`;
     s += `<circle cx="${cx}" cy="${cy}" r="24" fill="#6b7078" stroke="${LINE}"/>`;
     s += dline(cx - 30, cy, cx + 30, cy, PAPER, 3);
     s += arrow(cx - R, cy + R + 22, cx + R, cy + R + 22, { color: INK, both: true });
     s += label(cx, cy + R + 44, 'DIAMETER (13 in): circle swept by the blade tips', 13, { weight: 700 });
-    s += label(cx, 28, 'Marked "13 x 19"  =  diameter x pitch, in inches', 15, { weight: 800 });
+    s += label(20, 28, 'Marked "13 x 19"  =  diameter x pitch, in inches', 15, { weight: 800, anchor: 'start' });
     s += leader(cx + 8, cy, cx + 60, 70) + lines(cx + 64, 64, ['Shear pin (small outboards) or rubber hub:', 'breaks or slips if the blades hit a rock', '-> engine revs, boat does not move'], 12, { anchor: 'start' });
     // pitch illustration
-    const px = 360, py = 220;
+    const px = 360, py = 200;
     s += `<rect x="${px}" y="${py + 40}" width="300" height="70" fill="${WATER}" opacity=".14"/>` + dline(px, py + 40, px + 300, py + 40, WATER, 2);
     s += `<path d="M${px + 20},${py + 20} l50,0 l10,20 l-70,0 z" fill="#B0B7C3" stroke="${LINE}"/>`;
     s += `<path d="M${px + 190},${py + 20} l50,0 l10,20 l-70,0 z" fill="#B0B7C3" stroke="${LINE}" opacity=".5"/>`;
@@ -246,7 +246,7 @@
     s += label(px + 145, py + 80, 'PITCH (19 in): theoretical advance in ONE revolution', 12, { weight: 700 });
     s += label(px + 145, py + 97, '(real advance is less because of "slip")', 11, { fill: MUTED });
     s += `<path d="M${px + 300},${py - 70} a12,12 0 1,1 -1,0" fill="none" stroke="${INK}" stroke-width="2"/>` + label(px + 300, py - 40, '1 turn', 11, { fill: MUTED });
-    s += lines(px + 10, 318, ['Lower pitch: more thrust, quicker acceleration, higher revs, lower top speed.', 'Higher pitch: higher top speed ONLY if the engine still reaches its rated full-throttle rpm.'], 12, { anchor: 'start' });
+    s += lines(20, 322, ['Lower pitch: more thrust, quicker acceleration, higher revs, lower top speed.', 'Higher pitch: higher top speed ONLY if the engine still reaches its rated full-throttle rpm.'], 12, { anchor: 'start' });
     return S.svg(680, 350, s, { width: 640, label: 'Propeller diameter and pitch explained' });
   }
 
@@ -294,23 +294,23 @@
     s += `<path d="M650,176 L650,186 L740,186 L740,470 M660,226 L660,236 L740,236 M660,276 L660,286 L740,286 M580,440 L580,470 M640,132 L640,142 L740,142" fill="none" stroke="${K}" stroke-width="3"/>`;
     // alternator
     s += `<circle cx="380" cy="330" r="22" fill="${PAPER}" stroke="${INK}" stroke-width="2"/>` + label(380, 331, '~', 22, { weight: 800 });
-    s += `<path d="M380,308 L380,296 L250,296" fill="none" stroke="${R}" stroke-width="3" stroke-dasharray="5 4"/>`;
+    s += `<path d="M358,330 L250,330 L250,312" fill="none" stroke="${R}" stroke-width="3" stroke-dasharray="5 4"/>`;
     // warning triangle
     s += `<polygon points="30,250 60,250 45,224" fill="${C.yellow}" stroke="${INK}" stroke-width="1.5"/>` + label(45, 243, '!', 14, { fill: DARK, weight: 900 });
     if (quiz) {
-      s += badge(300, 130, 'A') + badge(490, 340, 'B') + badge(380, 365, 'C') + badge(580, 450, 'D');
+      s += badge(338, 265, 'A') + badge(490, 340, 'B') + badge(380, 365, 'C') + badge(580, 450, 'D');
       return S.svg(800, 500, s, { width: 640, label: 'Boat electrical circuit with four components marked A to D' });
     }
     s += label(360, 36, 'Engine START circuit: kept separate so lights and fridge cannot flatten it', 12, { fill: MUTED, weight: 600 });
-    s += lines(300, 300, ['MAIN BATTERY SWITCH', 'OFF when leaving the boat;', 'isolates everything'], 11, { weight: 700 }, 13);
+    s += lines(300, 292, ['MAIN BATTERY SWITCH', 'OFF when leaving the boat;', 'isolates everything'], 11, { weight: 700 }, 13);
     s += lines(490, 345, ['FUSE PANEL: every circuit fused;', 'replace with the SAME rating'], 11, { weight: 700 }, 13);
     s += label(650, 140, 'Navigation lights', 11, { anchor: 'start', weight: 600 }).replace('x="650"', 'x="676"');
     s += label(700, 210, 'VHF / chart plotter', 11, { anchor: 'start', weight: 600 });
-    s += lines(600, 455, ['Automatic BILGE PUMP: wired BEFORE the main switch,', 'with its own fuse, so it works when you are away'], 11, { anchor: 'start', weight: 600 }, 13);
+    s += lines(215, 398, ['Automatic BILGE PUMP: wired BEFORE the main switch,', 'with its own fuse, so it works when you are away'], 11, { anchor: 'start', weight: 600 }, 13);
     s += label(378, 372, 'Alternator / charger: charges both banks', 11, { weight: 600 });
     s += lines(250, 490, ['Negative (-) return bus: common ground'], 11, { weight: 600 });
-    s += lines(20, 275, ['Vented battery box:', 'hydrogen when charging;', 'no sparks, no smoking'], 10, { anchor: 'start', weight: 600 }, 12);
-    s += lines(20, 440, ['Disconnect - first,', 'reconnect - last'], 10, { anchor: 'start', weight: 600 }, 12);
+    s += lines(95, 215, ['Vented battery box:', 'hydrogen when charging;', 'no sparks, no smoking'], 10, { anchor: 'start', weight: 600 }, 12);
+    s += lines(95, 440, ['Disconnect - first,', 'reconnect - last'], 10, { anchor: 'start', weight: 600 }, 12);
     return S.svg(800, 500, s, { width: 640, label: 'Schematic of a two-battery boat electrical system with main switch and fuses' });
   }
 
@@ -343,13 +343,13 @@
     s += `<path d="M0,0 L170,0 Q150,80 190,140 Q230,200 170,260 Q120,330 180,400 Q210,460 170,500 L0,500 Z" fill="${LAND}" stroke="${LINE}"/>`;
     s += `<path d="M0,0 L170,0 Q150,80 190,140 Q230,200 170,260 Q120,330 180,400 Q210,460 170,500 L0,500 Z" fill="none" stroke="${FUEL}" stroke-width="2" stroke-dasharray="8 6" transform="translate(70 0)"/>`;
     s += `<path d="M170,0 Q150,80 190,140 Q230,200 170,260 Q120,330 180,400 Q210,460 170,500 L240,500 Q280,460 250,400 Q190,330 240,260 Q300,200 260,140 Q220,80 240,0 Z" fill="#F7D4D4" opacity=".7"/>`;
-    s += `<ellipse cx="330" cy="330" rx="34" ry="24" fill="${LAND}" stroke="${LINE}"/>`;
-    s += `<ellipse cx="330" cy="330" rx="74" ry="64" fill="#F7D4D4" opacity=".7"/>` + `<ellipse cx="330" cy="330" rx="74" ry="64" fill="none" stroke="${FUEL}" stroke-width="2" stroke-dasharray="8 6"/>`;
-    s += `<ellipse cx="330" cy="330" rx="34" ry="24" fill="${LAND}" stroke="${LINE}"/>` + label(330, 330, 'island', 11, { fill: DARK });
-    s += arrow(230, 60, 300, 60, { color: FUEL, width: 2, both: true }) + label(265, 44, '300 m', 13, { fill: FUEL, weight: 800 });
+    s += `<ellipse cx="360" cy="300" rx="34" ry="24" fill="${LAND}" stroke="${LINE}"/>`;
+    s += `<ellipse cx="360" cy="300" rx="104" ry="94" fill="#F7D4D4" opacity=".7"/>` + `<ellipse cx="360" cy="300" rx="104" ry="94" fill="none" stroke="${FUEL}" stroke-width="2" stroke-dasharray="8 6"/>`;
+    s += `<ellipse cx="360" cy="300" rx="34" ry="24" fill="${LAND}" stroke="${LINE}"/>` + label(360, 300, 'island', 11, { fill: DARK });
+    s += arrow(164, 60, 232, 60, { color: FUEL, width: 2, both: true }) + label(198, 44, '300 m', 13, { fill: FUEL, weight: 800 });
     s += label(60, 250, 'MAINLAND', 14, { fill: DARK, weight: 800 });
-    s += lines(300, 110, ['Red band: NO discharge of toilet waste', 'within 300 m of mainland or islands', '(national rule, FOR-2012-05-30-488 s. 10)'], 12, { anchor: 'start', weight: 600 });
-    s += lines(300, 420, ['Outside the dashed line: discharge allowed', 'under the national rule, but NOT at all', 'in the Oslofjord region, and never in rivers', 'or lakes; check local municipal bans'], 12, { anchor: 'start' });
+    s += lines(290, 110, ['Red band: NO discharge of toilet', 'waste within 300 m of mainland', 'or islands (national rule)'], 12, { anchor: 'start', weight: 600 });
+    s += lines(290, 410, ['Outside the dashed line: discharge', 'allowed under the national rule, but', 'NOT at all in the Oslofjord region,', 'and never in rivers or lakes;', 'check local municipal bans'], 12, { anchor: 'start' });
     // right: Oslofjord inset (schematic)
     s += box(520, 20, 265, 460, { fill: PAPER, stroke: LINE });
     s += label(652, 40, 'OSLOFJORD BAN AREA (schematic)', 12, { weight: 800 });
@@ -361,8 +361,8 @@
     s += dline(527, 300, 560, 330, INK, 2, '4 3') + lines(545, 350, ['Agder', 'county', 'border'], 10, { fill: DARK, weight: 700, anchor: 'start' }, 11);
     s += lines(652, 405, ['ZERO discharge of toilet waste from', 'recreational boats since 1 July 2024:', 'all side fjords and the inner Oslofjord', 'included (FOR-2024-05-31-886)'], 11, { fill: DARK, weight: 600 }, 13);
     // pump-out icon
-    s += box(540, 395, 40, 26, { fill: PAPER, stroke: INK, rx: 4 }) + `<path d="M580,408 q20,0 20,20" fill="none" stroke="${INK}" stroke-width="3"/>`;
-    s += lines(560, 440, ['Use pump-out', 'stations'], 10, { weight: 700 }, 12);
+    s += box(640, 285, 40, 26, { fill: PAPER, stroke: INK, rx: 4 }) + `<path d="M680,298 q20,0 20,20" fill="none" stroke="${INK}" stroke-width="3"/>`;
+    s += lines(665, 330, ['Use pump-out', 'stations'], 10, { weight: 700, fill: DARK }, 12);
     return S.svg(800, 500, s, { width: 640, label: 'Map diagram of the 300 m toilet-waste rule and the Oslofjord total ban area' });
   }
 
@@ -385,7 +385,7 @@
     s += `<g transform="rotate(-20 560 230)"><path d="M520,215 L585,215 L600,230 L585,245 L520,245 Z" fill="#D9DEE3" stroke="#2b3440" stroke-width="2"/><rect x="512" y="222" width="10" height="16" fill="#2b3440"/></g>`;
     s += arrow(540, 200, 430, 255, { color: INK, width: 2, dash: '6 4' });
     if (!quiz) s += lines(560, 300, ['slow to 5 knots BEFORE you are', 'within 50 m of the bathers'], 12, { weight: 700 });
-    s += label(560, 370, 'Rule applies wherever bathing is in progress, marked beach or not', 11, { fill: MUTED });
+    s += label(485, 375, 'Rule applies wherever bathing is in progress, marked beach or not', 11, { fill: MUTED });
     return S.svg(700, 400, s, { width: 640, label: 'Top view of a beach with swimmers, a 50 m circle, bathing-area buoys and an approaching motorboat' });
   }
 
@@ -425,7 +425,7 @@
     title: 'Engine, fuel and the environment',
     order: 10,
     examShare: 4,
-    examWeight: 'about 3–5 of 50 questions',
+    examWeight: 'about 3–6 of 50 questions',
     summary: 'How your engine, fuel, cooling and electrical systems work and how to keep them working; why petrol vapour, hydrogen and LPG are dangerous on board; how to plan fuel and troubleshoot an engine that will not start; the CE paperwork every boat carries; and the environmental rules for oil, garbage, toilet waste, noise, wash, bird reserves, national parks and the right to roam. A handful of items here (coast radio 120 and VHF 16, the alcohol limit and the flotation rule) belong to the "particularly important" part 4 of the exam.',
     sections: [
       /* ---------------- 1 ---------------- */
@@ -434,12 +434,12 @@
         title: 'What this topic is and how the exam tests it',
         html: `
 <p>A boat is only as safe as its engine, and a boater is only welcome on the water if the water stays clean. This topic sits in <strong>part 1, Seamanship</strong>, of the official curriculum: fire risk from petrol vapour and LPG (item 1.1 b), good maintenance of boat, engine, fuel system, cooling system and lubricating oil (1.1 i), environmental considerations such as discharges, reserves, national parks, littering and noise (1.1 k), and liability and insurance (1.1 l). From <strong>part 2, Laws and regulations</strong>, it adds the CE rules for recreational craft: the CE mark, the builder's plate, the hull identification number (CIN, today called WIN) and the owner's manual, plus the Outdoor Recreation Act and the speed rules near bathers.</p>
-<p>The exam asks short recognition questions: "What does the water stream on the side of an outboard tell you?", "The engine will not start, what do you check first?", "Why is petrol vapour dangerous?", "How close to land may you discharge toilet waste?", "May you land on a bird reserve in June?", "What do you do with old oil?". Expect roughly three to five questions from this topic.</p>
+<p>The exam asks short recognition questions: "What does the water stream on the side of an outboard tell you?", "The engine will not start, what do you check first?", "Why is petrol vapour dangerous?", "How close to land may you discharge toilet waste?", "May you land on a bird reserve in June?", "What do you do with old oil?". Expect roughly three to six questions from this topic.</p>
 <div class="callout warn"><p><strong>Part 4 crossover.</strong> Three facts that appear in these scenarios are <strong>part-4 "particularly important" items</strong>, where more than two errors fails the whole exam: the coast radio telephone number <strong>120</strong> and <strong>VHF channel 16</strong> (item 1.4.6), the alcohol limit of <strong>0.8 per mille</strong> for boats under 15 m, and the duty to <strong>wear flotation in boats under 8 m</strong> under way (item 1.4.5). They are repeated here because engine trouble is exactly when you need them.</p></div>
 <p>Work through the sections in order. The first half is technical (engine types, cooling, fuel, starting, propeller, electrics); the second half is paperwork and environment. Every "Remember" box contains the exact numbers the exam uses.</p>`,
         keyFacts: [
           'Part 1 items 1.1 b, i, k, l; part 2 item h (CE marking, builder\'s plate, CIN/WIN, owner\'s manual).',
-          'Expect about 3–5 of the 50 questions from this topic (estimate; the split is not published).',
+          'Expect about 3–6 of the 50 questions from this topic (estimate; the split is not published).',
           'Part-4 items that appear here: coast radio 120 / VHF 16 (1.4.6); 0.8 per mille and flotation under 8 m (1.4.5).',
         ],
         check: { q: 'Your engine has died and you are drifting towards rocks. Which number reaches the coast radio service by telephone?', options: ['110', '113', '120', '02800'], answer: 2, explanation: 'The coast radio service answers on telephone 120 and keeps watch on VHF channel 16; this is part-4 item 1.4.6. 110 is the fire service (also used to report acute pollution), 113 is the ambulance (F38, F62).' },
@@ -508,7 +508,7 @@
         id: 'fuel-planning',
         title: 'Fuel planning: the one-third rule',
         html: `
-<p>Running out of fuel is the most common reason the rescue service tows a recreational boat home, and the cure is arithmetic. Fuel gauges on small boats are unreliable, so plan from <strong>consumption</strong>: know how many litres per hour your engine burns at cruising revs, then <strong>range = usable litres divided by litres per hour, multiplied by speed</strong>. Then apply the <strong>one-third rule</strong>:</p>
+<p>Running out of fuel is an avoidable emergency, and the cure is arithmetic. Fuel gauges on small boats are unreliable, so plan from <strong>consumption</strong>: know how many litres per hour your engine burns at cruising revs, then <strong>range = usable litres divided by litres per hour, multiplied by speed</strong>. Then apply the <strong>one-third rule</strong>:</p>
 <div class="callout rule"><p><strong>One third of the fuel to get out, one third to get back, one third kept in reserve</strong> for weather, current, detours and mistakes. The reserve third is never part of the plan.</p></div>
 <p>Worked example: your 60-litre tank is full and the engine burns 10 litres per hour at 20 knots. In flat water the tank lasts 6 hours, which is 120 nautical miles. Under the rule of thirds you may plan about <strong>40 nautical miles out and 40 back</strong>, arriving home with 20 litres still in the tank. If you then meet a head wind and waves, consumption per mile rises sharply, so shorten the plan or slow down to an economical speed.</p>
 <p>The rule is standard seamanship teaching, not a Norwegian legal requirement, but it is how the exam expects you to answer any fuel-planning question. Common wrong answers: "fill the tank to one third", "the reserve is for the trip home", "use one third throttle". None of those is the rule.</p>
@@ -774,7 +774,7 @@
       { id: 'engine-51', q: 'What does the Maritime Authority say about leaving the boat?', options: ['Leave the 12 V plugs connected so the batteries stay balanced', 'Switch off the main battery switch and do not leave 12 V plugs in their sockets', 'Leave the blower running', 'Disconnect the bilge pump to save the battery'], answer: 1, explanation: 'Switch the main switch off when you leave; a 12 V plug left in its socket keeps the lead live. The automatic bilge pump is wired before the main switch on its own fuse so it still works (F48).', difficulty: 2, part: 1, tags: ['electrics'] },
       { id: 'engine-52', q: 'Battery acid splashes onto your hand while you are checking the cells. What do you do?', options: ['Wipe it off with an oily rag', 'Rinse with plenty of water', 'Neutralise it with petrol', 'Leave it; the acid is very dilute'], answer: 1, explanation: 'The electrolyte is sulphuric acid, which burns skin and can blind. Rinse at once with plenty of water, and keep batteries upright in an acid-proof, strapped-down box (F46).', difficulty: 2, part: 1, tags: ['battery'] },
       // --- CE marking and insurance (sdir.no CE page; F88) ---
-      { id: 'engine-53', q: 'Which information must the builder\'s (CE) plate on a recreational craft show?', options: ['Manufacturer, maximum load including an optional outboard, maximum number of persons, design category A–D and the CE symbol', 'Hull number, engine power and top speed', 'Owner\'s name, home port and insurance company', 'Draught, displacement and fuel capacity'], answer: 0, explanation: 'The Maritime Authority lists the plate contents: manufacturer\'s name, max load incl. outboard (kg), max persons, construction category A, B, C or D, the CE symbol and, if applicable, the notified body\'s number. Engine power is in the owner\'s manual.', difficulty: 1, part: 2, tags: ['ce'] },
+      { id: 'engine-53', q: 'Which information must the builder\'s (CE) plate on a recreational craft show?', options: ['Manufacturer, maximum load including an optional outboard, maximum number of persons, design category A–D and the CE symbol', 'Hull number, engine power and top speed', 'Owner\'s name, home port and insurance company', 'Draught, displacement and fuel capacity'], answer: 0, explanation: 'The Maritime Authority lists the plate contents: manufacturer\'s name, max load incl. outboard (kg), max persons, design category A, B, C or D, the CE symbol and, if applicable, the notified body\'s number. Engine power is in the owner\'s manual.', difficulty: 1, part: 2, tags: ['ce'] },
       { id: 'engine-54', q: 'Where is the hull identification number (CIN/WIN) placed on a CE-marked boat?', options: ['Inside the engine compartment', 'On the port bow', 'Permanently marked on the outside of the hull, on the starboard side of the transom', 'Only in the owner\'s manual'], answer: 2, explanation: 'The WIN (formerly HIN/CIN), a 15-character code such as NO-HXAB7A33G708, is permanently marked on the outside of the hull on the starboard side of the transom, separate from the CE mark.', illustration: () => illTransom(), difficulty: 2, part: 2, tags: ['ce', 'win', 'picture'] },
       { id: 'engine-55', q: 'What does the hull identification number (WIN/CIN) tell you?', options: ['The boat\'s maximum speed and engine power', 'The design category and the number of persons', 'The current owner and the home port', 'Who built the boat, in which country, its serial number, when it was built and its model year'], answer: 3, explanation: 'The code holds the country code, manufacturer code, serial number, production month and year, and model year. It identifies the hull whatever its colour, name or owner.', difficulty: 2, part: 2, tags: ['ce', 'win'] },
       { id: 'engine-56', q: 'Where do you find the maximum recommended engine power for a CE-marked boat?', options: ['On the builder\'s plate', 'In the owner\'s manual, in kW', 'Engraved next to the hull identification number', 'On the declaration of conformity only'], answer: 1, explanation: 'The owner\'s manual (EN ISO 10240) states the boat\'s limits and capacities, including maximum engine power in kW; the builder\'s plate carries load, persons, category and the CE symbol, not engine power.', difficulty: 2, part: 2, tags: ['ce', 'manual'] },
@@ -804,6 +804,7 @@
       { id: 'engine-77', q: 'May you use a personal watercraft (jet ski) inside Faerder or Ytre Hvaler national parks?', options: ['Yes, at up to 5 knots', 'Yes, outside the bird zones', 'No, personal watercraft are banned in the whole of both parks', 'Only with a high-speed certificate'], answer: 2, explanation: 'Both park regulations prohibit the use of personal watercraft throughout the park (F77).', difficulty: 2, part: 1, tags: ['national-park'] },
       { id: 'engine-78', q: 'You land on an island in a national park on a June evening and want a barbecue. Which is correct?', options: ['Light it on the bare rock, which cannot burn', 'A fire or barbecue is allowed, but never on bare rock, and the national open-fire ban near forest and uncultivated land (15 April to 15 September) applies on islands too', 'Fires are always forbidden in national parks', 'Fires are allowed anywhere in June'], answer: 1, explanation: 'Faerder allows fires and barbecues but never on bare rock, which cracks from the heat; nationally open fire in or near forest and uncultivated land is forbidden 15 April to 15 September unless it obviously cannot spread. Garbage is never left or burned (F78).', difficulty: 2, part: 1, tags: ['national-park', 'fire'] },
       { id: 'engine-79', q: 'Under the Outdoor Recreation Act, which of these may you do without asking the owner?', options: ['Tie up to a private jetty for the night', 'Land briefly on an uncultivated shore and bathe there', 'Pitch a tent 50 m from an inhabited cabin', 'Moor to a private jetty if nobody is using it'], answer: 1, explanation: 'Section 7: brief landing on uncultivated land and use of rings and bolts is free, but a quay or jetty needs the owner\'s or user\'s consent; section 9: a tent must be at least 150 m from an inhabited house or cabin (F80, F81).', difficulty: 2, part: 2, tags: ['right-to-roam'] },
+      { id: 'engine-81', q: 'Late in the evening you enter a quiet natural harbour where several boats lie at anchor. Which behaviour shows the consideration for noise that the curriculum expects?', options: ['Come in slowly at low revs, keep music and voices down, and do not run the engine or generator longer than necessary', 'Come in at planing speed so the noise is over quickly', 'Run the generator all night so the batteries stay full', 'Sound the horn so everyone knows you have arrived'], answer: 0, explanation: 'Noise is listed with discharges, littering, reserves and national parks among the environmental considerations in curriculum item 1.1 k, and the speed regulation\'s general duty (section 2) forbids causing nuisance to others by the way you drive. Low revs, no wash and quiet behaviour at anchorages are the practical answer (F71).', difficulty: 1, part: 1, tags: ['noise'] },
       { id: 'engine-80', q: 'How far from an inhabited house or cabin must you pitch a tent on uncultivated land, and for how long may it stay without permission?', options: ['50 m, one night', '100 m, one week', '150 m, up to two days', '300 m, unlimited'], answer: 2, explanation: 'Outdoor Recreation Act section 9: at least 150 m from an inhabited house or cabin, and no more than two days in one place without the owner\'s permission (F81).', difficulty: 2, part: 2, tags: ['right-to-roam'] },
     ],
   });

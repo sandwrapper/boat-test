@@ -3068,7 +3068,7 @@ window.BOAT = (function () {
     function fmtAnswer(r) {
       if (r.isClock) return clock(r.answer);
       if (r.isAngle) return deg3(r.answer);
-      return num(r.answer) + ' ' + r.unit;
+      return num(r.answer) + (r.unit.startsWith('°') ? '' : ' ') + r.unit;   // "5.5° E", "8 NM"
     }
     function finish(ok, typed, gaveUp) {
       locked = true; total++;
@@ -6145,14 +6145,14 @@ window.BOAT = (function () {
     // gale warning marker between row 6 and row 7
     const gy = y0 + 7 * rh - 1;
     s += line(x0, gy, x0 + tw, gy, BAD, { sw: 2.5, dash: '8 4' });
-    s += rect(x0 + 150, gy - 9, 190, 18, PAPER, BAD, { rx: 3, sw: 1 }) + T(x0 + 245, gy, 'MET coastal gale warning: 15 m/s', { size: 10, weight: 700, fill: BAD });
-    // CE brackets on the right
+    s += rect(x0 + 346, gy - 7, 196, 14, PAPER, BAD, { rx: 3, sw: 1 }) + T(x0 + 444, gy, 'MET coastal gale warning: 15 m/s', { size: 9.5, weight: 700, fill: BAD });
+    // CE brackets on the right; each letter sits at the middle of its own bracket (D rows 0-4, C 0-6, B 0-8, A 9-12)
     const bx = x0 + tw + 14;
     const br = [[0, 4, 'D'], [0, 6, 'C'], [0, 8, 'B'], [9, 12, 'A']];
     br.forEach(([a, b, l], k) => {
-      const x = bx + k * 17, ya = y0 + a * rh + 2, yb = y0 + (b + 1) * rh - 4;
+      const x = bx + k * 17, ya = y0 + a * rh + 2, yb = y0 + (b + 1) * rh - 4, ym = (ya + yb) / 2;
       s += `<path d="M${x + 6},${ya} h-5 V${yb} h5" fill="none" stroke="${INK2}" stroke-width="1.5"/>`;
-      s += T(x + 1, yb + 11, l, { size: 11, weight: 700, fill: INK2 });
+      s += rect(x - 5, ym - 8, 12, 16, PAPER, 'none', { rx: 2 }) + T(x + 1, ym, l, { size: 11, weight: 700, fill: INK2 });
     });
     s += T(bx + 26, y0 - 12, 'CE', { size: 10, weight: 700, fill: MUTED });
     s += lines(W / 2, H - 56, ['CE design category (builder\'s plate): D up to force 4 and 0.3 m waves; C up to force 6 and 2 m;', 'B up to force 8 and 4 m; A above force 8 and 4 m.', 'MET issues a coastal gale warning at 15 m/s mean wind, inside the force-7 (near gale) band;', 'MET calls near gale "dangerous for small boats".'], { size: 10.5, fill: INK2, lh: 14 });
@@ -6188,7 +6188,8 @@ window.BOAT = (function () {
     const by = 430;
     s += rect(150, by - 30, 340, 66, SHALLOW, 'none');
     s += arrow([[198, by], [236, by]], SEA, { sw: 2.5 }) + T(190, by - 14, 'wind', { size: 10, fill: SEA, weight: 700 });
-    s += `<circle cx="252" cy="${by}" r="9" fill="${INK2}"/>` + line(252, by - 9, 252, by - 14, INK2, { sw: 3 });
+    // you, seen from above, facing the way the wind blows (nose to the right): your left is up on the page
+    s += `<circle cx="252" cy="${by}" r="9" fill="${INK2}"/>` + line(261, by, 267, by, INK2, { sw: 3 }) + line(246, by - 11, 258, by - 11, INK2, { sw: 2 }) + line(246, by + 11, 258, by + 11, INK2, { sw: 2 });
     s += T(252, by + 30, 'you, back to the wind', { size: 9.5, fill: MUTED });
     s += T(266, by - 16, 'L', { size: 18, weight: 800, fill: LOWRED }) + T(232, by + 14, 'H', { size: 18, weight: 800, fill: HIGHBLUE });
     s += lines(400, by - 6, ['Buys Ballot: back to the wind, the LOW is on', 'your LEFT (and a little ahead), the HIGH on your right.'], { size: 10.5, fill: INK2, lh: 13, weight: 600 });
@@ -6197,29 +6198,34 @@ window.BOAT = (function () {
 
   // ---------- IL-7 Warm front cross-section (F45, F46, F48) ----------
   function warmFront() {
-    const W = 640, H = 300, gy = 232;
-    let s = T(W / 2, 20, 'A warm front approaching from the west: the cloud lowers for 6 to 12 hours before the rain', { size: 13.5, weight: 700 });
-    // front moves to the LEFT (west is left). Warm air on the right sliding up over cold air to the left.
-    s += rect(20, 40, 600, gy - 40, SHALLOW, 'none', { rx: 0, opacity: 0.6 });
-    s += `<polygon points="200,${gy} 620,40 620,${gy}" fill="#ffcdd2" opacity="0.55"/>`;
-    s += line(200, gy, 620, 40, LOWRED, { sw: 2 });
-    s += T(572, 120, 'WARM AIR', { size: 12, weight: 700, fill: LOWRED }) + T(110, 150, 'COLD AIR', { size: 12, weight: 700, fill: HIGHBLUE });
-    // clouds along the slope
-    s += `<g stroke="${INK2}" stroke-width="1.4" fill="none">${[[40, 62], [52, 58], [64, 66]].map(([x, y]) => `<path d="M${x},${y} q10,-6 22,-2"/>`).join('')}</g>` + T(58, 82, 'cirrus', { size: 9.5, fill: MUTED });
-    s += rect(120, 58, 130, 10, '#e0e0e0', 'none', { rx: 5 }) + sun(185, 50, 7) + `<circle cx="185" cy="50" r="15" fill="none" stroke="${SUN}" stroke-width="1.2" opacity="0.8"/>` + T(185, 82, 'cirrostratus (halo)', { size: 9.5, fill: MUTED });
-    s += rect(230, 100, 150, 22, '#bdbdbd', 'none', { rx: 8 }) + T(305, 136, 'altostratus', { size: 9.5, fill: MUTED });
-    s += rect(330, 140, 190, 48, '#757575', 'none', { rx: 10 }) + T(425, 130, 'nimbostratus, steady rain', { size: 9.5, fill: MUTED });
-    for (let i = 0; i < 8; i++) s += line(345 + i * 22, 192, 341 + i * 22, 214, HIGHBLUE, { sw: 1.3 });
-    // ground, sea, front symbol
+    const W = 640, H = 300, gy = 232, fx = 120; // fx = where the surface front meets the sea
+    let s = T(W / 2, 20, 'A warm front moving in from the west: the cloud lowers for 6 to 12 hours before the rain', { size: 13.5, weight: 700 });
+    // Warm air (left, west) slides up over the wedge of cold air ahead of it (right, east); the front moves to the RIGHT.
+    // Frontal surface: from the surface front (fx, gy) rising to the right to (620, 80).
+    const fy = x => gy - (x - fx) * (152 / 500);
+    s += rect(20, 34, 600, gy - 34, '#ffcdd2', 'none', { rx: 0, opacity: 0.45 });
+    s += `<polygon points="${fx},${gy} 620,${gy} 620,${fy(620).toFixed(1)}" fill="${SHALLOW}" opacity="0.95"/>`;
+    s += line(fx, gy, 620, fy(620), LOWRED, { sw: 2 });
+    s += T(70, 150, 'WARM AIR', { size: 12, weight: 700, fill: LOWRED }) + T(545, 190, 'COLD AIR', { size: 12, weight: 700, fill: HIGHBLUE });
+    // clouds in the warm air above the frontal surface: highest and thinnest far ahead (right), lowest near the front (left)
+    s += `<g stroke="${INK2}" stroke-width="1.4" fill="none">${[[556, 50], [572, 44], [588, 52]].map(([x, y]) => `<path d="M${x},${y} q10,-6 22,-2"/>`).join('')}</g>` + T(585, 70, 'cirrus', { size: 9.5, fill: MUTED });
+    s += rect(420, 60, 120, 10, '#e0e0e0', 'none', { rx: 5 }) + sun(480, 52, 6) + `<circle cx="480" cy="52" r="14" fill="none" stroke="${SUN}" stroke-width="1.2" opacity="0.8"/>` + T(480, 84, 'cirrostratus (halo)', { size: 9.5, fill: MUTED });
+    s += rect(300, 92, 120, 22, '#bdbdbd', 'none', { rx: 8 }) + T(360, 128, 'altostratus', { size: 9.5, fill: MUTED });
+    s += rect(140, 120, 160, 50, '#757575', 'none', { rx: 10 }) + T(220, 110, 'nimbostratus, steady rain', { size: 9.5, fill: MUTED });
+    for (let i = 0; i < 7; i++) s += line(155 + i * 22, 174, 151 + i * 22, 196, HIGHBLUE, { sw: 1.3 });
+    // map symbol of a warm front moving east: red line with semicircles on the side it moves towards
+    s += line(60, 162, 60, 212, LOWRED, { sw: 2 });
+    [172, 188, 204].forEach(y => { s += `<path d="M60,${y - 7} a7,7 0 0 1 0,14 Z" fill="${LOWRED}"/>`; });
+    s += T(60, 226, 'map symbol', { size: 9, fill: MUTED });
+    // sea surface and the surface front
     s += rect(20, gy, 600, 6, WATER, 'none', { rx: 0 });
     s += line(20, gy + 3, 620, gy + 3, WATER2, { sw: 1 });
-    // surface front: red line with semicircles pointing left (direction of movement)
-    for (let i = 0; i < 4; i++) s += `<path d="M${215 + i * 26},${gy - 1} a8,8 0 0 0 -16,0 Z" fill="${LOWRED}"/>`;
-    s += arrow([[200, gy - 22], [150, gy - 22]], LOWRED, { sw: 2 }) + T(176, gy - 34, 'front moves this way', { size: 9.5, fill: LOWRED });
-    s += lines(110, gy + 24, ['Ahead: wind S to SE, backing;', 'barometer falling; swell building'], { size: 10.5, fill: INK2, lh: 13 });
-    s += lines(470, gy + 24, ['Behind: wind veers to SW, warmer,', 'barometer steadies, drizzle'], { size: 10.5, fill: INK2, lh: 13 });
-    s += T(30, H - 8, 'West (ahead of the front)', { size: 9.5, fill: MUTED, anchor: 'start' }) + T(610, H - 8, 'East (behind the front)', { size: 9.5, fill: MUTED, anchor: 'end' });
-    return S.svg(W, H, s, { label: 'Cross-section of a warm front with the cloud sequence cirrus, cirrostratus, altostratus, nimbostratus' });
+    s += `<circle cx="${fx}" cy="${gy}" r="4" fill="${LOWRED}"/>`;
+    s += arrow([[fx, gy - 14], [fx + 56, gy - 14]], LOWRED, { sw: 2 }) + T(fx + 28, gy - 26, 'front moves east', { size: 9.5, fill: LOWRED });
+    s += lines(150, gy + 24, ['Behind: wind veered to SW, warmer,', 'barometer steady, drizzle'], { size: 10.5, fill: INK2, lh: 13 });
+    s += lines(470, gy + 24, ['Ahead (you): wind S to SE, backing;', 'barometer falling; swell building'], { size: 10.5, fill: INK2, lh: 13 });
+    s += T(30, H - 8, 'West (behind the front)', { size: 9.5, fill: MUTED, anchor: 'start' }) + T(610, H - 8, 'East (ahead of the front)', { size: 9.5, fill: MUTED, anchor: 'end' });
+    return S.svg(W, H, s, { label: 'Cross-section of a warm front moving east with the cloud sequence cirrus, cirrostratus, altostratus, nimbostratus ahead of it' });
   }
 
   // ---------- IL-3 Sea breeze (day) and land breeze (night) (F50-F53) ----------
@@ -6444,7 +6450,7 @@ window.BOAT = (function () {
 <div class="callout rule"><p>Classic signs of deteriorating weather for a skipper: a halo round the sun or moon; cloud thickening and lowering; a falling barometer; wind backing to south or south-east; a long swell arriving before the wind; and towering cumulonimbus building on a warm afternoon.</p></div>
 <p>One winter hazard deserves a name: the <strong>polar low</strong>. These small, intense lows (200 to 500 km across) form over the Norwegian and Barents Seas from October to May, peaking December to March, and can take the wind from near calm to storm force in less than ten minutes, with heavy snow showers. Their average observed peak wind is 22 m/s (strong gale). They matter from the Trondelag coast northwards; in winter there, treat a forecast of polar lows as a day ashore.</p>`,
         illustration: () => warmFront(),
-        caption: 'Warm front seen from the side, moving towards the west (left). Cirrus and the cirrostratus halo come first, high and far ahead; altostratus and rain-bearing nimbostratus follow as the cloud base lowers. The wind backs and the barometer falls ahead of the front, then veers as it passes.',
+        caption: 'Warm front seen from the side, moving in from the west (left) towards you in the east. The warm air slides up over the wedge of cold air ahead of it, so cirrus and the cirrostratus halo come first, high and far ahead; altostratus and rain-bearing nimbostratus follow as the cloud base lowers. The wind backs and the barometer falls ahead of the front, then veers as it passes.',
         keyFacts: ['Warm front: red line with semicircles; cirrus, cirrostratus (halo), altostratus, nimbostratus; steady rain, falling barometer, wind veers at passage', 'Cold front: blue line with triangles; heavy showers, sharp veer (SW to NW), pressure rises, clearing', 'Symbols on a front point in the direction it moves', 'Signs of bad weather: halo, lowering cloud, falling barometer, backing wind, rising swell, towering cumulonimbus', 'Polar lows: small intense winter lows (Oct-May) over northern waters; calm to storm force in under 10 minutes'],
         check: { id: 'weather-c5', q: 'Morning: wind south-east, barometer falling steadily, a halo around the sun and the cloud slowly thickening. What is the most likely development?', options: ['A high is building; the day will stay fine', 'A warm front is approaching: steady rain and wind that will veer to south-west', 'A sea breeze will set in from the sea by noon', 'Radiation fog will form within the hour'], answer: 1, explanation: 'Halo (cirrostratus), thickening cloud, a steadily falling barometer and a backed south-easterly are the textbook warm-front approach (F46, F48). Expect rain and a veer to the south-west when it passes.' },
       },
@@ -6453,7 +6459,7 @@ window.BOAT = (function () {
         id: 'local-winds',
         title: 'Local winds: sea breeze, land breeze, fjord effects',
         html: `<p>The national forecast can say "light breeze" and still leave you fighting 20 knots in the afternoon. The reason is local wind, and the exam asks about three kinds.</p>
-<p><strong>The sea breeze.</strong> On a sunny day the land heats much faster than the sea. Warm air rises over the land, pressure there drops a little, and cooler air from the sea flows in to replace it: an <strong>onshore wind</strong>, blowing from sea to land. It needs sunshine and a weak background wind, sets in during the late morning, is <strong>strongest in the afternoon to early evening</strong> and dies away in the evening when the sun stops heating the land. Along the Norwegian coast the convergence of air along the shore commonly makes it <strong>15 to 25 knots</strong> (8 to 13 m/s) on a hot summer afternoon, enough to make an open crossing unpleasant. Through the afternoon the sea breeze <strong>veers</strong> (turns clockwise, because of the Earth's rotation) from blowing straight onshore towards blowing nearly along the coast; in many fjords it instead keeps blowing inland, up the fjord.</p>
+<p><strong>The sea breeze.</strong> On a sunny day the land heats much faster than the sea. Warm air rises over the land, pressure there drops a little, and cooler air from the sea flows in to replace it: an <strong>onshore wind</strong>, blowing from sea to land. It needs sunshine and a weak background wind, sets in during the late morning, is <strong>strongest in the afternoon to early evening</strong> and dies away in the evening when the sun stops heating the land. Along the Norwegian coast the convergence of air along the shore commonly makes it <strong>15 to 25 knots</strong> (8 to 13 m/s) on a hot summer afternoon, enough to make an open crossing unpleasant. Through the afternoon the sea breeze <strong>veers</strong> (turns clockwise, because of the Earth's rotation) from blowing straight onshore towards blowing nearly along the coast; in some fjords it instead keeps blowing inland, up the fjord.</p>
 <p><strong>The land breeze.</strong> At night the land cools faster than the sea and the circulation reverses: a weak <strong>offshore</strong> breeze flows out over the water. It is much weaker than the sea breeze and is often barely noticeable.</p>
 <p><strong>Channelling and fall winds.</strong> Weak winds tend to follow the line of a coast, fjord or valley, so a fjord often has wind along its axis and a sound can accelerate it. More dangerous is the <strong>fall wind</strong>: when a strong wind crosses a mountain range it is forced down the lee side in violent, turbulent gusts that strike the water under steep fjord sides, even when the fjord looked sheltered. A related phenomenon is the katabatic wind, cold dense air draining down slopes under gravity, mostly on clear nights and in winter.</p>
 <div class="callout tip"><p>Plan an open crossing in a small boat for the morning or the evening on a hot summer day. The morning forecast of 2 m/s says nothing about the sea breeze that will be blowing at 16:00.</p></div>`,
@@ -6467,7 +6473,7 @@ window.BOAT = (function () {
         id: 'waves',
         title: 'Waves: height, steepness and where they break',
         html: `<p>Wind does not sink boats; waves do. The size of wind waves depends on four things: the <strong>wind speed</strong>, the <strong>fetch</strong> (the uninterrupted stretch of water the wind has blown over), the <strong>duration</strong> the wind has blown, and the <strong>water depth</strong>. That is why a force 6 in a narrow fjord gives a short chop while the same wind over the open sea builds 3 m waves, and why swell from a North Sea storm can break on the coast on a windless day.</p>
-<p>The figure in a forecast is the <strong>significant wave height</strong>: the average height of the <strong>highest third</strong> of the waves. It is not the biggest wave. Individual waves regularly reach <strong>almost twice</strong> the significant height, so a forecast of 1.5 m means you must expect waves approaching 3 m. BarentsWatch shows both the significant and the maximum height for exactly this reason.</p>
+<p>The figure in a forecast is the <strong>significant wave height</strong>: the average height of the <strong>highest third</strong> of the waves. It is not the biggest wave. Individual waves can reach <strong>almost twice</strong> the significant height, so a forecast of 1.5 m means you must expect waves approaching 3 m. BarentsWatch shows both the significant and the maximum height for exactly this reason.</p>
 <p>Waves become dangerous when they are <strong>steep</strong>, not merely high. In deep water a wave breaks when its height reaches roughly one seventh of its length. In <strong>shallow water</strong> the wave slows at its base while the crest keeps going, so it steepens, shortens and breaks when the depth is only about <strong>1.3 times the wave height</strong> (roughly when the depth falls below twice the significant height). Refraction bends wave crests towards shallows and concentrates their energy on headlands, shoals, bars and harbour entrances, the places where a boat is also closest to rock.</p>
 <p>A <strong>current</strong> changes wave shape too. <strong>Wind against the current compresses the waves: shorter, steeper, breaking.</strong> Wind with the current stretches them out: longer and lower. Tidal sounds and river mouths are therefore worst when the stream runs against the wind, and calmest at the turn.</p>
 <div class="callout warn"><p>A <strong>lee shore</strong> is the shore downwind of you, the one the wind blows onto. It is the dangerous one: waves are biggest and break there, and wind and sea push a drifting or disabled boat onto it. The <strong>weather shore</strong>, upwind, gives shelter and small waves. Candidates often reverse these.</p></div>
@@ -6585,7 +6591,7 @@ window.BOAT = (function () {
       { id: 'weather-06', q: 'The forecast gives a mean wind of 10 m/s with no gust figure. What gusts should you typically plan for in open coastal water?', options: ['About 10 m/s; gusts equal the mean wind', 'About 25 m/s', 'About 5 m/s; gusts are weaker than the mean', 'About 13-15 m/s'], answer: 3, explanation: 'Gusts are typically about 1.3-1.5 x the mean wind, more in rough terrain, so plan on 13-15 m/s (F18).', difficulty: 2, part: 1, tags: ['gusts'] },
       { id: 'weather-07', q: 'A wind that changes from south-west to north-west has:', options: ['Veered', 'Backed', 'Gusted', 'Freshened'], answer: 0, explanation: 'A clockwise change of direction (SW to W to NW) is veering; anticlockwise is backing (F44).', difficulty: 1, part: 1, tags: ['veer-back'] },
       { id: 'weather-08', q: 'Which wind symbol is shown on the compass rose in the picture?', illustration: () => windQuestion(315, 15), options: ['Wind from the south-east, 15 knots', 'Wind from the north-west, 15 knots', 'Wind from the north-west, 30 knots', 'Wind towards the north-west, 5 knots'], answer: 1, explanation: 'The arrow points where the air goes (towards the south-east), and the barbs sit on the tail, the "from" end, which lies in the north-west. One long barb (10 kn) and one short barb (5 kn) make 15 knots (F16, F17).', difficulty: 2, part: 1, tags: ['wind-direction', 'picture'] },
-      { id: 'weather-09', q: 'Approximately how many m/s is a wind of 25 knots?', options: ['About 12.5 m/s', 'About 25 m/s', 'About 50 m/s', 'About 5 m/s'], answer: 0, explanation: '1 knot = 0.514 m/s, so 25 knots is about 12.9 m/s; dividing knots by two is close enough (F19).', difficulty: 2, part: 1, tags: ['units'] },
+      { id: 'weather-09', q: 'Approximately how many m/s is a wind of 25 knots?', options: ['About 13 m/s', 'About 25 m/s', 'About 50 m/s', 'About 5 m/s'], answer: 0, explanation: '1 knot = 0.514 m/s, so 25 knots is about 12.9 m/s; dividing knots by two (12.5) is close enough (F19).', difficulty: 2, part: 1, tags: ['units'] },
       { id: 'weather-10', q: 'What is the effect of an offshore wind (blowing from the land out to sea) near the coast?', options: ['Big breaking waves at the shore and a drifting boat is pushed onto it', 'Flat water near the shore, bigger seas further out, and a drifting boat is carried away from land', 'No waves anywhere', 'The water level rises along the coast'], answer: 1, explanation: 'Offshore wind has no fetch at the shore, so the water is flat there, but the waves grow further out and a disabled boat drifts away from land. Onshore wind gives the opposite (F30).', difficulty: 2, part: 1, tags: ['offshore-wind'] },
       // ---- Beaufort, warnings, CE (part 1) ----
       { id: 'weather-11', q: 'The Beaufort scale runs from force 0 (calm) up to which force?', options: ['Force 8, gale', 'Force 10, storm', 'Force 12, hurricane', 'Force 20'], answer: 2, explanation: 'The scale has 13 steps, force 0 calm to force 12 hurricane (32.7 m/s or more) (F20, F21).', difficulty: 1, part: 1, tags: ['beaufort'] },
@@ -6760,8 +6766,8 @@ window.BOAT = (function () {
     s += label(600, 165, 'Cowling: engine (powerhead) inside', 14, { weight: 700 });
     s += leader(602, 240, 650, 300) + lines(652, 302, ['Spark plug', '(petrol engines only)'], 12, { anchor: 'start', fill: MUTED });
     s += label(462, 352, 'Drive shaft', 12, { anchor: 'end', fill: MUTED }) + leader(495, 352, 466, 352);
-    s += lines(600, 356, ['TELLTALE (pee stream):', 'steady stream = cooling pump OK'], 13, { anchor: 'start', fill: WATER, weight: 700 });
-    s += leader(545, 372, 596, 364, WATER);
+    s += lines(590, 356, ['TELLTALE (pee stream):', 'steady stream =', 'cooling pump OK'], 13, { anchor: 'start', fill: WATER, weight: 700 }, 17);
+    s += leader(545, 372, 586, 364, WATER);
     s += lines(640, 432, ['Anti-ventilation plate: at the', 'water surface when running'], 12, { anchor: 'start' });
     s += leader(555, 420, 636, 432);
     s += lines(640, 482, ['Propeller: diameter x pitch,', 'e.g. 13 x 19 inches'], 12, { anchor: 'start' });
@@ -6775,8 +6781,8 @@ window.BOAT = (function () {
     s += label(180, 366, 'Portable fuel tank', 13, { fill: '#fff', weight: 700 });
     s += label(150, 305, 'VENT: OPEN when running', 12, { weight: 700 });
     s += label(325, 212, 'Primer bulb: squeeze until firm', 12);
-    s += lines(212, 282, ['Fuel filter /', 'water separator'], 12, { anchor: 'end' });
-    s += label(462, 326, 'Kill switch', 11, { anchor: 'end', fill: '#eee' }).replace('fill="#eee"', `fill="${PAPER}"`);
+    s += lines(212, 262, ['Fuel filter /', 'water separator'], 12, { anchor: 'end' });
+    s += label(416, 288, 'Kill switch', 11, { anchor: 'start', fill: PAPER });
     s += label(140, 430, 'Kill cord: clipped to the driver', 12, { fill: FUEL, weight: 700 });
     // legend
     s += box(14, 548, 250, 44, { fill: PAPER, stroke: LINE });
@@ -6832,7 +6838,7 @@ window.BOAT = (function () {
   /* ---------- ILL-2 one-third rule (F29) ---------- */
   function illThirds() {
     let s = box(60, 50, 160, 300, { fill: PAPER, stroke: INK, sw: 3, rx: 14 });
-    const bands = [['#2A9D8F', '1/3 OUT', 'fuel used to reach your destination'], ['#E9C46A', '1/3 BACK', 'fuel to return home'], ['#E76F51', '1/3 RESERVE', 'never planned to be used: weather,', 'current, detours, mistakes']];
+    const bands = [['#2A9D8F', '1/3 OUT', 'fuel used to reach your destination'], ['#E9C46A', '1/3 BACK', 'fuel to return home'], ['#E76F51', '1/3 RESERVE', 'never planned to be used:', 'weather, current,', 'detours, mistakes']];
     bands.forEach((b, i) => {
       const y = 50 + i * 100;
       s += `<rect x="63" y="${y + (i === 0 ? 3 : 0)}" width="154" height="${i === 0 ? 97 : i === 2 ? 97 : 100}" fill="${b[0]}" ${i === 0 ? 'rx="11"' : i === 2 ? 'rx="11"' : ''}/>`;
@@ -6848,7 +6854,7 @@ window.BOAT = (function () {
     s += `<ellipse cx="520" cy="95" rx="45" ry="28" fill="${LAND}" stroke="${LINE}"/>` + label(520, 95, 'Destination', 11, { fill: DARK, weight: 600 });
     s += `<path d="M400,300 C440,220 420,160 500,120" fill="none" stroke="#2A9D8F" stroke-width="3" stroke-dasharray="7 5"/>` + head(500, 120, -0.5, 10, '#2A9D8F');
     s += `<path d="M545,125 C560,210 500,260 420,318" fill="none" stroke="#C99A2E" stroke-width="3" stroke-dasharray="7 5"/>` + head(420, 318, 2.5, 10, '#C99A2E');
-    s += label(410, 200, 'out', 13, { fill: '#2A9D8F', weight: 800 }) + label(540, 230, 'back', 13, { fill: '#C99A2E', weight: 800 });
+    s += label(410, 200, 'out', 13, { fill: '#2A9D8F', weight: 800 }) + label(525, 285, 'back', 13, { fill: '#C99A2E', weight: 800 });
     // storm cloud
     s += `<path d="M470,160 q10,-18 28,-8 q8,-14 24,-4 q14,-4 16,12 q8,10 -6,14 l-56,0 q-14,-2 -6,-14z" fill="#8A8F98" stroke="${LINE}"/>`;
     s += dline(455, 182, 480, 182, MUTED, 2) + dline(462, 190, 492, 190, MUTED, 2);
@@ -6867,7 +6873,7 @@ window.BOAT = (function () {
     s += arrow(470, 114, 550, 114, { color: INK }) + label(510, 102, 'YES', 12, { weight: 800, fill: '#2A9D8F' });
     s += box(20, 150, 290, 190, { fill: PAPER, stroke: FUEL, sw: 2 });
     s += label(165, 170, 'Electrical or interlock fault', 14, { weight: 700, fill: FUEL });
-    s += lines(34, 196, ['1. Gear lever in NEUTRAL', '2. Kill-cord clip in place', '3. Main battery switch ON', '4. Battery cables tight and clean', '5. Battery charge (12.7 V = full)', '6. Fuse'], 13, { anchor: 'start' }, 22);
+    s += lines(34, 196, ['1. Gear lever in NEUTRAL', '2. Kill-cord clip in place', '3. Main battery switch ON', '4. Battery cables tight and clean', '5. Battery charge (12.7 V = full)', 'Also: the fuse'], 13, { anchor: 'start' }, 22);
     s += box(390, 150, 290, 190, { fill: PAPER, stroke: '#2A9D8F', sw: 2 });
     s += label(535, 170, 'Fuel first, then spark', 14, { weight: 700, fill: '#2A9D8F' });
     s += lines(404, 196, ['6. Fuel reaching the engine? (tank)', '7. Fuel hose intact and tight', '8. Tank VENT open', '9. Primer bulb pumped until firm', 'Then: spark plugs wet or fouled?', '(petrol only; diesel has no plugs)'], 13, { anchor: 'start' }, 22);
@@ -6880,17 +6886,17 @@ window.BOAT = (function () {
   function illProp() {
     let s = '';
     // face-on prop
-    const cx = 150, cy = 170, R = 110;
+    const cx = 150, cy = 150, R = 100;
     s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${MUTED}" stroke-width="1.5" stroke-dasharray="6 5"/>`;
     for (let i = 0; i < 3; i++) s += `<ellipse cx="${cx}" cy="${cy}" rx="34" ry="${R * 0.5}" fill="#8A8F98" stroke="${LINE}" transform="rotate(${i * 120} ${cx} ${cy}) translate(0 -${R * 0.5})"/>`;
     s += `<circle cx="${cx}" cy="${cy}" r="24" fill="#6b7078" stroke="${LINE}"/>`;
     s += dline(cx - 30, cy, cx + 30, cy, PAPER, 3);
     s += arrow(cx - R, cy + R + 22, cx + R, cy + R + 22, { color: INK, both: true });
     s += label(cx, cy + R + 44, 'DIAMETER (13 in): circle swept by the blade tips', 13, { weight: 700 });
-    s += label(cx, 28, 'Marked "13 x 19"  =  diameter x pitch, in inches', 15, { weight: 800 });
+    s += label(20, 28, 'Marked "13 x 19"  =  diameter x pitch, in inches', 15, { weight: 800, anchor: 'start' });
     s += leader(cx + 8, cy, cx + 60, 70) + lines(cx + 64, 64, ['Shear pin (small outboards) or rubber hub:', 'breaks or slips if the blades hit a rock', '-> engine revs, boat does not move'], 12, { anchor: 'start' });
     // pitch illustration
-    const px = 360, py = 220;
+    const px = 360, py = 200;
     s += `<rect x="${px}" y="${py + 40}" width="300" height="70" fill="${WATER}" opacity=".14"/>` + dline(px, py + 40, px + 300, py + 40, WATER, 2);
     s += `<path d="M${px + 20},${py + 20} l50,0 l10,20 l-70,0 z" fill="#B0B7C3" stroke="${LINE}"/>`;
     s += `<path d="M${px + 190},${py + 20} l50,0 l10,20 l-70,0 z" fill="#B0B7C3" stroke="${LINE}" opacity=".5"/>`;
@@ -6898,7 +6904,7 @@ window.BOAT = (function () {
     s += label(px + 145, py + 80, 'PITCH (19 in): theoretical advance in ONE revolution', 12, { weight: 700 });
     s += label(px + 145, py + 97, '(real advance is less because of "slip")', 11, { fill: MUTED });
     s += `<path d="M${px + 300},${py - 70} a12,12 0 1,1 -1,0" fill="none" stroke="${INK}" stroke-width="2"/>` + label(px + 300, py - 40, '1 turn', 11, { fill: MUTED });
-    s += lines(px + 10, 318, ['Lower pitch: more thrust, quicker acceleration, higher revs, lower top speed.', 'Higher pitch: higher top speed ONLY if the engine still reaches its rated full-throttle rpm.'], 12, { anchor: 'start' });
+    s += lines(20, 322, ['Lower pitch: more thrust, quicker acceleration, higher revs, lower top speed.', 'Higher pitch: higher top speed ONLY if the engine still reaches its rated full-throttle rpm.'], 12, { anchor: 'start' });
     return S.svg(680, 350, s, { width: 640, label: 'Propeller diameter and pitch explained' });
   }
 
@@ -6950,7 +6956,7 @@ window.BOAT = (function () {
     // warning triangle
     s += `<polygon points="30,250 60,250 45,224" fill="${C.yellow}" stroke="${INK}" stroke-width="1.5"/>` + label(45, 243, '!', 14, { fill: DARK, weight: 900 });
     if (quiz) {
-      s += badge(300, 130, 'A') + badge(490, 340, 'B') + badge(380, 365, 'C') + badge(580, 450, 'D');
+      s += badge(338, 265, 'A') + badge(490, 340, 'B') + badge(380, 365, 'C') + badge(580, 450, 'D');
       return S.svg(800, 500, s, { width: 640, label: 'Boat electrical circuit with four components marked A to D' });
     }
     s += label(360, 36, 'Engine START circuit: kept separate so lights and fridge cannot flatten it', 12, { fill: MUTED, weight: 600 });
@@ -6958,11 +6964,11 @@ window.BOAT = (function () {
     s += lines(490, 345, ['FUSE PANEL: every circuit fused;', 'replace with the SAME rating'], 11, { weight: 700 }, 13);
     s += label(650, 140, 'Navigation lights', 11, { anchor: 'start', weight: 600 }).replace('x="650"', 'x="676"');
     s += label(700, 210, 'VHF / chart plotter', 11, { anchor: 'start', weight: 600 });
-    s += lines(600, 455, ['Automatic BILGE PUMP: wired BEFORE the main switch,', 'with its own fuse, so it works when you are away'], 11, { anchor: 'start', weight: 600 }, 13);
+    s += lines(460, 455, ['Automatic BILGE PUMP: wired BEFORE the main switch,', 'with its own fuse, so it works when you are away'], 11, { anchor: 'start', weight: 600 }, 13);
     s += label(378, 372, 'Alternator / charger: charges both banks', 11, { weight: 600 });
     s += lines(250, 490, ['Negative (-) return bus: common ground'], 11, { weight: 600 });
-    s += lines(20, 275, ['Vented battery box:', 'hydrogen when charging;', 'no sparks, no smoking'], 10, { anchor: 'start', weight: 600 }, 12);
-    s += lines(20, 440, ['Disconnect - first,', 'reconnect - last'], 10, { anchor: 'start', weight: 600 }, 12);
+    s += lines(95, 215, ['Vented battery box:', 'hydrogen when charging;', 'no sparks, no smoking'], 10, { anchor: 'start', weight: 600 }, 12);
+    s += lines(95, 440, ['Disconnect - first,', 'reconnect - last'], 10, { anchor: 'start', weight: 600 }, 12);
     return S.svg(800, 500, s, { width: 640, label: 'Schematic of a two-battery boat electrical system with main switch and fuses' });
   }
 
@@ -6995,13 +7001,13 @@ window.BOAT = (function () {
     s += `<path d="M0,0 L170,0 Q150,80 190,140 Q230,200 170,260 Q120,330 180,400 Q210,460 170,500 L0,500 Z" fill="${LAND}" stroke="${LINE}"/>`;
     s += `<path d="M0,0 L170,0 Q150,80 190,140 Q230,200 170,260 Q120,330 180,400 Q210,460 170,500 L0,500 Z" fill="none" stroke="${FUEL}" stroke-width="2" stroke-dasharray="8 6" transform="translate(70 0)"/>`;
     s += `<path d="M170,0 Q150,80 190,140 Q230,200 170,260 Q120,330 180,400 Q210,460 170,500 L240,500 Q280,460 250,400 Q190,330 240,260 Q300,200 260,140 Q220,80 240,0 Z" fill="#F7D4D4" opacity=".7"/>`;
-    s += `<ellipse cx="330" cy="330" rx="34" ry="24" fill="${LAND}" stroke="${LINE}"/>`;
-    s += `<ellipse cx="330" cy="330" rx="74" ry="64" fill="#F7D4D4" opacity=".7"/>` + `<ellipse cx="330" cy="330" rx="74" ry="64" fill="none" stroke="${FUEL}" stroke-width="2" stroke-dasharray="8 6"/>`;
-    s += `<ellipse cx="330" cy="330" rx="34" ry="24" fill="${LAND}" stroke="${LINE}"/>` + label(330, 330, 'island', 11, { fill: DARK });
-    s += arrow(230, 60, 300, 60, { color: FUEL, width: 2, both: true }) + label(265, 44, '300 m', 13, { fill: FUEL, weight: 800 });
+    s += `<ellipse cx="360" cy="300" rx="34" ry="24" fill="${LAND}" stroke="${LINE}"/>`;
+    s += `<ellipse cx="360" cy="300" rx="104" ry="94" fill="#F7D4D4" opacity=".7"/>` + `<ellipse cx="360" cy="300" rx="104" ry="94" fill="none" stroke="${FUEL}" stroke-width="2" stroke-dasharray="8 6"/>`;
+    s += `<ellipse cx="360" cy="300" rx="34" ry="24" fill="${LAND}" stroke="${LINE}"/>` + label(360, 300, 'island', 11, { fill: DARK });
+    s += arrow(164, 60, 232, 60, { color: FUEL, width: 2, both: true }) + label(198, 44, '300 m', 13, { fill: FUEL, weight: 800 });
     s += label(60, 250, 'MAINLAND', 14, { fill: DARK, weight: 800 });
-    s += lines(300, 110, ['Red band: NO discharge of toilet waste', 'within 300 m of mainland or islands', '(national rule, FOR-2012-05-30-488 s. 10)'], 12, { anchor: 'start', weight: 600 });
-    s += lines(300, 420, ['Outside the dashed line: discharge allowed', 'under the national rule, but NOT at all', 'in the Oslofjord region, and never in rivers', 'or lakes; check local municipal bans'], 12, { anchor: 'start' });
+    s += lines(290, 110, ['Red band: NO discharge of toilet', 'waste within 300 m of mainland', 'or islands (national rule)'], 12, { anchor: 'start', weight: 600 });
+    s += lines(290, 410, ['Outside the dashed line: discharge', 'allowed under the national rule, but', 'NOT at all in the Oslofjord region,', 'and never in rivers or lakes;', 'check local municipal bans'], 12, { anchor: 'start' });
     // right: Oslofjord inset (schematic)
     s += box(520, 20, 265, 460, { fill: PAPER, stroke: LINE });
     s += label(652, 40, 'OSLOFJORD BAN AREA (schematic)', 12, { weight: 800 });
@@ -7013,8 +7019,8 @@ window.BOAT = (function () {
     s += dline(527, 300, 560, 330, INK, 2, '4 3') + lines(545, 350, ['Agder', 'county', 'border'], 10, { fill: DARK, weight: 700, anchor: 'start' }, 11);
     s += lines(652, 405, ['ZERO discharge of toilet waste from', 'recreational boats since 1 July 2024:', 'all side fjords and the inner Oslofjord', 'included (FOR-2024-05-31-886)'], 11, { fill: DARK, weight: 600 }, 13);
     // pump-out icon
-    s += box(540, 395, 40, 26, { fill: PAPER, stroke: INK, rx: 4 }) + `<path d="M580,408 q20,0 20,20" fill="none" stroke="${INK}" stroke-width="3"/>`;
-    s += lines(560, 440, ['Use pump-out', 'stations'], 10, { weight: 700 }, 12);
+    s += box(640, 285, 40, 26, { fill: PAPER, stroke: INK, rx: 4 }) + `<path d="M680,298 q20,0 20,20" fill="none" stroke="${INK}" stroke-width="3"/>`;
+    s += lines(665, 330, ['Use pump-out', 'stations'], 10, { weight: 700, fill: DARK }, 12);
     return S.svg(800, 500, s, { width: 640, label: 'Map diagram of the 300 m toilet-waste rule and the Oslofjord total ban area' });
   }
 
@@ -7037,7 +7043,7 @@ window.BOAT = (function () {
     s += `<g transform="rotate(-20 560 230)"><path d="M520,215 L585,215 L600,230 L585,245 L520,245 Z" fill="#D9DEE3" stroke="#2b3440" stroke-width="2"/><rect x="512" y="222" width="10" height="16" fill="#2b3440"/></g>`;
     s += arrow(540, 200, 430, 255, { color: INK, width: 2, dash: '6 4' });
     if (!quiz) s += lines(560, 300, ['slow to 5 knots BEFORE you are', 'within 50 m of the bathers'], 12, { weight: 700 });
-    s += label(560, 370, 'Rule applies wherever bathing is in progress, marked beach or not', 11, { fill: MUTED });
+    s += label(485, 375, 'Rule applies wherever bathing is in progress, marked beach or not', 11, { fill: MUTED });
     return S.svg(700, 400, s, { width: 640, label: 'Top view of a beach with swimmers, a 50 m circle, bathing-area buoys and an approaching motorboat' });
   }
 
@@ -7077,7 +7083,7 @@ window.BOAT = (function () {
     title: 'Engine, fuel and the environment',
     order: 10,
     examShare: 4,
-    examWeight: 'about 3–5 of 50 questions',
+    examWeight: 'about 3–6 of 50 questions',
     summary: 'How your engine, fuel, cooling and electrical systems work and how to keep them working; why petrol vapour, hydrogen and LPG are dangerous on board; how to plan fuel and troubleshoot an engine that will not start; the CE paperwork every boat carries; and the environmental rules for oil, garbage, toilet waste, noise, wash, bird reserves, national parks and the right to roam. A handful of items here (coast radio 120 and VHF 16, the alcohol limit and the flotation rule) belong to the "particularly important" part 4 of the exam.',
     sections: [
       /* ---------------- 1 ---------------- */
@@ -7086,12 +7092,12 @@ window.BOAT = (function () {
         title: 'What this topic is and how the exam tests it',
         html: `
 <p>A boat is only as safe as its engine, and a boater is only welcome on the water if the water stays clean. This topic sits in <strong>part 1, Seamanship</strong>, of the official curriculum: fire risk from petrol vapour and LPG (item 1.1 b), good maintenance of boat, engine, fuel system, cooling system and lubricating oil (1.1 i), environmental considerations such as discharges, reserves, national parks, littering and noise (1.1 k), and liability and insurance (1.1 l). From <strong>part 2, Laws and regulations</strong>, it adds the CE rules for recreational craft: the CE mark, the builder's plate, the hull identification number (CIN, today called WIN) and the owner's manual, plus the Outdoor Recreation Act and the speed rules near bathers.</p>
-<p>The exam asks short recognition questions: "What does the water stream on the side of an outboard tell you?", "The engine will not start, what do you check first?", "Why is petrol vapour dangerous?", "How close to land may you discharge toilet waste?", "May you land on a bird reserve in June?", "What do you do with old oil?". Expect roughly three to five questions from this topic.</p>
+<p>The exam asks short recognition questions: "What does the water stream on the side of an outboard tell you?", "The engine will not start, what do you check first?", "Why is petrol vapour dangerous?", "How close to land may you discharge toilet waste?", "May you land on a bird reserve in June?", "What do you do with old oil?". Expect roughly three to six questions from this topic.</p>
 <div class="callout warn"><p><strong>Part 4 crossover.</strong> Three facts that appear in these scenarios are <strong>part-4 "particularly important" items</strong>, where more than two errors fails the whole exam: the coast radio telephone number <strong>120</strong> and <strong>VHF channel 16</strong> (item 1.4.6), the alcohol limit of <strong>0.8 per mille</strong> for boats under 15 m, and the duty to <strong>wear flotation in boats under 8 m</strong> under way (item 1.4.5). They are repeated here because engine trouble is exactly when you need them.</p></div>
 <p>Work through the sections in order. The first half is technical (engine types, cooling, fuel, starting, propeller, electrics); the second half is paperwork and environment. Every "Remember" box contains the exact numbers the exam uses.</p>`,
         keyFacts: [
           'Part 1 items 1.1 b, i, k, l; part 2 item h (CE marking, builder\'s plate, CIN/WIN, owner\'s manual).',
-          'Expect about 3–5 of the 50 questions from this topic (estimate; the split is not published).',
+          'Expect about 3–6 of the 50 questions from this topic (estimate; the split is not published).',
           'Part-4 items that appear here: coast radio 120 / VHF 16 (1.4.6); 0.8 per mille and flotation under 8 m (1.4.5).',
         ],
         check: { q: 'Your engine has died and you are drifting towards rocks. Which number reaches the coast radio service by telephone?', options: ['110', '113', '120', '02800'], answer: 2, explanation: 'The coast radio service answers on telephone 120 and keeps watch on VHF channel 16; this is part-4 item 1.4.6. 110 is the fire service (also used to report acute pollution), 113 is the ambulance (F38, F62).' },
@@ -7160,7 +7166,7 @@ window.BOAT = (function () {
         id: 'fuel-planning',
         title: 'Fuel planning: the one-third rule',
         html: `
-<p>Running out of fuel is the most common reason the rescue service tows a recreational boat home, and the cure is arithmetic. Fuel gauges on small boats are unreliable, so plan from <strong>consumption</strong>: know how many litres per hour your engine burns at cruising revs, then <strong>range = usable litres divided by litres per hour, multiplied by speed</strong>. Then apply the <strong>one-third rule</strong>:</p>
+<p>Running out of fuel is an avoidable emergency, and the cure is arithmetic. Fuel gauges on small boats are unreliable, so plan from <strong>consumption</strong>: know how many litres per hour your engine burns at cruising revs, then <strong>range = usable litres divided by litres per hour, multiplied by speed</strong>. Then apply the <strong>one-third rule</strong>:</p>
 <div class="callout rule"><p><strong>One third of the fuel to get out, one third to get back, one third kept in reserve</strong> for weather, current, detours and mistakes. The reserve third is never part of the plan.</p></div>
 <p>Worked example: your 60-litre tank is full and the engine burns 10 litres per hour at 20 knots. In flat water the tank lasts 6 hours, which is 120 nautical miles. Under the rule of thirds you may plan about <strong>40 nautical miles out and 40 back</strong>, arriving home with 20 litres still in the tank. If you then meet a head wind and waves, consumption per mile rises sharply, so shorten the plan or slow down to an economical speed.</p>
 <p>The rule is standard seamanship teaching, not a Norwegian legal requirement, but it is how the exam expects you to answer any fuel-planning question. Common wrong answers: "fill the tank to one third", "the reserve is for the trip home", "use one third throttle". None of those is the rule.</p>
@@ -7426,7 +7432,7 @@ window.BOAT = (function () {
       { id: 'engine-51', q: 'What does the Maritime Authority say about leaving the boat?', options: ['Leave the 12 V plugs connected so the batteries stay balanced', 'Switch off the main battery switch and do not leave 12 V plugs in their sockets', 'Leave the blower running', 'Disconnect the bilge pump to save the battery'], answer: 1, explanation: 'Switch the main switch off when you leave; a 12 V plug left in its socket keeps the lead live. The automatic bilge pump is wired before the main switch on its own fuse so it still works (F48).', difficulty: 2, part: 1, tags: ['electrics'] },
       { id: 'engine-52', q: 'Battery acid splashes onto your hand while you are checking the cells. What do you do?', options: ['Wipe it off with an oily rag', 'Rinse with plenty of water', 'Neutralise it with petrol', 'Leave it; the acid is very dilute'], answer: 1, explanation: 'The electrolyte is sulphuric acid, which burns skin and can blind. Rinse at once with plenty of water, and keep batteries upright in an acid-proof, strapped-down box (F46).', difficulty: 2, part: 1, tags: ['battery'] },
       // --- CE marking and insurance (sdir.no CE page; F88) ---
-      { id: 'engine-53', q: 'Which information must the builder\'s (CE) plate on a recreational craft show?', options: ['Manufacturer, maximum load including an optional outboard, maximum number of persons, design category A–D and the CE symbol', 'Hull number, engine power and top speed', 'Owner\'s name, home port and insurance company', 'Draught, displacement and fuel capacity'], answer: 0, explanation: 'The Maritime Authority lists the plate contents: manufacturer\'s name, max load incl. outboard (kg), max persons, construction category A, B, C or D, the CE symbol and, if applicable, the notified body\'s number. Engine power is in the owner\'s manual.', difficulty: 1, part: 2, tags: ['ce'] },
+      { id: 'engine-53', q: 'Which information must the builder\'s (CE) plate on a recreational craft show?', options: ['Manufacturer, maximum load including an optional outboard, maximum number of persons, design category A–D and the CE symbol', 'Hull number, engine power and top speed', 'Owner\'s name, home port and insurance company', 'Draught, displacement and fuel capacity'], answer: 0, explanation: 'The Maritime Authority lists the plate contents: manufacturer\'s name, max load incl. outboard (kg), max persons, design category A, B, C or D, the CE symbol and, if applicable, the notified body\'s number. Engine power is in the owner\'s manual.', difficulty: 1, part: 2, tags: ['ce'] },
       { id: 'engine-54', q: 'Where is the hull identification number (CIN/WIN) placed on a CE-marked boat?', options: ['Inside the engine compartment', 'On the port bow', 'Permanently marked on the outside of the hull, on the starboard side of the transom', 'Only in the owner\'s manual'], answer: 2, explanation: 'The WIN (formerly HIN/CIN), a 15-character code such as NO-HXAB7A33G708, is permanently marked on the outside of the hull on the starboard side of the transom, separate from the CE mark.', illustration: () => illTransom(), difficulty: 2, part: 2, tags: ['ce', 'win', 'picture'] },
       { id: 'engine-55', q: 'What does the hull identification number (WIN/CIN) tell you?', options: ['The boat\'s maximum speed and engine power', 'The design category and the number of persons', 'The current owner and the home port', 'Who built the boat, in which country, its serial number, when it was built and its model year'], answer: 3, explanation: 'The code holds the country code, manufacturer code, serial number, production month and year, and model year. It identifies the hull whatever its colour, name or owner.', difficulty: 2, part: 2, tags: ['ce', 'win'] },
       { id: 'engine-56', q: 'Where do you find the maximum recommended engine power for a CE-marked boat?', options: ['On the builder\'s plate', 'In the owner\'s manual, in kW', 'Engraved next to the hull identification number', 'On the declaration of conformity only'], answer: 1, explanation: 'The owner\'s manual (EN ISO 10240) states the boat\'s limits and capacities, including maximum engine power in kW; the builder\'s plate carries load, persons, category and the CE symbol, not engine power.', difficulty: 2, part: 2, tags: ['ce', 'manual'] },
@@ -7456,6 +7462,7 @@ window.BOAT = (function () {
       { id: 'engine-77', q: 'May you use a personal watercraft (jet ski) inside Faerder or Ytre Hvaler national parks?', options: ['Yes, at up to 5 knots', 'Yes, outside the bird zones', 'No, personal watercraft are banned in the whole of both parks', 'Only with a high-speed certificate'], answer: 2, explanation: 'Both park regulations prohibit the use of personal watercraft throughout the park (F77).', difficulty: 2, part: 1, tags: ['national-park'] },
       { id: 'engine-78', q: 'You land on an island in a national park on a June evening and want a barbecue. Which is correct?', options: ['Light it on the bare rock, which cannot burn', 'A fire or barbecue is allowed, but never on bare rock, and the national open-fire ban near forest and uncultivated land (15 April to 15 September) applies on islands too', 'Fires are always forbidden in national parks', 'Fires are allowed anywhere in June'], answer: 1, explanation: 'Faerder allows fires and barbecues but never on bare rock, which cracks from the heat; nationally open fire in or near forest and uncultivated land is forbidden 15 April to 15 September unless it obviously cannot spread. Garbage is never left or burned (F78).', difficulty: 2, part: 1, tags: ['national-park', 'fire'] },
       { id: 'engine-79', q: 'Under the Outdoor Recreation Act, which of these may you do without asking the owner?', options: ['Tie up to a private jetty for the night', 'Land briefly on an uncultivated shore and bathe there', 'Pitch a tent 50 m from an inhabited cabin', 'Moor to a private jetty if nobody is using it'], answer: 1, explanation: 'Section 7: brief landing on uncultivated land and use of rings and bolts is free, but a quay or jetty needs the owner\'s or user\'s consent; section 9: a tent must be at least 150 m from an inhabited house or cabin (F80, F81).', difficulty: 2, part: 2, tags: ['right-to-roam'] },
+      { id: 'engine-81', q: 'Late in the evening you enter a quiet natural harbour where several boats lie at anchor. Which behaviour shows the consideration for noise that the curriculum expects?', options: ['Come in slowly at low revs, keep music and voices down, and do not run the engine or generator longer than necessary', 'Come in at planing speed so the noise is over quickly', 'Run the generator all night so the batteries stay full', 'Sound the horn so everyone knows you have arrived'], answer: 0, explanation: 'Noise is listed with discharges, littering, reserves and national parks among the environmental considerations in curriculum item 1.1 k, and the speed regulation\'s general duty (section 2) forbids causing nuisance to others by the way you drive. Low revs, no wash and quiet behaviour at anchorages are the practical answer (F71).', difficulty: 1, part: 1, tags: ['noise'] },
       { id: 'engine-80', q: 'How far from an inhabited house or cabin must you pitch a tent on uncultivated land, and for how long may it stay without permission?', options: ['50 m, one night', '100 m, one week', '150 m, up to two days', '300 m, unlimited'], answer: 2, explanation: 'Outdoor Recreation Act section 9: at least 150 m from an inhabited house or cabin, and no more than two days in one place without the owner\'s permission (F81).', difficulty: 2, part: 2, tags: ['right-to-roam'] },
     ],
   });

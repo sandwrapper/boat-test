@@ -178,14 +178,14 @@
     // gale warning marker between row 6 and row 7
     const gy = y0 + 7 * rh - 1;
     s += line(x0, gy, x0 + tw, gy, BAD, { sw: 2.5, dash: '8 4' });
-    s += rect(x0 + 150, gy - 9, 190, 18, PAPER, BAD, { rx: 3, sw: 1 }) + T(x0 + 245, gy, 'MET coastal gale warning: 15 m/s', { size: 10, weight: 700, fill: BAD });
-    // CE brackets on the right
+    s += rect(x0 + 346, gy - 7, 196, 14, PAPER, BAD, { rx: 3, sw: 1 }) + T(x0 + 444, gy, 'MET coastal gale warning: 15 m/s', { size: 9.5, weight: 700, fill: BAD });
+    // CE brackets on the right; each letter sits at the middle of its own bracket (D rows 0-4, C 0-6, B 0-8, A 9-12)
     const bx = x0 + tw + 14;
     const br = [[0, 4, 'D'], [0, 6, 'C'], [0, 8, 'B'], [9, 12, 'A']];
     br.forEach(([a, b, l], k) => {
-      const x = bx + k * 17, ya = y0 + a * rh + 2, yb = y0 + (b + 1) * rh - 4;
+      const x = bx + k * 17, ya = y0 + a * rh + 2, yb = y0 + (b + 1) * rh - 4, ym = (ya + yb) / 2;
       s += `<path d="M${x + 6},${ya} h-5 V${yb} h5" fill="none" stroke="${INK2}" stroke-width="1.5"/>`;
-      s += T(x + 1, yb + 11, l, { size: 11, weight: 700, fill: INK2 });
+      s += rect(x - 5, ym - 8, 12, 16, PAPER, 'none', { rx: 2 }) + T(x + 1, ym, l, { size: 11, weight: 700, fill: INK2 });
     });
     s += T(bx + 26, y0 - 12, 'CE', { size: 10, weight: 700, fill: MUTED });
     s += lines(W / 2, H - 56, ['CE design category (builder\'s plate): D up to force 4 and 0.3 m waves; C up to force 6 and 2 m;', 'B up to force 8 and 4 m; A above force 8 and 4 m.', 'MET issues a coastal gale warning at 15 m/s mean wind, inside the force-7 (near gale) band;', 'MET calls near gale "dangerous for small boats".'], { size: 10.5, fill: INK2, lh: 14 });
@@ -198,7 +198,7 @@
     const W = 640, H = 480;
     let s = T(W / 2, 20, 'Northern hemisphere: anticlockwise into a LOW, clockwise out of a HIGH', { size: 14, weight: 700 });
     function system(cx, cy, low) {
-      let g = T(cx, cy - 168, 'N', { size: 12, weight: 700, fill: INK2 }) + arrow([[cx, cy - 140], [cx, cy - 158]], INK2, { sw: 1.5, head: 7 });
+      let g = T(cx + 14, cy - 146, 'N', { size: 12, weight: 700, fill: INK2 }) + arrow([[cx, cy - 136], [cx, cy - 152]], INK2, { sw: 1.5, head: 7 });
       const gaps = low ? [36, 66, 96] : [48, 84, 120];
       const labels = low ? ['990', '1000', '1010'] : ['1025', '1015', '1005'];
       gaps.forEach((r, i) => { g += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ISO}" stroke-width="1.3"/>`; g += rect(cx + r * 0.72 - 14, cy - r * 0.72 - 7, 28, 14, PAPER, 'none', { rx: 2 }) + T(cx + r * 0.72, cy - r * 0.72, labels[i], { size: 9.5, fill: MUTED }); });
@@ -221,7 +221,8 @@
     const by = 430;
     s += rect(150, by - 30, 340, 66, SHALLOW, 'none');
     s += arrow([[198, by], [236, by]], SEA, { sw: 2.5 }) + T(190, by - 14, 'wind', { size: 10, fill: SEA, weight: 700 });
-    s += `<circle cx="252" cy="${by}" r="9" fill="${INK2}"/>` + line(252, by - 9, 252, by - 14, INK2, { sw: 3 });
+    // you, seen from above, facing the way the wind blows (nose to the right): your left is up on the page
+    s += `<circle cx="252" cy="${by}" r="9" fill="${INK2}"/>` + line(261, by, 267, by, INK2, { sw: 3 }) + line(246, by - 11, 258, by - 11, INK2, { sw: 2 }) + line(246, by + 11, 258, by + 11, INK2, { sw: 2 });
     s += T(252, by + 30, 'you, back to the wind', { size: 9.5, fill: MUTED });
     s += T(266, by - 16, 'L', { size: 18, weight: 800, fill: LOWRED }) + T(232, by + 14, 'H', { size: 18, weight: 800, fill: HIGHBLUE });
     s += lines(400, by - 6, ['Buys Ballot: back to the wind, the LOW is on', 'your LEFT (and a little ahead), the HIGH on your right.'], { size: 10.5, fill: INK2, lh: 13, weight: 600 });
@@ -230,29 +231,34 @@
 
   // ---------- IL-7 Warm front cross-section (F45, F46, F48) ----------
   function warmFront() {
-    const W = 640, H = 300, gy = 232;
-    let s = T(W / 2, 20, 'A warm front approaching from the west: the cloud lowers for 6 to 12 hours before the rain', { size: 13.5, weight: 700 });
-    // front moves to the LEFT (west is left). Warm air on the right sliding up over cold air to the left.
-    s += rect(20, 40, 600, gy - 40, SHALLOW, 'none', { rx: 0, opacity: 0.6 });
-    s += `<polygon points="200,${gy} 620,40 620,${gy}" fill="#ffcdd2" opacity="0.55"/>`;
-    s += line(200, gy, 620, 40, LOWRED, { sw: 2 });
-    s += T(572, 120, 'WARM AIR', { size: 12, weight: 700, fill: LOWRED }) + T(110, 150, 'COLD AIR', { size: 12, weight: 700, fill: HIGHBLUE });
-    // clouds along the slope
-    s += `<g stroke="${INK2}" stroke-width="1.4" fill="none">${[[40, 62], [52, 58], [64, 66]].map(([x, y]) => `<path d="M${x},${y} q10,-6 22,-2"/>`).join('')}</g>` + T(58, 82, 'cirrus', { size: 9.5, fill: MUTED });
-    s += rect(120, 58, 130, 10, '#e0e0e0', 'none', { rx: 5 }) + sun(185, 50, 7) + `<circle cx="185" cy="50" r="15" fill="none" stroke="${SUN}" stroke-width="1.2" opacity="0.8"/>` + T(185, 82, 'cirrostratus (halo)', { size: 9.5, fill: MUTED });
-    s += rect(230, 100, 150, 22, '#bdbdbd', 'none', { rx: 8 }) + T(305, 136, 'altostratus', { size: 9.5, fill: MUTED });
-    s += rect(330, 140, 190, 48, '#757575', 'none', { rx: 10 }) + T(425, 130, 'nimbostratus, steady rain', { size: 9.5, fill: MUTED });
-    for (let i = 0; i < 8; i++) s += line(345 + i * 22, 192, 341 + i * 22, 214, HIGHBLUE, { sw: 1.3 });
-    // ground, sea, front symbol
+    const W = 640, H = 300, gy = 232, fx = 120; // fx = where the surface front meets the sea
+    let s = T(W / 2, 20, 'A warm front moving in from the west: the cloud lowers for 6 to 12 hours before the rain', { size: 13.5, weight: 700 });
+    // Warm air (left, west) slides up over the wedge of cold air ahead of it (right, east); the front moves to the RIGHT.
+    // Frontal surface: from the surface front (fx, gy) rising to the right to (620, 80).
+    const fy = x => gy - (x - fx) * (152 / 500);
+    s += rect(20, 34, 600, gy - 34, '#ffcdd2', 'none', { rx: 0, opacity: 0.45 });
+    s += `<polygon points="${fx},${gy} 620,${gy} 620,${fy(620).toFixed(1)}" fill="${SHALLOW}" opacity="0.95"/>`;
+    s += line(fx, gy, 620, fy(620), LOWRED, { sw: 2 });
+    s += T(70, 150, 'WARM AIR', { size: 12, weight: 700, fill: LOWRED }) + T(545, 190, 'COLD AIR', { size: 12, weight: 700, fill: HIGHBLUE });
+    // clouds in the warm air above the frontal surface: highest and thinnest far ahead (right), lowest near the front (left)
+    s += `<g stroke="${INK2}" stroke-width="1.4" fill="none">${[[556, 50], [572, 44], [588, 52]].map(([x, y]) => `<path d="M${x},${y} q10,-6 22,-2"/>`).join('')}</g>` + T(585, 70, 'cirrus', { size: 9.5, fill: MUTED });
+    s += rect(420, 60, 120, 10, '#e0e0e0', 'none', { rx: 5 }) + sun(480, 52, 6) + `<circle cx="480" cy="52" r="14" fill="none" stroke="${SUN}" stroke-width="1.2" opacity="0.8"/>` + T(480, 84, 'cirrostratus (halo)', { size: 9.5, fill: MUTED });
+    s += rect(300, 92, 120, 22, '#bdbdbd', 'none', { rx: 8 }) + T(360, 128, 'altostratus', { size: 9.5, fill: MUTED });
+    s += rect(140, 120, 160, 50, '#757575', 'none', { rx: 10 }) + T(220, 110, 'nimbostratus, steady rain', { size: 9.5, fill: MUTED });
+    for (let i = 0; i < 7; i++) s += line(155 + i * 22, 174, 151 + i * 22, 196, HIGHBLUE, { sw: 1.3 });
+    // map symbol of a warm front moving east: red line with semicircles on the side it moves towards
+    s += line(60, 162, 60, 212, LOWRED, { sw: 2 });
+    [172, 188, 204].forEach(y => { s += `<path d="M60,${y - 7} a7,7 0 0 1 0,14 Z" fill="${LOWRED}"/>`; });
+    s += T(60, 226, 'map symbol', { size: 9, fill: MUTED });
+    // sea surface and the surface front
     s += rect(20, gy, 600, 6, WATER, 'none', { rx: 0 });
     s += line(20, gy + 3, 620, gy + 3, WATER2, { sw: 1 });
-    // surface front: red line with semicircles pointing left (direction of movement)
-    for (let i = 0; i < 4; i++) s += `<path d="M${215 + i * 26},${gy - 1} a8,8 0 0 0 -16,0 Z" fill="${LOWRED}"/>`;
-    s += arrow([[200, gy - 22], [150, gy - 22]], LOWRED, { sw: 2 }) + T(176, gy - 34, 'front moves this way', { size: 9.5, fill: LOWRED });
-    s += lines(110, gy + 24, ['Ahead: wind S to SE, backing;', 'barometer falling; swell building'], { size: 10.5, fill: INK2, lh: 13 });
-    s += lines(470, gy + 24, ['Behind: wind veers to SW, warmer,', 'barometer steadies, drizzle'], { size: 10.5, fill: INK2, lh: 13 });
-    s += T(30, H - 8, 'West (ahead of the front)', { size: 9.5, fill: MUTED, anchor: 'start' }) + T(610, H - 8, 'East (behind the front)', { size: 9.5, fill: MUTED, anchor: 'end' });
-    return S.svg(W, H, s, { label: 'Cross-section of a warm front with the cloud sequence cirrus, cirrostratus, altostratus, nimbostratus' });
+    s += `<circle cx="${fx}" cy="${gy}" r="4" fill="${LOWRED}"/>`;
+    s += arrow([[fx, gy - 14], [fx + 56, gy - 14]], LOWRED, { sw: 2 }) + T(fx + 28, gy - 26, 'front moves east', { size: 9.5, fill: LOWRED });
+    s += lines(150, gy + 24, ['Behind: wind veered to SW, warmer,', 'barometer steady, drizzle'], { size: 10.5, fill: INK2, lh: 13 });
+    s += lines(470, gy + 24, ['Ahead (you): wind S to SE, backing;', 'barometer falling; swell building'], { size: 10.5, fill: INK2, lh: 13 });
+    s += T(30, H - 8, 'West (behind the front)', { size: 9.5, fill: MUTED, anchor: 'start' }) + T(610, H - 8, 'East (ahead of the front)', { size: 9.5, fill: MUTED, anchor: 'end' });
+    return S.svg(W, H, s, { label: 'Cross-section of a warm front moving east with the cloud sequence cirrus, cirrostratus, altostratus, nimbostratus ahead of it' });
   }
 
   // ---------- IL-3 Sea breeze (day) and land breeze (night) (F50-F53) ----------
@@ -477,7 +483,7 @@
 <div class="callout rule"><p>Classic signs of deteriorating weather for a skipper: a halo round the sun or moon; cloud thickening and lowering; a falling barometer; wind backing to south or south-east; a long swell arriving before the wind; and towering cumulonimbus building on a warm afternoon.</p></div>
 <p>One winter hazard deserves a name: the <strong>polar low</strong>. These small, intense lows (200 to 500 km across) form over the Norwegian and Barents Seas from October to May, peaking December to March, and can take the wind from near calm to storm force in less than ten minutes, with heavy snow showers. Their average observed peak wind is 22 m/s (strong gale). They matter from the Trondelag coast northwards; in winter there, treat a forecast of polar lows as a day ashore.</p>`,
         illustration: () => warmFront(),
-        caption: 'Warm front seen from the side, moving towards the west (left). Cirrus and the cirrostratus halo come first, high and far ahead; altostratus and rain-bearing nimbostratus follow as the cloud base lowers. The wind backs and the barometer falls ahead of the front, then veers as it passes.',
+        caption: 'Warm front seen from the side, moving in from the west (left) towards you in the east. The warm air slides up over the wedge of cold air ahead of it, so cirrus and the cirrostratus halo come first, high and far ahead; altostratus and rain-bearing nimbostratus follow as the cloud base lowers. The wind backs and the barometer falls ahead of the front, then veers as it passes.',
         keyFacts: ['Warm front: red line with semicircles; cirrus, cirrostratus (halo), altostratus, nimbostratus; steady rain, falling barometer, wind veers at passage', 'Cold front: blue line with triangles; heavy showers, sharp veer (SW to NW), pressure rises, clearing', 'Symbols on a front point in the direction it moves', 'Signs of bad weather: halo, lowering cloud, falling barometer, backing wind, rising swell, towering cumulonimbus', 'Polar lows: small intense winter lows (Oct-May) over northern waters; calm to storm force in under 10 minutes'],
         check: { id: 'weather-c5', q: 'Morning: wind south-east, barometer falling steadily, a halo around the sun and the cloud slowly thickening. What is the most likely development?', options: ['A high is building; the day will stay fine', 'A warm front is approaching: steady rain and wind that will veer to south-west', 'A sea breeze will set in from the sea by noon', 'Radiation fog will form within the hour'], answer: 1, explanation: 'Halo (cirrostratus), thickening cloud, a steadily falling barometer and a backed south-easterly are the textbook warm-front approach (F46, F48). Expect rain and a veer to the south-west when it passes.' },
       },
@@ -486,7 +492,7 @@
         id: 'local-winds',
         title: 'Local winds: sea breeze, land breeze, fjord effects',
         html: `<p>The national forecast can say "light breeze" and still leave you fighting 20 knots in the afternoon. The reason is local wind, and the exam asks about three kinds.</p>
-<p><strong>The sea breeze.</strong> On a sunny day the land heats much faster than the sea. Warm air rises over the land, pressure there drops a little, and cooler air from the sea flows in to replace it: an <strong>onshore wind</strong>, blowing from sea to land. It needs sunshine and a weak background wind, sets in during the late morning, is <strong>strongest in the afternoon to early evening</strong> and dies away in the evening when the sun stops heating the land. Along the Norwegian coast the convergence of air along the shore commonly makes it <strong>15 to 25 knots</strong> (8 to 13 m/s) on a hot summer afternoon, enough to make an open crossing unpleasant. Through the afternoon the sea breeze <strong>veers</strong> (turns clockwise, because of the Earth's rotation) from blowing straight onshore towards blowing nearly along the coast; in many fjords it instead keeps blowing inland, up the fjord.</p>
+<p><strong>The sea breeze.</strong> On a sunny day the land heats much faster than the sea. Warm air rises over the land, pressure there drops a little, and cooler air from the sea flows in to replace it: an <strong>onshore wind</strong>, blowing from sea to land. It needs sunshine and a weak background wind, sets in during the late morning, is <strong>strongest in the afternoon to early evening</strong> and dies away in the evening when the sun stops heating the land. Along the Norwegian coast the convergence of air along the shore commonly makes it <strong>15 to 25 knots</strong> (8 to 13 m/s) on a hot summer afternoon, enough to make an open crossing unpleasant. Through the afternoon the sea breeze <strong>veers</strong> (turns clockwise, because of the Earth's rotation) from blowing straight onshore towards blowing nearly along the coast; in some fjords it instead keeps blowing inland, up the fjord.</p>
 <p><strong>The land breeze.</strong> At night the land cools faster than the sea and the circulation reverses: a weak <strong>offshore</strong> breeze flows out over the water. It is much weaker than the sea breeze and is often barely noticeable.</p>
 <p><strong>Channelling and fall winds.</strong> Weak winds tend to follow the line of a coast, fjord or valley, so a fjord often has wind along its axis and a sound can accelerate it. More dangerous is the <strong>fall wind</strong>: when a strong wind crosses a mountain range it is forced down the lee side in violent, turbulent gusts that strike the water under steep fjord sides, even when the fjord looked sheltered. A related phenomenon is the katabatic wind, cold dense air draining down slopes under gravity, mostly on clear nights and in winter.</p>
 <div class="callout tip"><p>Plan an open crossing in a small boat for the morning or the evening on a hot summer day. The morning forecast of 2 m/s says nothing about the sea breeze that will be blowing at 16:00.</p></div>`,
@@ -500,7 +506,7 @@
         id: 'waves',
         title: 'Waves: height, steepness and where they break',
         html: `<p>Wind does not sink boats; waves do. The size of wind waves depends on four things: the <strong>wind speed</strong>, the <strong>fetch</strong> (the uninterrupted stretch of water the wind has blown over), the <strong>duration</strong> the wind has blown, and the <strong>water depth</strong>. That is why a force 6 in a narrow fjord gives a short chop while the same wind over the open sea builds 3 m waves, and why swell from a North Sea storm can break on the coast on a windless day.</p>
-<p>The figure in a forecast is the <strong>significant wave height</strong>: the average height of the <strong>highest third</strong> of the waves. It is not the biggest wave. Individual waves regularly reach <strong>almost twice</strong> the significant height, so a forecast of 1.5 m means you must expect waves approaching 3 m. BarentsWatch shows both the significant and the maximum height for exactly this reason.</p>
+<p>The figure in a forecast is the <strong>significant wave height</strong>: the average height of the <strong>highest third</strong> of the waves. It is not the biggest wave. Individual waves can reach <strong>almost twice</strong> the significant height, so a forecast of 1.5 m means you must expect waves approaching 3 m. BarentsWatch shows both the significant and the maximum height for exactly this reason.</p>
 <p>Waves become dangerous when they are <strong>steep</strong>, not merely high. In deep water a wave breaks when its height reaches roughly one seventh of its length. In <strong>shallow water</strong> the wave slows at its base while the crest keeps going, so it steepens, shortens and breaks when the depth is only about <strong>1.3 times the wave height</strong> (roughly when the depth falls below twice the significant height). Refraction bends wave crests towards shallows and concentrates their energy on headlands, shoals, bars and harbour entrances, the places where a boat is also closest to rock.</p>
 <p>A <strong>current</strong> changes wave shape too. <strong>Wind against the current compresses the waves: shorter, steeper, breaking.</strong> Wind with the current stretches them out: longer and lower. Tidal sounds and river mouths are therefore worst when the stream runs against the wind, and calmest at the turn.</p>
 <div class="callout warn"><p>A <strong>lee shore</strong> is the shore downwind of you, the one the wind blows onto. It is the dangerous one: waves are biggest and break there, and wind and sea push a drifting or disabled boat onto it. The <strong>weather shore</strong>, upwind, gives shelter and small waves. Candidates often reverse these.</p></div>
@@ -618,7 +624,7 @@
       { id: 'weather-06', q: 'The forecast gives a mean wind of 10 m/s with no gust figure. What gusts should you typically plan for in open coastal water?', options: ['About 10 m/s; gusts equal the mean wind', 'About 25 m/s', 'About 5 m/s; gusts are weaker than the mean', 'About 13-15 m/s'], answer: 3, explanation: 'Gusts are typically about 1.3-1.5 x the mean wind, more in rough terrain, so plan on 13-15 m/s (F18).', difficulty: 2, part: 1, tags: ['gusts'] },
       { id: 'weather-07', q: 'A wind that changes from south-west to north-west has:', options: ['Veered', 'Backed', 'Gusted', 'Freshened'], answer: 0, explanation: 'A clockwise change of direction (SW to W to NW) is veering; anticlockwise is backing (F44).', difficulty: 1, part: 1, tags: ['veer-back'] },
       { id: 'weather-08', q: 'Which wind symbol is shown on the compass rose in the picture?', illustration: () => windQuestion(315, 15), options: ['Wind from the south-east, 15 knots', 'Wind from the north-west, 15 knots', 'Wind from the north-west, 30 knots', 'Wind towards the north-west, 5 knots'], answer: 1, explanation: 'The arrow points where the air goes (towards the south-east), and the barbs sit on the tail, the "from" end, which lies in the north-west. One long barb (10 kn) and one short barb (5 kn) make 15 knots (F16, F17).', difficulty: 2, part: 1, tags: ['wind-direction', 'picture'] },
-      { id: 'weather-09', q: 'Approximately how many m/s is a wind of 25 knots?', options: ['About 12.5 m/s', 'About 25 m/s', 'About 50 m/s', 'About 5 m/s'], answer: 0, explanation: '1 knot = 0.514 m/s, so 25 knots is about 12.9 m/s; dividing knots by two is close enough (F19).', difficulty: 2, part: 1, tags: ['units'] },
+      { id: 'weather-09', q: 'Approximately how many m/s is a wind of 25 knots?', options: ['About 13 m/s', 'About 25 m/s', 'About 50 m/s', 'About 5 m/s'], answer: 0, explanation: '1 knot = 0.514 m/s, so 25 knots is about 12.9 m/s; dividing knots by two (12.5) is close enough (F19).', difficulty: 2, part: 1, tags: ['units'] },
       { id: 'weather-10', q: 'What is the effect of an offshore wind (blowing from the land out to sea) near the coast?', options: ['Big breaking waves at the shore and a drifting boat is pushed onto it', 'Flat water near the shore, bigger seas further out, and a drifting boat is carried away from land', 'No waves anywhere', 'The water level rises along the coast'], answer: 1, explanation: 'Offshore wind has no fetch at the shore, so the water is flat there, but the waves grow further out and a disabled boat drifts away from land. Onshore wind gives the opposite (F30).', difficulty: 2, part: 1, tags: ['offshore-wind'] },
       // ---- Beaufort, warnings, CE (part 1) ----
       { id: 'weather-11', q: 'The Beaufort scale runs from force 0 (calm) up to which force?', options: ['Force 8, gale', 'Force 10, storm', 'Force 12, hurricane', 'Force 20'], answer: 2, explanation: 'The scale has 13 steps, force 0 calm to force 12 hurricane (32.7 m/s or more) (F20, F21).', difficulty: 1, part: 1, tags: ['beaufort'] },

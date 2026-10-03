@@ -313,7 +313,7 @@
     function fmtAnswer(r) {
       if (r.isClock) return clock(r.answer);
       if (r.isAngle) return deg3(r.answer);
-      return num(r.answer) + ' ' + r.unit;
+      return num(r.answer) + (r.unit.startsWith('°') ? '' : ' ') + r.unit;   // "5.5° E", "8 NM"
     }
     function finish(ok, typed, gaveUp) {
       locked = true; total++;
