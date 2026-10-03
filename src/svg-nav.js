@@ -300,7 +300,16 @@
       const [ux, uy] = dirv(mid);
       s += T(cx + ux * 64, cy + uy * 64, `${Math.round(span)}°`, { size: 12, weight: 700, fill: INK2 });
     }
-    objs.forEach(o => { const [ux, uy] = dirv(o.b); s += kinds[o.i][1](o.x, o.y); s += T(o.x, o.y + 42, kinds[o.i][0], { size: 12, fill: INK, weight: 700 }); });
+    // object names sit on the far side of the object from the fix (the position line arrives from the
+    // fix side) with a paper halo, so no line ever runs through the lettering
+    objs.forEach(o => {
+      const [ux, uy] = dirv(o.b); s += kinds[o.i][1](o.x, o.y);
+      const tw = kinds[o.i][0].length * 12 * .6, anchor = ux > .3 ? 'start' : ux < -.3 ? 'end' : 'middle';
+      let lx = o.x + ux * 42; const ly = o.y + uy * 46 - 6;
+      // keep the lettering inside the chart panel (12 … 432)
+      if (anchor === 'start') lx = Math.min(lx, 424 - tw); else if (anchor === 'end') lx = Math.max(lx, 20 + tw); else lx = Math.min(Math.max(lx, 20 + tw / 2), 424 - tw / 2);
+      s += `<text x="${r1(lx)}" y="${r1(ly)}" font-size="12" font-weight="700" fill="${INK}" text-anchor="${anchor}" dominant-baseline="middle" stroke="${PAPER}" stroke-width="4" stroke-linejoin="round" paint-order="stroke">${S.esc(kinds[o.i][0])}</text>`;
+    });
     s += northArrow(395, 48);
     s += T(222, H - 22, 'Bearings are taken from the boat TO the objects and plotted back FROM the objects', { size: 11, fill: INK2 });
     // right panel
@@ -320,7 +329,7 @@
   function latitudeScale(opts) {
     opts = opts || {};
     const mode = opts.position ? 'position' : 'distance';
-    const W = 640, H = mode === 'distance' ? 560 : 520, g = { x0: 150, y0: 48, w: 320, h: 320, band: 20 };
+    const W = 640, H = 520, g = { x0: 150, y0: 48, w: 320, h: 320, band: 20 };
     const pxLat = g.h / 10, pxLon = g.w / 20;
     let s = chartGrid(g, { leftLabels: mode === 'position' ? 'all' : 'ends' });
     const noteY = g.y0 + g.h + g.band + 30;
