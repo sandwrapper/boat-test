@@ -382,7 +382,7 @@
 <li><strong>Pilot vessel on duty</strong> (Rule 29): white over red all-round at the masthead, plus sidelights and sternlight when underway. "White over red, pilot ahead."</li>
 <li><strong>Norwegian Coast Guard</strong> on fisheries protection: an all-round blue light at the highest masthead (Norwegian Rule 53d).</li>
 </ul>
-<p>In Norwegian narrow waters, busy fairways and harbours, pleasure craft under 15 m must keep out of the way of larger vessels and ferries anyway (Norwegian Rule 44), so when you identify a ship's lights at night the practical answer is almost always: keep well clear, early.</p>`,
+<p>In Norwegian narrow waters, busy fairways and harbours, pleasure craft must as far as practicable keep out of the way of larger vessels, scheduled ferries and other commercial traffic anyway (Norwegian Rule 44), so when you identify a ship's lights at night the practical answer is almost always: keep well clear, early.</p>`,
         illustration: () => S.shipProfile('ship'),
         caption: 'Power-driven vessel of 50 m or more: forward masthead light low near the bow, after masthead light higher and further aft, green starboard sidelight, white sternlight.',
         keyFacts: ['50 m and over: two masthead lights, the after one at least 4.5 m higher; optional under 50 m', 'The LOWER masthead light is nearer the bow: it tells you her heading', 'Three all-round reds + normal lights = constrained by her draught (cylinder by day)', 'White over red at the masthead = pilot vessel on duty', 'All-round blue light = Norwegian Coast Guard'],
