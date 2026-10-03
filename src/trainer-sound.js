@@ -375,7 +375,8 @@
         let r = FORMS[turn++ % FORMS.length](), tries = 0;
         while (r.key === lastKey && tries++ < 8) r = FORMS[turn++ % FORMS.length]();   // never the same round twice in a row
         lastKey = r.key; current = r;
-        setTimeout(syncButtons, 0);
+        // the control bar is created after drill() has drawn the first round, hence the deferred sync
+        setTimeout(() => { playBtn.textContent = '▶ Play signal'; stage.hidden = !r.art; syncButtons(); }, 0);
         return r;
       },
     });
