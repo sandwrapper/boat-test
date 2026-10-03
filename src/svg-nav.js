@@ -180,10 +180,14 @@
     inner += `<polygon points="${cx},${ay} ${cx},${ay + 24} ${cx - 11},${ay + 22}" fill="${MAGENTA}"/>`;
     inner += T(cx, cy + 60, 'MAGNETIC', { size: 11, weight: 700, fill: MAGENTA });
     s += `<g transform="rotate(${v} ${cx} ${cy})">${inner}</g>`;
-    // chart annotation beside the magnetic north arrow (kept horizontal for legibility)
-    const ann = `${Math.abs(v)}° ${ew(v)} ${year} (${change})`, aw = 16 + ann.length * 7.2, axx = v >= 0 ? cx + 14 : cx - 14 - aw;
-    s += `<rect x="${r1(axx)}" y="${cy - 82}" width="${r1(aw)}" height="22" rx="4" fill="${PAPER}" stroke="${MAGENTA}"/>`;
-    s += T(axx + aw / 2, cy - 71, ann, { size: 12, weight: 700, fill: MAGENTA });
+    // chart annotation as a horizontal callout in the top corner on the magnetic side, outside both rings
+    // so no ring numerals are hidden; a thin leader points at the pink wedge between the two norths
+    const ann = `${Math.abs(v)}° ${ew(v)} ${year} (${change})`, aw = 16 + ann.length * 7.2, axx = v >= 0 ? W - 10 - aw : 10, ayy = 38;
+    const [wx, wy] = dirv(v / 2), lead = [cx + wx * (R + 8), cy + wy * (R + 8)];
+    s += line(v >= 0 ? axx : axx + aw, ayy + 22, lead[0], lead[1], { stroke: MAGENTA, width: 1 });
+    s += `<circle cx="${r1(lead[0])}" cy="${r1(lead[1])}" r="2" fill="${MAGENTA}"/>`;
+    s += `<rect x="${r1(axx)}" y="${ayy}" width="${r1(aw)}" height="22" rx="4" fill="${PAPER}" stroke="${MAGENTA}"/>`;
+    s += T(axx + aw / 2, ayy + 11, ann, { size: 12, weight: 700, fill: MAGENTA });
     s += T(cx, cy + R - 50, 'TRUE', { size: 11, weight: 700 });
     // annotation of the angle
     s += T(cx, 14, `Magnetic north lies ${Math.abs(v)}° to the ${v >= 0 ? 'right (east)' : 'left (west)'} of true north`, { size: 11, fill: INK2 });
@@ -222,7 +226,7 @@
       s += T(rx + 10, ym + 8, '− W', { size: 11, anchor: 'start', fill: up ? hi : lo, weight: 700 });
       s += box(bx + bw / 2 - 52, ym - 15, 104, 30, [`${stepNames[i]} ${signed(stepVals[i])}`], { size: 12, fill: PAPER2 });
     }
-    s += T(bx + bw / 2, ys[2] + bh + 26, '↓ true → compass: − E / + W     ↑ compass → true: + E / − W', { size: 11, fill: INK2 });
+    s += T(W / 2, ys[2] + bh + 24, '↓ true → compass: − E / + W      ↑ compass → true: + E / − W', { size: 12.5, fill: INK, weight: 600 });
     // worked example panel
     const px = 300, pw = 280;
     const opUp = v => (v >= 0 ? '+' : '−'), opDown = v => (v >= 0 ? '−' : '+');
@@ -248,7 +252,7 @@
     s += T(px + 14, 340, 'Variation: from the chart rose (Earth).', { size: 12, anchor: 'start', fill: MUTED });
     s += T(px + 14, 358, 'Deviation: from this boat\'s table (varies', { size: 12, anchor: 'start', fill: MUTED });
     s += T(px + 14, 376, 'with heading). Wrap past 360°: 367° = 007°.', { size: 12, anchor: 'start', fill: MUTED });
-    s += T(W / 2, H - 22, up ? `Compass ${deg3(cc)} → Magnetic ${deg3(mc)} → True ${deg3(tc)}` : `True ${deg3(tc)} → Magnetic ${deg3(mc)} → Compass ${deg3(cc)}`, { size: 14, weight: 700 });
+    s += T(W / 2, H - 16, up ? `Compass ${deg3(cc)} → Magnetic ${deg3(mc)} → True ${deg3(tc)}` : `True ${deg3(tc)} → Magnetic ${deg3(mc)} → Compass ${deg3(cc)}`, { size: 14, weight: 700 });
     return S.svg(W, H, s, { label: `Course conversion ladder true, magnetic, compass with variation ${signed(variation)} and deviation ${signed(deviation)}: ${up ? 'compass' : 'true'} ${deg3(up ? cc : tc)} gives ${up ? 'true' : 'compass'} ${deg3(up ? tc : cc)}` });
   }
 
@@ -265,14 +269,13 @@
     let s = `<rect x="12" y="12" width="420" height="${H - 24}" rx="8" fill="${SHALLOW}" stroke="${INK}" stroke-width="1.2"/>`;
     const objs = bearings.map((b, i) => { const [ux, uy] = dirv(b); return { b: norm(b), x: fx + ux * dists[i], y: fy + uy * dists[i], i }; });
     objs.forEach(o => { s += landBlob(o.x, o.y + 6, 38, 24, kinds[o.i][2]); });
-    // position lines: from the object back toward the boat. A cocked hat comes from small bearing errors.
-    const errs = cocked ? [1.8, -1.8, 1.6] : [0, 0, 0];
+    // position lines: from the object back toward the boat, drawn without arrowheads as on a chart.
+    // A cocked hat comes from small bearing errors (exaggerated here so the triangle is visible).
+    const errs = cocked ? [3.5, -3.5, 3] : [0, 0, 0];
     const lines = objs.map(o => { const a = norm(o.b + 180 + errs[o.i]); const [ux, uy] = dirv(a); return { x: o.x, y: o.y, ux, uy, o }; });
     lines.forEach(l => {
       const L = dists[l.o.i] + 55;
       s += line(l.x, l.y, l.x + l.ux * L, l.y + l.uy * L, { stroke: INK, width: 1.6 });
-      // arrowhead pointing TOWARD the object: the bearing is the direction from the boat to the object
-      s += head(l.x + l.ux * 36, l.y + l.uy * 36, norm(l.o.b), 10, INK);
       // bearing label beside the line, beyond the angle labels (which sit 46–64 px from the fix)
       const [bx, by] = dirv(l.o.b), lx = fx + bx * 84, ly = fy + by * 84;
       s += T(lx - by * 18, ly + bx * 18, `${deg3(l.o.b)} T`, { size: 12, weight: 700, fill: INK });
@@ -282,12 +285,13 @@
     if (cocked) {
       const inter = (a, b) => { const d = a.ux * b.uy - a.uy * b.ux; const t = ((b.x - a.x) * b.uy - (b.y - a.y) * b.ux) / d; return [a.x + a.ux * t, a.y + a.uy * t]; };
       const p = [inter(lines[0], lines[1]), inter(lines[1], lines[2]), inter(lines[0], lines[2])];
-      s += `<polygon points="${p.map(q => `${r1(q[0])},${r1(q[1])}`).join(' ')}" fill="${MAGENTA}" opacity=".35" stroke="${MAGENTA}" stroke-width="1.5"/>`;
+      s += `<polygon points="${p.map(q => `${r1(q[0])},${r1(q[1])}`).join(' ')}" fill="${MAGENTA}" opacity=".4" stroke="${MAGENTA}" stroke-width="1.5"/>`;
       cx = (p[0][0] + p[1][0] + p[2][0]) / 3; cy = (p[0][1] + p[1][1] + p[2][1]) / 3;
-      s += T(cx - 70, cy + 44, 'cocked hat', { size: 12, weight: 700, fill: MAGENTA });
-      s += line(cx - 44, cy + 36, cx - 8, cy + 8, { stroke: MAGENTA, width: 1 });
-    }
-    s += fixMark(r1(cx), r1(cy));
+      s += T(cx - 78, cy + 50, 'cocked hat', { size: 12, weight: 700, fill: MAGENTA });
+      s += line(cx - 52, cy + 42, cx - 12, cy + 12, { stroke: MAGENTA, width: 1 });
+      // a small fix symbol at the centre so the triangle stays visible around it
+      s += `<circle cx="${r1(cx)}" cy="${r1(cy)}" r="3.5" fill="none" stroke="${INK}" stroke-width="1.4"/><circle cx="${r1(cx)}" cy="${r1(cy)}" r="1.4" fill="${INK}"/>`;
+    } else s += fixMark(r1(cx), r1(cy));
     s += T(cx - 16, cy - 20, 'FIX', { size: 13, weight: 700 });
     // angles between adjacent bearings
     for (let i = 0; i + 1 < objs.length; i++) {
@@ -298,7 +302,7 @@
     }
     objs.forEach(o => { const [ux, uy] = dirv(o.b); s += kinds[o.i][1](o.x, o.y); s += T(o.x, o.y + 42, kinds[o.i][0], { size: 12, fill: INK, weight: 700 }); });
     s += northArrow(395, 48);
-    s += T(222, H - 22, 'Objects charted; bearings taken from the boat and plotted back from the objects', { size: 11, fill: INK2 });
+    s += T(222, H - 22, 'Bearings are taken from the boat TO the objects and plotted back FROM the objects', { size: 11, fill: INK2 });
     // right panel
     const px = 445, pw = 182;
     s += `<rect x="${px}" y="12" width="${pw}" height="${H - 24}" rx="8" fill="${PAPER2}" stroke="${LINE}"/>`;
@@ -442,7 +446,8 @@
     // some chart content: shallow water and a coast along the bottom, a lighthouse, soundings, a rock
     s += `<path d="M${x0},${y0 + h} L${x0},${y0 + h - 70} Q${x0 + 90},${y0 + h - 110} ${x0 + 180},${y0 + h - 75} T${x0 + 330},${y0 + h - 85} Q${x0 + 400},${y0 + h - 95} ${x0 + w},${y0 + h - 60} L${x0 + w},${y0 + h} Z" fill="${SHALLOW}"/>`;
     s += `<path d="M${x0},${y0 + h} L${x0},${y0 + h - 30} Q${x0 + 100},${y0 + h - 60} ${x0 + 200},${y0 + h - 30} T${x0 + 340},${y0 + h - 40} Q${x0 + 400},${y0 + h - 50} ${x0 + w},${y0 + h - 20} L${x0 + w},${y0 + h} Z" fill="${LAND}" stroke="${INK2}"/>`;
-    s += lighthouse(x0 + 230, y0 + h - 34); s += T(x0 + 230, y0 + h - 12, 'Lt', { size: 11, fill: LAND_INK, weight: 700 });
+    // the light stands on the shore: its base sits on the buff land, the "Lt" label beside it
+    s += lighthouse(x0 + 230, y0 + h - 12); s += T(x0 + 240, y0 + h - 14, 'Lt', { size: 11, fill: LAND_INK, weight: 700, anchor: 'start' });
     s += T(x0 + 60, y0 + h - 86, '7,3', { size: 11, fill: INK2, family: 'serif' });
     s += T(x0 + 330, y0 + h - 100, '12', { size: 11, fill: INK2, family: 'serif' });
     s += line(x0 + 380, y0 + h - 64, x0 + 380, y0 + h - 50, { stroke: INK2, width: 1.5 }); s += line(x0 + 373, y0 + h - 57, x0 + 387, y0 + h - 57, { stroke: INK2, width: 1.5 });

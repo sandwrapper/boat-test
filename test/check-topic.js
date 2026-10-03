@@ -89,10 +89,10 @@ fs.writeFileSync(tmp, html);
   // render a lesson page for layout review when --shots is given with a slug
   if (slug && shotsDir && report.topic) {
     await renderAll(report.svgs, shotsDir);
-    await page.goto('file://' + tmp + '#lesson.' + slug); await page.waitForTimeout(200);
+    await page.goto('about:blank'); await page.goto('file://' + tmp + '#lesson.' + slug); await page.waitForTimeout(300);
     await page.screenshot({ path: path.join(shotsDir, '_lesson-' + slug + '.png'), fullPage: true });
     // trainers too
-    for (const id of report.trainers) { await page.goto('file://' + tmp + '#trainer.' + id); await page.waitForTimeout(200); await page.screenshot({ path: path.join(shotsDir, '_trainer-' + id + '.png'), fullPage: true }); }
+    for (const id of report.trainers) { await page.evaluate(h => { location.hash = h; }, '#trainer.' + id); await page.waitForTimeout(300); await page.screenshot({ path: path.join(shotsDir, '_trainer-' + id + '.png'), fullPage: true }); }
   }
   if (galleryDir) await renderAll(report.gallery, galleryDir);
   await browser.close();

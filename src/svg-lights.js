@@ -144,22 +144,22 @@
     'power<50': { name: 'Power-driven vessel under 50 m', rule: 'Rule 23(a): masthead light, sidelights, sternlight', lights: [L('mh', 'white', .3, 3), ...sidesL(.5, 1), sternL(.8)] },
     'power>=50': { name: 'Power-driven vessel 50 m or more', rule: 'Rule 23(a): two masthead lights, the after one higher', lights: [L('mh', 'white', .55, 3), L('mh', 'white', -.35, 4.2), ...sidesL(.2, 1.4), sternL(.8)] },
     'power<12': { name: 'Power-driven vessel under 12 m', rule: 'Rule 23(c)/(d)(i): one all-round white light + sidelights', lights: [L('ar', 'white', 0, 2.6), ...sidesL(.5, 1)] },
-    'power<7': { name: 'Power-driven vessel under 7 m, max speed 7 knots or less', rule: 'Rule 23(c)/(d)(ii): all-round white light only (sidelights if practicable)', lights: [L('ar', 'white', -.1, 2)] },
+    'power<7': { name: 'Power-driven vessel under 7 m, max 7 knots', rule: 'Rule 23(c)/(d)(ii): all-round white light only (sidelights if practicable)', lights: [L('ar', 'white', -.1, 2)] },
     'sail': { name: 'Sailing vessel under sail', rule: 'Rule 25(a): sidelights + sternlight, NO white light above them', lights: [...sidesL(.6, .8), sternL(.7)] },
-    'sail-tricolour': { name: 'Sailing vessel under 20 m with tricolour lantern', rule: 'Rule 25(b): one masthead lantern combines red, green and white', lights: [L('sp', 'red', .1, 5, -.25), L('ss', 'green', .1, 5, .25), L('st', 'white', .1, 5)] },
-    'sail-redgreen': { name: 'Sailing vessel with red over green masthead lights', rule: 'Rule 25(c): sidelights + sternlight + all-round RED over GREEN (never with a tricolour)', lights: [L('ar', 'red', .1, 5), L('ar', 'green', .1, 4.2), ...sidesL(.6, .8), sternL(.7)] },
+    'sail-tricolour': { name: 'Sailing vessel under 20 m with tricolour lantern', rule: 'Rule 25(b): one masthead lantern combines red, green and white', lights: [L('sp', 'red', .1, 5, -.17), L('ss', 'green', .1, 5, .17), L('st', 'white', .1, 5)] },
+    'sail-redgreen': { name: 'Sailing vessel with red over green masthead lights', rule: 'Rule 25(c): sidelights + sternlight + all-round RED over GREEN (never with a tricolour)', lights: [L('ar', 'red', .1, 5), L('ar', 'green', .1, 4), ...sidesL(.6, .8), sternL(.7)] },
     'anchored': { name: 'Vessel at anchor, under 50 m', rule: 'Rule 30(b): one all-round white light where best seen', lights: [L('ar', 'white', .6, 2.8)] },
     'anchored>=50': { name: 'Vessel at anchor, 50 m or more', rule: 'Rule 30(a): all-round white forward and a second, LOWER one aft', lights: [L('ar', 'white', .7, 4.4), L('ar', 'white', -.6, 2.4)] },
-    'aground': { name: 'Vessel aground', rule: 'Rule 30(d): anchor light(s) + two all-round RED lights in a vertical line', lights: [L('ar', 'white', .7, 4.4), L('ar', 'white', -.6, 2.4), L('ar', 'red', .05, 3.9), L('ar', 'red', .05, 3.1)] },
-    'fishing': { name: 'Vessel engaged in fishing (not trawling)', rule: 'Rule 26(c): all-round RED over WHITE; sidelights + sternlight only when making way', lights: [L('ar', 'red', .1, 4), L('ar', 'white', .1, 3.2), ...sidesL(.4, 1, true), sternL(.8, true)] },
-    'trawling': { name: 'Vessel engaged in trawling', rule: 'Rule 26(b): all-round GREEN over WHITE; masthead light abaft and higher if 50 m or more; sidelights + sternlight when making way', lights: o => [L('ar', 'green', .1, 4), L('ar', 'white', .1, 3.2), ...(o.large ? [L('mh', 'white', -.45, 4.8)] : []), ...sidesL(.4, 1, true), sternL(.8, true)] },
-    'nuc': { name: 'Vessel not under command', rule: 'Rule 27(a): two all-round RED lights; sidelights + sternlight when making way, no masthead light', lights: [L('ar', 'red', 0, 4), L('ar', 'red', 0, 3.2), ...sidesL(.4, 1, true), sternL(.8, true)] },
-    'ram': { name: 'Vessel restricted in her ability to manoeuvre', rule: 'Rule 27(b): all-round RED–WHITE–RED; + masthead light, sidelights, sternlight when making way', lights: [L('ar', 'red', -.1, 4.8), L('ar', 'white', -.1, 4), L('ar', 'red', -.1, 3.2), L('mh', 'white', .55, 3, 0, true), ...sidesL(.3, 1, true), sternL(.8, true)] },
-    'cbd': { name: 'Vessel constrained by her draught', rule: 'Rule 28: three all-round RED lights in a vertical line + normal power-driven lights', lights: [L('ar', 'red', .1, 5.4), L('ar', 'red', .1, 4.6), L('ar', 'red', .1, 3.8), L('mh', 'white', .6, 3), L('mh', 'white', -.45, 4.2), ...sidesL(.3, 1.4), sternL(.8)] },
-    'pilot': { name: 'Pilot vessel on duty', rule: 'Rule 29: all-round WHITE over RED at the masthead; + sidelights and sternlight when underway', lights: [L('ar', 'white', .1, 4), L('ar', 'red', .1, 3.2), ...sidesL(.4, 1, true), sternL(.8, true)] },
-    'towing': { name: 'Power-driven vessel towing astern', rule: 'Rule 24(a): two masthead lights in a vertical line (three if tow > 200 m), sidelights, sternlight, YELLOW towing light above the sternlight', lights: o => [...Array.from({ length: o.long ? 3 : 2 }, (_, i) => L('mh', 'white', .4, 2.8 + i * .8)), ...sidesL(.5, 1), sternL(.8), L('tw', 'yellow', -1, 1.6)] },
+    'aground': { name: 'Vessel aground', rule: 'Rule 30(d): anchor light(s) + two all-round RED lights in a vertical line', lights: [L('ar', 'white', .7, 4.4), L('ar', 'white', -.6, 2.4), L('ar', 'red', .05, 4.2), L('ar', 'red', .05, 3.2)] },
+    'fishing': { name: 'Vessel engaged in fishing (not trawling)', rule: 'Rule 26(c): all-round RED over WHITE; sidelights + sternlight only when making way', lights: [L('ar', 'red', .1, 4), L('ar', 'white', .1, 3), ...sidesL(.4, 1, true), sternL(.8, true)] },
+    'trawling': { name: 'Vessel engaged in trawling', rule: 'Rule 26(b): all-round GREEN over WHITE; masthead light abaft and higher if 50 m or more; sidelights + sternlight when making way', lights: o => [L('ar', 'green', .1, 4), L('ar', 'white', .1, 3), ...(o.large ? [L('mh', 'white', -.45, 5)] : []), ...sidesL(.4, 1, true), sternL(.8, true)] },
+    'nuc': { name: 'Vessel not under command', rule: 'Rule 27(a): two all-round RED lights; sidelights + sternlight when making way, no masthead light', lights: [L('ar', 'red', 0, 4), L('ar', 'red', 0, 3), ...sidesL(.4, 1, true), sternL(.8, true)] },
+    'ram': { name: 'Vessel restricted in her ability to manoeuvre', rule: 'Rule 27(b): all-round RED–WHITE–RED; + masthead light, sidelights, sternlight when making way', lights: [L('ar', 'red', -.1, 5), L('ar', 'white', -.1, 4), L('ar', 'red', -.1, 3), L('mh', 'white', .55, 2.6, 0, true), ...sidesL(.3, 1, true), sternL(.8, true)] },
+    'cbd': { name: 'Vessel constrained by her draught', rule: 'Rule 28: three all-round RED lights in a vertical line + normal power-driven lights', lights: [L('ar', 'red', .1, 5.6), L('ar', 'red', .1, 4.6), L('ar', 'red', .1, 3.6), L('mh', 'white', .6, 2.8), L('mh', 'white', -.45, 4.2), ...sidesL(.3, 1.4), sternL(.8)] },
+    'pilot': { name: 'Pilot vessel on duty', rule: 'Rule 29: all-round WHITE over RED at the masthead; + sidelights and sternlight when underway', lights: [L('ar', 'white', .1, 4), L('ar', 'red', .1, 3), ...sidesL(.4, 1, true), sternL(.8, true)] },
+    'towing': { name: 'Power-driven vessel towing astern', rule: 'Rule 24(a): two masthead lights in a vertical line (three if tow > 200 m), sidelights, sternlight, YELLOW towing light above the sternlight', lights: o => [...Array.from({ length: o.long ? 3 : 2 }, (_, i) => L('mh', 'white', .4, 2.8 + i)), ...sidesL(.5, 1), sternL(.8), L('tw', 'yellow', -1, 1.6)] },
     'towed': { name: 'Vessel being towed', rule: 'Rule 24(e): sidelights + sternlight', lights: [...sidesL(.6, .9), sternL(.8)] },
-    'minesweeping': { name: 'Vessel engaged in mine clearance', rule: 'Rule 27(f): three all-round GREEN lights (foremast head + each fore yardarm) + power-driven lights; keep 1,000 m away', lights: [L('ar', 'green', 0, 4.8), L('ar', 'green', 0, 4, -1.2), L('ar', 'green', 0, 4, 1.2), L('mh', 'white', .6, 3), ...sidesL(.3, 1.2), sternL(.8)] },
+    'minesweeping': { name: 'Vessel engaged in mine clearance', rule: 'Rule 27(f): three all-round GREEN lights (foremast head + each fore yardarm) + power-driven lights; keep 1,000 m away', lights: [L('ar', 'green', 0, 5), L('ar', 'green', 0, 4, -1.2), L('ar', 'green', 0, 4, 1.2), L('mh', 'white', .6, 2.8), ...sidesL(.3, 1.2), sternL(.8)] },
   };
   const VIEW_HINT = {
     ahead: 'her bow points at YOU — her red (port) light is on YOUR right',
@@ -174,11 +174,11 @@
     const making = opts.making !== false;
     const all = typeof def.lights === 'function' ? def.lights(opts) : def.lights;
     const lights = all.filter(l => (making || !l.mw) && ARC_VIS[l.arc].includes(view));
-    const W = 360, H = 262, cx = 180, base = 186;
+    const W = 360, H = 292, cx = 180, base = 204;
     const side = view === 'port' || view === 'starboard', dir = view === 'starboard' ? 1 : -1;
     const px = l => side ? cx + dir * l.lon * 105 : cx + (view === 'ahead' ? -l.lat : l.lat) * 46;
     const py = l => base - 16 - l.h * 24;
-    let g = `<rect x="0" y="${base}" width="${W}" height="${H - base}" fill="${NIGHT_SEA}"/><rect x="0" y="${H - 54}" width="${W}" height="54" fill="${C.night}"/>`;
+    let g = `<rect x="0" y="${base}" width="${W}" height="${H - base}" fill="${NIGHT_SEA}"/><rect x="0" y="${H - 70}" width="${W}" height="70" fill="${C.night}"/>`;
     // faint silhouette
     if (side) {
       const x0 = cx - dir * 105, x1 = cx + dir * 105;
@@ -186,80 +186,95 @@
     } else g += `<polygon points="${cx - 40},${base} ${cx + 40},${base} ${cx + 30},${base - 22} ${cx - 30},${base - 22}" fill="${NIGHT_HULL}"/><rect x="${cx - 18}" y="${base - 42}" width="36" height="20" rx="2" fill="${NIGHT_HULL}"/>`;
     // masts under stacked / high lights, then lamps (dedupe lights that coincide on screen)
     const masts = new Set(), seen = new Set();
-    lights.filter(l => l.h >= 1.6).forEach(l => { const x = fmt(px(l)); if (!masts.has(x)) { masts.add(x); const top = Math.min(...lights.filter(k => fmt(px(k)) === x).map(py)); g += line(x, base - 20, x, top + 4, NIGHT_MAST, 2); } });
+    // one mast per longitudinal position (so a tricolour pair or yardarm lights share a mast)
+    lights.filter(l => l.h >= 1.6).forEach(l => { const x = fmt(px(Object.assign({}, l, { lat: 0 }))); if (!masts.has(x)) { masts.add(x); const top = Math.min(...lights.filter(k => fmt(px(Object.assign({}, k, { lat: 0 }))) === x).map(py)); g += line(x, base - 20, x, top + 4, NIGHT_MAST, 2); } });
+    if (!side) lights.filter(l => l.lat && l.arc === 'ar').forEach(l => { g += line(cx, py(l), px(l), py(l), NIGHT_MAST, 2); });
     lights.forEach(l => {
       const x = px(l), y = py(l), key = fmt(x) + ',' + fmt(y);
       if (seen.has(key)) return; seen.add(key);
       g += lamp(x, y, l.color, { r: 6.5, label: l.color, side: x < cx ? 'left' : 'right' });
     });
-    g += txt(cx, 20, def.name + (making ? '' : ' — stopped (not making way)'), { size: 13, weight: 700, fill: NIGHT_INK });
-    g += caption(cx, H - 40, 'Seen from ' + view.toUpperCase() + ': ' + VIEW_HINT[view], 62, { size: 11, fill: NIGHT_INK, lh: 13 });
-    g += caption(cx, H - 13, def.rule, 70, { size: 10, fill: NIGHT_MUTED, lh: 12 });
+    const title = def.name + (making ? '' : ', stopped');
+    g += txt(cx, 20, title, { size: title.length > 36 ? 12 : 13, weight: 700, fill: NIGHT_INK });
+    g += caption(cx, H - 58, 'Seen from ' + view.toUpperCase() + ': ' + VIEW_HINT[view], 62, { size: 11, fill: NIGHT_INK, lh: 13 });
+    g += caption(cx, H - 27, def.rule, 70, { size: 10, fill: NIGHT_MUTED, lh: 12 });
     return S.svg(W, H, g, { bg: C.night, label: `Night view of a ${def.name} seen from ${view}: ${lights.map(l => l.color).join(', ') || 'no lights'}` });
   }
 
   /* ---------------------------------------------------------------- shipProfile */
+  /* Side view, bow to the RIGHT, so the viewer sees the STARBOARD side (green sidelight). The scene has its own fixed
+     sky (night = COLORS.night, day = pale daytime sky so black shapes show) and therefore fixed ink colours. */
   function shipProfile(type, opts) {
     opts = opts || {};
     const TYPES = ['motorboat', 'sailboat', 'ship', 'fishing', 'tug'];
     if (!TYPES.includes(type)) fail('shipProfile type', type, TYPES);
-    const day = !!opts.day, ink = day ? DAY_INK : NIGHT_INK, mut = day ? DAY_MUTED : NIGHT_MUTED, hull = day ? HULL_GREY : NIGHT_HULL_P;
-    const W = type === 'tug' ? 640 : 560, H = 300, wl = 200;
-    const lp = (x, y, color, label, o) => lamp(x, y, color, Object.assign({ r: 6, glow: !day, stroke: day ? DAY_INK : null, fill: ink, size: 11 }, o || {}, { label }));
+    const day = !!opts.day, ink = day ? DAY_INK : NIGHT_INK, mut = day ? DAY_MUTED : NIGHT_MUTED, hull = day ? HULL_GREY : NIGHT_HULL_P, bg = day ? DAY_SKY : C.night;
+    const W = type === 'tug' ? 640 : 560, H = type === 'tug' ? 320 : 300, wl = 200;
+    const lp = (x, y, color) => lamp(x, y, color, { r: 6, glow: !day, stroke: day ? DAY_INK : null });
+    const note = (x, y, s, o) => txt(x, y, s, Object.assign({ size: 11, fill: ink, weight: 600, halo: bg }, o || {}));
+    const notes = (x, y, arr, o) => lines(x, y, arr, Object.assign({ size: 11, fill: ink, weight: 600, halo: bg, lh: 13 }, o || {}));
     const leader = (x1, y1, x2, y2) => line(x1, y1, x2, y2, mut, 1);
-    const note = (x, y, s, o) => txt(x, y, s, Object.assign({ size: 11, fill: ink, weight: 600 }, o || {}));
-    const dim = (x, y1, y2, label) => line(x, y1, x, y2, ink, 1.5) + arrowHead(x, y1, 0, ink, 7) + arrowHead(x, y2, 180, ink, 7) + txt(x + 8, (y1 + y2) / 2, label, { size: 11, fill: ink, anchor: 'start', weight: 700 });
+    const dim = (x, y1, y2, label) => line(x, y1, x, y2, ink, 1.5) + arrowHead(x, y1, 0, ink, 7) + arrowHead(x, y2, 180, ink, 7) + note(x + 8, (y1 + y2) / 2, label, { anchor: 'start', weight: 700 });
     const shape = (kind, x, y) => dayShapeGlyph(kind, x, y, .55);
-    let g = `<rect width="${W}" height="${H}" rx="8" fill="${day ? DAY_SKY : C.night}"/><rect x="0" y="${wl}" width="${W}" height="${H - wl}" fill="${day ? DAY_SEA : NIGHT_SEA}"/>`;
-    let cap = '', label = '';
     const mast = (x, y1, y2) => line(x, y1, x, y2, day ? '#555' : NIGHT_MAST, 3);
+    const box = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${hull}" stroke="${day ? '#fff' : '#000'}" stroke-width=".5"/>`;
+    let g = `<rect width="${W}" height="${H}" rx="8" fill="${bg}"/><rect x="0" y="${wl}" width="${W}" height="${H - wl}" fill="${day ? DAY_SEA : NIGHT_SEA}"/>`;
+    let cap = '', label = '';
     if (type === 'motorboat') {
-      g += `<polygon points="90,${wl} 96,172 385,172 404,190 396,${wl}" fill="${hull}"/><polygon points="170,172 178,146 300,146 300,172" fill="${hull}" stroke="${day ? '#fff' : '#000'}" stroke-width=".5"/><path d="M212,146 L236,108 L264,108 L288,146" fill="none" stroke="${hull}" stroke-width="5"/>`;
-      g += lp(250, 104, 'white', 'Masthead light (white) 225°, ≥ 1 m above the sidelights', { side: 'right' }) + lp(388, 165, 'green', 'Starboard sidelight (green) 112.5°', { side: 'right', dy: -24 }) + leader(388, 160, 405, 143) + lp(93, 168, 'white', 'Sternlight (white) 135°', { side: 'left', dy: -22 }) + leader(93, 163, 78, 148);
+      g += `<polygon points="90,${wl} 96,172 385,172 404,190 396,${wl}" fill="${hull}"/><polygon points="170,172 178,146 300,146 300,172" fill="${hull}"/><path d="M212,146 L236,108 L264,108 L288,146" fill="none" stroke="${hull}" stroke-width="5"/>`;
+      g += lp(250, 104, 'white') + note(250, 82, 'Masthead light (white), 225° — at least 1 m above the sidelights');
+      g += lp(388, 165, 'green') + note(548, 138, 'Starboard sidelight (green), 112.5°', { anchor: 'end' }) + leader(388, 160, 420, 146);
+      g += lp(93, 168, 'white') + note(26, 138, 'Sternlight (white), 135°', { anchor: 'start' }) + leader(93, 163, 72, 146);
       g += dash(250, 104, 330, 104, mut, 1) + dash(388, 165, 330, 165, mut, 1) + dim(330, 104, 165, '≥ 1 m');
-      cap = 'Under 12 m the masthead light + sternlight may be replaced by ONE all-round white light (Rule 23(c)/(d)). Sidelights are still required unless the boat is under 7 m AND cannot exceed 7 knots. Red sidelight on the port side (hidden here).';
+      cap = 'Under 12 m the masthead light + sternlight may be replaced by ONE all-round white light (Rule 23(c)/(d)). Sidelights are still required unless the boat is under 7 m AND cannot exceed 7 knots. The red sidelight is on the port side (hidden here).';
       if (day) cap = 'A motorboat underway shows no day shape. ' + cap;
       label = 'Side view of an 8 m motorboat with masthead light, green starboard sidelight and sternlight';
     } else if (type === 'sailboat') {
       g += `<polygon points="110,${wl} 116,175 372,175 392,190 384,${wl}" fill="${hull}"/>` + mast(250, 175, 48) + `<polygon points="253,58 253,168 150,168" fill="${day ? '#fff' : '#d8dde3'}" stroke="${mut}" stroke-width="1"/><polygon points="247,62 247,160 365,170" fill="${day ? '#fff' : '#c9d0d8'}" stroke="${mut}" stroke-width="1"/>`;
       g += `<circle cx="250" cy="40" r="7" fill="none" stroke="${mut}" stroke-width="1.5" stroke-dasharray="3 2"/>` + line(245, 35, 255, 45, C.red, 2) + line(245, 45, 255, 35, C.red, 2) + note(264, 40, 'NO white masthead light under sail (Rule 25)', { anchor: 'start' });
-      g += lp(376, 170, 'green', 'Starboard sidelight (green)', { side: 'right', dy: -26 }) + leader(376, 165, 392, 150) + lp(113, 171, 'white', 'Sternlight (white)', { side: 'left', dy: -24 }) + leader(113, 166, 98, 150);
-      if (day) { g += shape('cone-down', 300, 112) + leader(300, 128, 300, 150) + note(300, 160, 'Cone, apex DOWN: sails up + engine running = power-driven (Rule 25(e))', { size: 10 }); }
-      cap = day ? 'By day a sailing boat motoring with sails set hangs a black cone apex downwards forward. At night it then shows power-driven lights: masthead white + sidelights + sternlight.' : 'Under sail: sidelights + sternlight only (Rule 25(a)). Under 20 m she may instead use a tricolour lantern at the masthead, or add RED over GREEN all-round lights at the masthead — never both.';
+      g += lp(376, 170, 'green') + note(548, 140, 'Starboard sidelight (green)', { anchor: 'end' }) + leader(376, 165, 404, 147);
+      g += lp(113, 171, 'white') + note(26, 140, 'Sternlight (white)', { anchor: 'start' }) + leader(113, 166, 92, 147);
+      if (day) g += shape('cone-down', 304, 92) + leader(318, 104, 362, 104) + notes(440, 92, ['Cone, apex DOWN (black):', 'sails up + engine running', '= power-driven (Rule 25(e))']);
+      cap = day ? 'By day a sailing boat motoring with sails set hangs a black cone, apex downwards, forward. At night she then shows power-driven lights: white masthead light + sidelights + sternlight.' : 'Under sail: sidelights + sternlight only (Rule 25(a)). Under 20 m she may instead use a tricolour lantern at the masthead, or add RED over GREEN all-round lights at the masthead — never both.';
       label = 'Side view of a sailing yacht with sidelights and sternlight and no masthead light' + (day ? ', with the motoring cone apex down' : '');
     } else if (type === 'ship') {
-      g += `<polygon points="40,${wl} 46,170 520,170 544,186 536,${wl}" fill="${hull}"/><rect x="90" y="118" width="100" height="52" fill="${hull}" stroke="${day ? '#fff' : '#000'}" stroke-width=".5"/><rect x="110" y="98" width="24" height="20" fill="${hull}"/>` + mast(415, 170, 96) + mast(140, 118, 60);
-      g += lp(415, 92, 'white', 'Forward masthead light (white), ≤ ¼ of the length from the bow', { side: 'right', dy: -18 }) + lp(140, 56, 'white', 'After masthead light (white), HIGHER', { side: 'right' }) + lp(195, 128, 'green', 'Starboard sidelight (green), lower than ¾ of the forward masthead height', { side: 'right' }) + lp(43, 166, 'white', 'Sternlight (white)', { side: 'right', dy: -30 }) + leader(43, 160, 50, 143);
+      g += `<polygon points="40,${wl} 46,170 520,170 544,186 536,${wl}" fill="${hull}"/>` + box(90, 118, 100, 52) + `<rect x="110" y="98" width="24" height="20" fill="${hull}"/>` + mast(415, 170, 96) + mast(140, 118, 60);
+      g += lp(415, 92, 'white') + note(360, 72, 'Forward masthead light (white)', { anchor: 'start' }) + note(430, 110, '≤ ¼ of the length from the bow', { size: 10, weight: 500 });
+      g += lp(140, 56, 'white') + note(153, 40, 'After masthead light (white) — HIGHER', { anchor: 'start' });
+      g += lp(195, 128, 'green') + note(208, 124, 'Starboard sidelight (green)', { anchor: 'start' }) + note(208, 137, 'lower than ¾ of the forward masthead height', { anchor: 'start', size: 10, weight: 500 });
+      g += lp(43, 166, 'white') + note(26, 140, 'Sternlight (white)', { anchor: 'start' }) + leader(43, 161, 50, 148);
       g += dash(415, 92, 300, 92, mut, 1) + dash(140, 56, 300, 56, mut, 1) + dim(300, 56, 92, '≥ 4.5 m higher');
-      g += line(140, 230, 415, 230, ink, 1) + arrowHead(140, 230, 270, ink, 7) + arrowHead(415, 230, 90, ink, 7) + note(277, 243, 'horizontal distance ≥ half the ship’s length', { size: 10 });
-      if (day) { g += shape('ball', 480, 112) + leader(480, 125, 480, 150) + note(480, 160, 'At anchor by day: one black ball forward (Rule 30)', { size: 10 }); }
-      cap = 'Power-driven vessel of 50 m or more: two masthead lights, the after one at least 4.5 m higher. Under 50 m the after masthead light is optional (Rule 23(a)).';
+      g += line(140, 230, 415, 230, ink, 1) + arrowHead(140, 230, 270, ink, 7) + arrowHead(415, 230, 90, ink, 7) + note(277, 243, 'horizontal distance ≥ half the ship’s length', { size: 10, weight: 500 });
+      if (day) g += shape('ball', 520, 116) + line(520, 140, 520, 172, '#555', 2) + notes(548, 152, ['At anchor by day:', 'one black ball forward (Rule 30)'], { anchor: 'end' });
+      cap = 'Power-driven vessel of 50 m or more: two masthead lights, the after one at least 4.5 m higher than the forward one. Under 50 m the after masthead light is optional (Rule 23(a)).';
       label = 'Side view of a ship over 50 m with forward and higher after masthead lights, green sidelight and sternlight';
     } else if (type === 'fishing') {
       const trawl = !!opts.trawling;
-      g += `<polygon points="80,${wl} 86,170 420,170 442,188 434,${wl}" fill="${hull}"/><rect x="280" y="132" width="80" height="38" fill="${hull}" stroke="${day ? '#fff' : '#000'}" stroke-width=".5"/>` + mast(220, 170, 56);
-      if (day) { g += shape('two-cones', 220, 92) + note(250, 92, 'Two cones, apexes together (Rule 26)', { anchor: 'start' }); }
-      else g += lp(220, 70, trawl ? 'green' : 'red', (trawl ? 'GREEN' : 'RED') + ' over', { side: 'right' }) + lp(220, 100, 'white', 'WHITE — all-round, ' + (trawl ? 'trawling' : 'fishing (not trawling)'), { side: 'right' });
-      g += lp(366, 150, 'green', 'Starboard sidelight (green) — only when making way', { side: 'right', dy: -24 }) + leader(366, 145, 380, 130) + lp(83, 166, 'white', 'Sternlight (white) — when making way', { side: 'right', dy: -30 }) + leader(83, 160, 90, 143);
-      g += `<path d="M82,180 C40,200 30,250 10,280" fill="none" stroke="${mut}" stroke-width="1.5" stroke-dasharray="4 4"/>` + note(60, 250, 'gear', { fill: mut, size: 10 });
+      g += `<polygon points="80,${wl} 86,170 420,170 442,188 434,${wl}" fill="${hull}"/>` + box(280, 132, 80, 38) + mast(220, 170, 56);
+      if (day) g += shape('two-cones', 220, 58) + note(250, 84, 'Two cones, apexes together (Rule 26)', { anchor: 'start' });
+      else g += lp(220, 70, trawl ? 'green' : 'red') + note(233, 70, (trawl ? 'GREEN' : 'RED') + ' over', { anchor: 'start' }) + lp(220, 100, 'white') + note(233, 100, 'WHITE — all-round, ' + (trawl ? 'trawling' : 'fishing (not trawling)'), { anchor: 'start' });
+      g += lp(366, 150, 'green') + notes(379, 124, ['Starboard sidelight (green)', 'only when making way'], { anchor: 'start' }) + leader(366, 145, 376, 132);
+      g += lp(83, 166, 'white') + notes(26, 124, ['Sternlight (white)', 'only when making way'], { anchor: 'start' }) + leader(83, 161, 70, 138);
+      g += `<path d="M82,182 C60,195 40,215 22,232" fill="none" stroke="${mut}" stroke-width="1.5" stroke-dasharray="4 4"/>` + note(46, 222, 'gear', { fill: mut, size: 10, weight: 500 });
       cap = (trawl ? 'Green over white = trawling at night. ' : 'Red over white = fishing at night; green over white would mean trawling. ') + 'Sidelights and sternlight are added only when making way; at anchor she keeps the fishing lights (Rule 26). A trawler of 50 m or more adds a masthead light abaft of and higher than the green light.';
       label = 'Side view of a fishing vessel showing ' + (trawl ? 'green' : 'red') + ' over white all-round lights, green sidelight and sternlight';
     } else { // tug
       const long = !!opts.long;
-      g += `<polygon points="300,${wl} 306,170 500,170 522,186 514,${wl}" fill="${hull}"/><rect x="420" y="134" width="60" height="36" fill="${hull}" stroke="${day ? '#fff' : '#000'}" stroke-width=".5"/>` + mast(440, 134, long ? 50 : 74) + line(306, 170, 306, 142, day ? '#555' : NIGHT_MAST, 3);
+      g += `<polygon points="300,${wl} 306,170 500,170 522,186 514,${wl}" fill="${hull}"/>` + box(420, 134, 60, 36) + mast(440, 134, long ? 50 : 74) + line(306, 170, 306, 140, day ? '#555' : NIGHT_MAST, 3);
       g += `<polygon points="40,${wl} 44,178 200,178 212,190 206,${wl}" fill="${hull}"/><path d="M304,172 Q250,200 206,186" fill="none" stroke="${ink}" stroke-width="1.5"/>`;
-      if (day) { g += shape('diamond', 440, 92) + shape('diamond', 120, 140) + note(440, 60, 'Diamond on tug AND tow when the tow is over 200 m (Rule 24)', { size: 10 }); }
+      if (day) g += shape('diamond', 440, 92) + shape('diamond', 120, 118) + line(120, 162, 120, 178, '#555', 2) + note(440, 60, 'Diamond on the tug AND on the tow when the tow is over 200 m (Rule 24)', { size: 10 });
       else {
-        g += lp(440, 104, 'white', 'Two masthead lights (white)' + (long ? '' : ' in a vertical line'), { side: 'right' }) + lp(440, 80, 'white', long ? 'three when the tow exceeds 200 m' : '', { side: 'right' });
-        if (long) g += lp(440, 56, 'white', '', {});
-        g += lp(306, 146, 'yellow', 'YELLOW towing light ABOVE', { side: 'left' }) + lp(306, 168, 'white', 'the white sternlight', { side: 'left' });
-        g += lp(482, 152, 'green', 'green sidelight', { side: 'right', dy: -22 }) + leader(482, 147, 500, 132) + lp(196, 174, 'green', 'tow: green sidelight', { side: 'right', dy: -28 }) + leader(196, 169, 210, 150) + lp(43, 174, 'white', 'tow: sternlight (white)', { side: 'right', dy: -30 }) + leader(43, 169, 50, 148);
+        [104, 80].concat(long ? [56] : []).forEach(y => { g += lp(440, y, 'white') + note(427, y, 'white', { anchor: 'end', fill: mut, size: 10 }); });
+        g += notes(560, 68, ['Masthead lights (white)', 'two in a vertical line —', 'three if the tow > 200 m']);
+        g += lp(306, 146, 'yellow') + lp(306, 168, 'white') + notes(306, 112, ['YELLOW towing light', 'ABOVE the white sternlight']);
+        g += lp(482, 152, 'green') + note(495, 128, 'green sidelight', { anchor: 'start' }) + leader(482, 147, 495, 134);
+        g += lp(196, 174, 'green') + note(150, 152, 'tow: green sidelight') + leader(196, 169, 175, 158) + lp(43, 174, 'white') + note(90, 128, 'tow: sternlight (white)') + leader(43, 169, 60, 136);
       }
-      g += line(40, 236, 304, 236, ink, 1) + arrowHead(40, 236, 270, ink, 7) + arrowHead(304, 236, 90, ink, 7) + note(172, 250, 'tow length, tug’s stern to end of tow: > 200 m → 3 masthead lights + diamond', { size: 10 });
+      g += line(40, 236, 304, 236, ink, 1) + arrowHead(40, 236, 270, ink, 7) + arrowHead(304, 236, 90, ink, 7) + notes(172, 250, ['tow length (tug’s stern to end of tow):', '> 200 m → 3 masthead lights + diamond'], { size: 10, weight: 500, lh: 12 });
       cap = 'Tug towing astern (Rule 24): two masthead lights in a vertical line (three if the tow exceeds 200 m), sidelights, sternlight and a YELLOW towing light directly above the sternlight. The towed vessel shows sidelights and a sternlight only.';
       label = 'Side view of a tug towing a barge at night with two masthead lights, yellow towing light above the white sternlight, and the barge showing sidelight and sternlight';
     }
-    g += caption(W / 2, H - 32, cap, W > 600 ? 108 : 94, { size: 11, fill: ink, lh: 13 });
+    g += caption(W / 2, H - (type === 'tug' ? 40 : 32), cap, W > 600 ? 108 : 94, { size: 11, fill: ink, lh: 13 });
     return S.svg(W, H, g, { label: label + (day ? ' (day)' : '') });
   }
 
