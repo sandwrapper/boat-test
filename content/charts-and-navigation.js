@@ -83,7 +83,7 @@
     const W = 360, H = 220;
     let s = rect(80, 14, 200, 170, PAPER, LINE, { rx: 4 }) + rect(81, 15, 198, 168, SHALLOW, 'none', { rx: 4, opacity: .55 });
     s += `<g>${draw(180, 96)}</g>`;
-    s += T(W / 2, 205, 'chart symbol (INT1 style) — what does it mean?', { size: 11.5, fill: MUTED });
+    s += T(W / 2, 205, 'Chart symbol (INT1 style): what does it mean?', { size: 11.5, fill: MUTED });
     return S.svg(W, H, s, { label: 'A chart symbol shown for identification' });
   }
   /* lesson rows: cells with captions */
@@ -96,36 +96,36 @@
       const col = i % cols, row = Math.floor(i / cols), x0 = col * cw, y0 = 36 + row * ch;
       s += rect(x0 + 8, y0, cw - 16, 96, PAPER, LINE, { rx: 4 }) + rect(x0 + 9, y0 + 1, cw - 18, 94, SHALLOW, 'none', { rx: 4, opacity: .55 });
       s += `<g>${SYM[c.kind](x0 + cw / 2, y0 + 48)}</g>`;
-      c.label.forEach((l, k) => { s += T(x0 + cw / 2, y0 + 110 + k * 13, l, { size: 11, weight: k === 0 ? 700 : 500, fill: k === 0 ? INK : INK2 }); });
+      c.label.forEach((l, k) => { s += T(x0 + cw / 2, y0 + 109 + k * 13, l, { size: 10.5, weight: k === 0 ? 700 : 500, fill: k === 0 ? INK : INK2 }); });
     });
-    if (opts.footer) s += T(W / 2, H - 10, opts.footer, { size: 11, fill: MUTED });
+    if (opts.footer) s += T(W / 2, H - 10, opts.footer, { size: 10.5, fill: MUTED });
     return S.svg(W, H, s, { label: opts.label || title });
   }
   /* Spec 5: rocks and shoals */
   function rockRow() {
     return symRow('Rocks and shoals in the chart (INT1 section K)', [
-      { kind: 'islet', label: ['Islet, never covers', 'height above MHW in brackets (K10)'] },
-      { kind: 'rock-drying', label: ['Rock that covers and uncovers', 'between chart datum and MHW (K11)'] },
-      { kind: 'rock-awash', label: ['Rock awash at chart datum', 'CD to 0.5 m below CD (K12)'] },
-      { kind: 'rock-submerged', label: ['Underwater rock, depth unknown', 'dangerous to navigation (K13)'] },
-      { kind: 'rock-known', label: ['Norwegian charts: + with depth', 'rock 0.5 to 9.9 m deep'] },
-      { kind: 'rock-circle', label: ['Rock of known depth, dangerous', 'upright figure in a danger circle (K14)'] },
-      { kind: 'shoal-upright', label: ['Upright 12 among italic depths', 'shoal deeper than 10 m (shallowest point)'] },
-      { kind: 'danger-line', label: ['Dotted danger line', 'unsafe area: keep outside it (K1)'] },
-    ], 4, { footer: 'Upright figures = rocks and shoals; italic (sloping) figures = ordinary soundings. Depth is in metres below chart datum.', label: 'Eight chart symbols for rocks and shoals: islet with height in brackets, six-pointed star for a drying rock, cross with four dots for a rock awash, plain cross for an underwater rock of unknown depth, cross with the figure 7,5 for a Norwegian rock of known depth, upright 7 in a dotted circle for a dangerous rock of known depth, upright 12 among italic soundings for a shoal deeper than 10 m, and a dotted danger line enclosing two rocks.' });
+      { kind: 'islet', label: ['Islet, never covers', 'height above MHW', 'in brackets (K10)'] },
+      { kind: 'rock-drying', label: ['Rock, covers and uncovers', 'between chart datum', 'and MHW (K11)'] },
+      { kind: 'rock-awash', label: ['Rock awash at chart datum', 'between CD and', '0.5 m below CD (K12)'] },
+      { kind: 'rock-submerged', label: ['Rock, depth unknown', 'dangerous to', 'navigation (K13)'] },
+      { kind: 'rock-known', label: ['Norwegian: + with depth', 'rock 0.5 to 9.9 m deep'] },
+      { kind: 'rock-circle', label: ['Known depth, dangerous', 'upright figure in a', 'danger circle (K14)'] },
+      { kind: 'shoal-upright', label: ['Upright 12 among italics', 'shoal deeper than 10 m', '(its shallowest point)'] },
+      { kind: 'danger-line', label: ['Dotted danger line', 'unsafe area, keep out', '(K1)'] },
+    ], 4, { footer: 'Upright figures = rocks and shoals; italic (sloping) figures = ordinary soundings. Depths in metres below chart datum.', label: 'Eight chart symbols for rocks and shoals: islet with height in brackets, six-pointed star for a drying rock, cross with four dots for a rock awash, plain cross for an underwater rock of unknown depth, cross with the figure 7,5 for a Norwegian rock of known depth, upright 7 in a dotted circle for a dangerous rock of known depth, upright 12 among italic soundings for a shoal deeper than 10 m, and a dotted danger line enclosing two rocks.' });
   }
   /* Spec 6: cables, pipelines, overhead lines, bridges, areas */
   function linesRow() {
-    return symRow('Cables, pipelines, overhead lines, bridges and areas (INT1 sections D, L, M, N)', [
+    return symRow('Cables, pipelines, overhead lines, bridges and areas (INT1 D, L, M, N)', [
       { kind: 'cable', label: ['Submarine cable', 'wavy magenta line (L30)'] },
-      { kind: 'power-cable', label: ['Submarine power cable', 'wavy line with lightning zigzags (L31)'] },
-      { kind: 'cable-area', label: ['Cable area', 'dashed boundary with the cable symbol (L30.2)'] },
-      { kind: 'pipeline', label: ['Pipeline', 'long dash, dot, long dash; "Gas", "Oil", "Water" (L40)'] },
-      { kind: 'overhead-cable', label: ['Overhead power line', 'pylons and a line; 22 = clearance in m above HAT (D26)'] },
-      { kind: 'bridge', label: ['Fixed bridge', '12 = vertical clearance in m above HAT (D20)'] },
-      { kind: 'no-anchor', label: ['Anchoring prohibited', 'anchor struck through (N20)'] },
-      { kind: 'cable-ferry', label: ['Cable ferry', 'dashed line; wire near the surface (M51)'] },
-    ], 4, { footer: 'Magenta = information printed on the chart (cables, pipelines, areas, ferries); black = physical structures (pylons, bridges).', label: 'Eight chart symbols: wavy magenta submarine cable, power cable with zigzags, cable area box, dash-dot pipeline labelled Gas, overhead power line between two pylons with clearance 22, fixed bridge with clearance 12, anchor struck through for anchoring prohibited, and a dashed cable-ferry line.' });
+      { kind: 'power-cable', label: ['Submarine power cable', 'wavy line with', 'lightning zigzags (L31)'] },
+      { kind: 'cable-area', label: ['Cable area', 'dashed boundary with', 'the cable symbol (L30.2)'] },
+      { kind: 'pipeline', label: ['Pipeline', 'long dash, dot, long dash', '"Gas", "Oil", "Water" (L40)'] },
+      { kind: 'overhead-cable', label: ['Overhead power line', 'pylons and a line; 22 =', 'clearance in m above HAT'] },
+      { kind: 'bridge', label: ['Fixed bridge', '12 = vertical clearance', 'in m above HAT (D20)'] },
+      { kind: 'no-anchor', label: ['Anchoring prohibited', 'anchor struck through', '(N20)'] },
+      { kind: 'cable-ferry', label: ['Cable ferry', 'dashed line; wire near', 'the surface (M51)'] },
+    ], 4, { footer: 'Magenta = information printed on the chart (cables, pipelines, areas, ferries); black = physical structures.', label: 'Eight chart symbols: wavy magenta submarine cable, power cable with zigzags, cable area box, dash-dot pipeline labelled Gas, overhead power line between two pylons with clearance 22, fixed bridge with clearance 12, anchor struck through for anchoring prohibited, and a dashed cable-ferry line.' });
   }
   /* Spec 4 (cross-section): the reference levels */
   function datumSection() {
@@ -133,15 +133,13 @@
     const yHAT = 150, yMHW = 170, yMSL = 190, yLAT = 215, yDRY = 230;
     let s = rect(0, 0, W, H, SKY, 'none', { rx: 8 });
     // sea body (down to the seabed) and seabed
-    const seabed = `M20,330 Q120,345 220,320 Q320,290 400,250 Q430,235 452,${yMHW}`;
-    s += `<path d="M20,${yMSL} L452,${yMSL} ${seabed.replace('M20,330', 'L452,' + yMHW + ' ' + seabed.slice(6).split(' ').reverse().join(' '))} Z" fill="none"/>`;
     s += `<path d="M20,${yMSL} H452 V${yMHW} Q430,235 400,250 Q320,290 220,320 Q120,345 20,330 Z" fill="${WATER}"/>`;
     s += `<path d="M20,330 Q120,345 220,320 Q320,290 400,250 Q430,235 452,${yMHW} L452,${H} L20,${H} Z" fill="${SEABED}"/>`;
     // land: shore at MHW, hill to the right
     s += `<path d="M452,${yMHW} Q500,150 540,120 Q580,60 600,58 Q620,60 640,80 L640,${H} L452,${H} Z" fill="${LAND}" stroke="${INK}" stroke-width="1.3"/>`;
     // drying area shading between MHW and CD-0.5 along the shore
     s += `<path d="M452,${yMHW} Q430,235 404,248 L404,${yDRY} L452,${yDRY} Z" fill="${C.green}" opacity=".35"/>`;
-    s += T(372, 244, 'drying area', { size: 10.5, fill: LAND_INK, weight: 700 });
+    s += T(372, 236, 'drying area', { size: 10.5, fill: LAND_INK, weight: 700 });
     // level lines across the picture
     const levels = [[yHAT, 'HAT', 'highest astronomical tide', true], [yMHW, 'MHW', 'mean high water = the coastline', false], [yMSL, 'MSL', 'mean sea level', false], [yLAT, 'LAT = chart datum', 'depths are measured from here', false], [yDRY, 'CD − 0.5 m', 'lower limit of the drying area', false]];
     levels.forEach(([y, a, b], i) => {
@@ -153,11 +151,11 @@
     s += T(130, 60, 'bridge', { size: 11.5, weight: 700 });
     s += dim(120, 88, yHAT, ['Vertical clearance', 'measured from HAT'], MAG, { dx: 8 });
     // charted depth arrow
-    s += dim(330, yLAT, 288, ['Charted depth', 'below chart datum (LAT)'], LAND_INK, { dx: 8 });
+    s += dim(300, yLAT, 294, ['Charted depth', 'below chart datum (LAT)'], LAND_INK, { dx: 8 });
     // lantern on the shore
     const lx = 480, lyTop = 95;
     s += rect(lx - 6, lyTop + 8, 12, 150 - lyTop, PAPER, INK, { rx: 1 }) + `<circle cx="${lx}" cy="${lyTop + 2}" r="7" fill="${C.yellow}" stroke="${INK}" stroke-width="1.2"/>`;
-    s += dim(500, lyTop + 2, yMHW, ['Light elevation (21m)', 'above MHW'], LAND_INK, { dx: 8 });
+    s += dim(466, lyTop + 2, yMHW, ['Light elevation (21m)', 'above MHW'], LAND_INK, { dx: -8, anchor: 'end' });
     // hill height
     s += dim(600, 58, yMSL, ['Land height', 'above MSL'], LAND_INK, { dx: -8, anchor: 'end' });
     // notes
@@ -198,12 +196,12 @@
   }
   /* Spec 17 simplified: tidal range along the coast, south to north */
   function tideStrip() {
-    const W = 640, H = 300;
+    const W = 640, H = 322;
     const st = [['Oslo', 0.72], ['Mandal', 0.50], ['Bergen', 1.8], ['Kristiansund', 2.65], ['Harstad', 2.68], ['Narvik', 3.82], ['Vadso', 3.97]];
     let s = T(W / 2, 20, 'Tidal range (HAT minus LAT) along the Norwegian coast', { size: 15, weight: 700 });
     const x0 = 60, x1 = 600, base = 222, scale = 38;
     s += ln(x0 - 20, base, x1 + 20, base, INK, { sw: 1.4 });
-    s += T(x0 - 20, base + 16, 'south and east', { size: 10.5, fill: INK2, anchor: 'start' }) + T(x1 + 20, base + 16, 'north and east', { size: 10.5, fill: INK2, anchor: 'end' });
+    s += T(x0 - 20, base + 16, 'south-east (Skagerrak)', { size: 10.5, fill: INK2, anchor: 'start' }) + T(x1 + 20, base + 16, 'north (Finnmark)', { size: 10.5, fill: INK2, anchor: 'end' });
     st.forEach(([n, v], i) => {
       const x = x0 + i * (x1 - x0) / (st.length - 1), h = v * scale;
       s += rect(x - 16, base - h, 32, h, WATER, C.blue, { rx: 2 });
@@ -212,9 +210,11 @@
     });
     // amphidromic point marker between Mandal and Bergen
     const ax = x0 + 1.5 * (x1 - x0) / (st.length - 1);
-    s += T(ax, base - 30, '*', { size: 30, fill: MAG, weight: 700 }) + T(ax, base - 52, 'amphidromic point west of Egersund:', { size: 10.5, fill: MAG }) + T(ax, base - 40, 'almost no tide', { size: 10.5, fill: MAG });
-    s += rect(20, 262, 600, 30, PAPER, LINE, { rx: 6 });
-    s += T(W / 2, 277, 'South: weather (wind, air pressure) often moves the water more than the tide. North: ranges approach 4 m, two highs and two lows a day.', { size: 11, fill: INK2 });
+    s += T(ax, base - 14, '*', { size: 30, fill: MAG, weight: 700 }) + ln(ax, 64, ax, base - 30, MAG, { sw: 1.2, dash: '3 3' });
+    s += T(ax, 44, 'amphidromic point west of Egersund', { size: 10.5, fill: MAG, weight: 700 }) + T(ax, 57, '(almost no tide)', { size: 10.5, fill: MAG });
+    s += rect(20, 276, 600, 40, PAPER, LINE, { rx: 6 });
+    s += T(W / 2, 290, 'South: the weather (wind, air pressure) often moves the water more than the tide does.', { size: 11, fill: INK2 });
+    s += T(W / 2, 305, 'North: ranges approach 4 m, with two high and two low waters a day.', { size: 11, fill: INK2 });
     return S.svg(W, H, s, { label: 'Bars showing the tidal range from south to north: Oslo 0.72 m, Mandal 0.50 m, Bergen 1.8 m, Kristiansund 2.65 m, Harstad 2.68 m, Narvik 3.82 m, Vadso 3.97 m, with the amphidromic point west of Egersund marked.' });
   }
 
@@ -394,12 +394,13 @@
         id: 'tide',
         title: 'Tide, water level and current in general',
         html: `<p>The tide is the rise and fall of the sea caused by the Moon and the Sun. In Norway it is <strong>semi-diurnal</strong>: two high waters and two low waters a day, about 12 h 25 min apart. The range is largest at <strong>spring tides</strong> around new and full moon and smallest at <strong>neap tides</strong> around half moon. The tide produces tidal streams, which run fastest where the water is squeezed through narrows; the chart and the pilot books tell you where they matter.</p>
+<p><strong>Current in general</strong>: besides tidal streams, water moves because of wind, river outflow and the general coastal circulation. Any current sets the boat sideways, so the course you steer and the track you actually make good are not the same line, and the speed over the ground differs from the speed through the water. Allow for it by steering up-current of the direct course, check the result with a fix or a transit, and remember that the strongest streams run in narrow sounds and around headlands, where they can also raise steep seas against the wind.</p>
 <p>How much the water moves depends on where you are. The <strong>tidal range (HAT minus LAT)</strong> is <strong>0.50 m at Mandal and 0.72 m at Oslo</strong>, grows to <strong>1.8 m at Bergen</strong>, 2.65 m at Kristiansund and 2.68 m at Harstad, and reaches <strong>3.82 m at Narvik and 3.97 m at Vadso</strong>. The small range in the south is caused by an <strong>amphidromic point</strong> west of Egersund, a spot where the tide almost disappears; northward the range grows, and the Lofoten islands concentrate the tidal wave so the largest ranges are near Narvik. In southern Norway the <strong>weather often moves the water more than the tide</strong>: wind and air pressure can push the level above or below the prediction, which is why chart datum there is set below LAT.</p>
 <p>Kartverket publishes official tide tables and the observed and forecast water level in its public online water-level service; the Norwegian Meteorological Institute adds the weather effect five days ahead. Use it for two sums. <strong>Depth</strong>: charted 2,3 m plus a water level 0.8 m above chart datum gives 3.1 m; with a 1.2 m draught the clearance is 1.9 m, but if the weather holds the level 0.3 m <em>below</em> datum, depth is 2.0 m and clearance only 0.8 m. <strong>Clearance</strong>: a bridge charted at 12 m above HAT gives at least 12 m unless a surge takes the level above HAT.</p>
 <div class="callout tip"><p>Planning a passage: pick waypoints in safe water; mark shoals, cables, bridges, ferry routes and prohibited areas; note the lights and marks on the way; check weather and water level; and carry fuel in thirds: one third out, one third back, one third in reserve.</p></div>`,
         illustration: () => tideStrip(),
         caption: 'Tidal range grows from under a metre in the south and east to almost four metres in Finnmark. The amphidromic point west of Egersund explains the small tide in Skagerrak.',
-        keyFacts: ['Semi-diurnal tide: two highs and two lows a day, about 12 h 25 min apart; springs at new and full moon, neaps at half moon', 'Range (HAT − LAT): Mandal 0.50 m, Oslo 0.72 m, Bergen 1.8 m, Narvik 3.82 m, Vadso 3.97 m', 'Amphidromic point west of Egersund = almost no tide in Skagerrak; Lofoten concentrates the tide in the north', 'In the south the weather (wind, air pressure) moves the water more than the tide; the forecast covers five days', 'Actual depth = charted depth + water level above chart datum; fuel rule of thumb: one third out, one third back, one third reserve'],
+        keyFacts: ['Semi-diurnal tide: two highs and two lows a day, about 12 h 25 min apart; springs at new and full moon, neaps at half moon', 'Range (HAT − LAT): Mandal 0.50 m, Oslo 0.72 m, Bergen 1.8 m, Narvik 3.82 m, Vadso 3.97 m', 'Amphidromic point west of Egersund = almost no tide in Skagerrak; Lofoten concentrates the tide in the north', 'In the south the weather (wind, air pressure) moves the water more than the tide; the forecast covers five days', 'Current (tidal stream, wind, river outflow) sets the boat sideways: course steered and track made good differ; steer up-current and check with a fix','Actual depth = charted depth + water level above chart datum; fuel rule of thumb: one third out, one third back, one third reserve'],
         check: { id: 'charts-c12', q: 'The chart shows 2,3 m over a shoal. The water-level service says the level is 0.8 m above chart datum. Your boat draws 1.2 m. What is the clearance under the keel?', options: ['0.3 m', '1.1 m', '1.9 m', '2.3 m'], answer: 2, explanation: 'Actual depth = 2.3 + 0.8 = 3.1 m; minus the 1.2 m draught leaves 1.9 m (F89, WE-7).' },
       },
     ],
@@ -480,7 +481,7 @@
       { id: 'charts-23', q: 'How long is one nautical mile?', options: ['1000 m', '1609 m', '1852 m', '2000 m'], answer: 2, explanation: 'The international nautical mile is 1852 m and equals one minute of latitude (F65). 1609 m is a statute mile.', difficulty: 1, part: 3, tags: ['units'] },
       { id: 'charts-24', q: 'Where do you measure a distance on the chart?', options: ['On the longitude scale along the top border', 'On the latitude scale at the side, level with the leg', 'Anywhere on the compass rose', 'Along the nearest depth contour'], answer: 1, explanation: 'Only minutes of latitude equal nautical miles. Longitude minutes shrink toward the pole and are about half as long at 60°N (F68).', difficulty: 1, part: 3, tags: ['distance'] },
       { id: 'charts-25', q: 'Which position is written correctly?', illustration: () => S.latitudeScale({ position: true }), options: ['010°44,0\'E 59°54,5\'N', '59,54°N 10,44°W', 'N59 E10', '59°54,5\'N 010°44,0\'E'], answer: 3, explanation: 'Latitude first, then longitude, in degrees, minutes and decimal minutes; Norway is north and east and longitude is written with three digits (F64).', difficulty: 1, part: 3, tags: ['position'] },
-      { id: 'charts-26', q: 'At 60°N, roughly how long is one minute of longitude?', options: ['About 0.5 nautical mile', 'Exactly 1 nautical mile', 'About 2 nautical miles', 'About 1852 m'], answer: 0, explanation: 'The length of a longitude minute shrinks with the cosine of latitude; cos 60° = 0.5, so one minute is about 0.5 NM or 926 m (F68).', difficulty: 2, part: 3, tags: ['distance'] },
+      { id: 'charts-26', q: 'At 60°N, roughly how long is one minute of longitude?', options: ['About 0.5 nautical mile', 'Exactly 1 nautical mile', 'About 2 nautical miles', 'About 1.5 nautical miles'], answer: 0, explanation: 'The length of a longitude minute shrinks with the cosine of latitude; cos 60° = 0.5, so one minute is about 0.5 NM or 926 m (F68).', difficulty: 2, part: 3, tags: ['distance'] },
       { id: 'charts-27', q: 'What is the reference level for charted depths in most of Norway?', options: ['Mean sea level', 'Mean high water', 'Highest Astronomical Tide', 'Lowest Astronomical Tide (chart datum)'], answer: 3, explanation: 'Chart datum has been LAT since 1 January 2000; on the south coast it is 20 cm lower and in the inner Oslo fjord 30 cm lower (F10, F11).', difficulty: 1, part: 3, tags: ['datum'] },
       { id: 'charts-28', q: 'Why is chart datum set 20 cm below LAT along the south coast from the Swedish border to Utsira?', options: ['Because the tide there is very large', 'Because the tide there is small and wind and air pressure move the water more than the tide, so the zero level is lowered for safety', 'Because the charts there are older', 'Because the land is sinking'], answer: 1, explanation: 'Kartverket: in the south the weather effect is large compared with the tidal variation, so chart datum is placed 20 cm (inner Oslo fjord 30 cm) below LAT for safety reasons (F11, F100).', difficulty: 3, part: 3, tags: ['datum'] },
       { id: 'charts-29', q: 'What is the scale of the main Norwegian chart series?', options: ['1:10 000', '1:50 000', '1:350 000', '1:1 000 000'], answer: 1, explanation: 'The main series is at 1:50 000 with a few exceptions (143 charts along the mainland coast); harbour charts are 1:5 000 to 1:25 000 and coastal charts 1:350 000 (F3, F4).', difficulty: 2, part: 3, tags: ['chart-series'] },
@@ -525,6 +526,7 @@
       { id: 'charts-58', q: 'Why is the tidal range in Oslo (about 0.7 m) so much smaller than in Narvik (about 3.8 m)?', options: ['An amphidromic point west of Egersund damps the tide in Skagerrak, while the Lofoten islands concentrate it in the north', 'Oslo is further from the Moon', 'The Oslo fjord contains fresh water, which has no tide', 'There is no tide at all south of Bergen'], answer: 0, explanation: 'Kartverket: an amphidromic point (almost no tide) lies west of Egersund; from Stavanger northward the range grows and Lofoten concentrates the tidal wave, so the largest ranges are near Narvik (F98, F99).', difficulty: 3, part: 3, tags: ['tide'] },
       { id: 'charts-59', q: 'When do spring tides (the largest range) occur?', options: ['Only in spring', 'Around half moon', 'Around new and full moon', 'Once a year at midsummer'], answer: 2, explanation: 'Spring tides come around new and full moon, neap tides around half moon; the Norwegian tide is semi-diurnal with two highs and two lows a day (F102).', difficulty: 1, part: 3, tags: ['tide'] },
       { id: 'charts-60', q: 'In southern Norway, what often changes the water level more than the tide does?', options: ['The weather: wind and air pressure', 'Melting glaciers', 'Ship traffic', 'The time of year'], answer: 0, explanation: 'In the south the tidal range is below one metre and wind and air pressure often move the water more than the tide, which is why chart datum there is set below LAT (F100).', difficulty: 2, part: 3, tags: ['tide', 'water-level'] },
+      { id: 'charts-61', q: 'You steer a steady compass course across a sound where a current runs from your port side. What happens to your track?', options: ['Nothing; a current only changes your speed', 'The boat is set to port, so you must steer further to port', 'The compass starts to show the current\'s direction', 'The boat is set to starboard, so the track made good lies to the right of the course steered; aim up-current to compensate'], answer: 3, explanation: 'A current pushes the whole boat sideways, so the course steered and the track made good differ. With the current coming from port the boat is set toward starboard; steer up-current (to port) and check the result with a fix or a transit.', difficulty: 2, part: 3, tags: ['current'] },
     ],
   });
 })();

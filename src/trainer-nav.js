@@ -141,8 +141,8 @@
       const cc = rnd(0, 359), dev = nonZero(-6, 6), vr = Math.random() < 0.75 ? rnd(1, 12) : -rnd(1, 6);
       const mc = norm(cc + dev), tc = norm(mc + vr), rawM = cc + dev, rawT = mc + vr;
       return { kind: 'Compass → true', prompt: `Your steering compass shows ${deg3(cc)}. Deviation on this heading is ${signed(dev)}, variation ${signed(vr)}. What is the true course?`, unit: '° true', answer: tc, tol: 0.5, isAngle: true,
-        steps: [`Compass ${deg3(cc)} ${dev >= 0 ? '+' : '−'} deviation ${Math.abs(dev)}° = ${rawM}${rawM !== mc ? ` → ${deg3(mc)} (wrap at 360)` : '°'} magnetic`,
-          `Magnetic ${deg3(mc)} ${vr >= 0 ? '+' : '−'} variation ${Math.abs(vr)}° = ${rawT}${rawT !== tc ? ` → ${deg3(tc)} (wrap at 360)` : '°'} true`],
+        steps: [`Compass ${deg3(cc)} ${dev >= 0 ? '+' : '−'} deviation ${Math.abs(dev)}° = ${rawM !== mc ? `${rawM} → ${deg3(mc)} (wrap at 360)` : deg3(mc)} magnetic`,
+          `Magnetic ${deg3(mc)} ${vr >= 0 ? '+' : '−'} variation ${Math.abs(vr)}° = ${rawT !== tc ? `${rawT} → ${deg3(tc)} (wrap at 360)` : deg3(tc)} true`],
         rule: 'F80 "CADET" – Compass ADd East to get True: going from compass to magnetic to true, ADD easterly and SUBTRACT westerly errors (F79: east = +, west = −).' + (vr < 0 ? ' Westerly variation is for practice only – all of Norway has easterly variation (F74).' : ''),
         art: () => S.courseTriangle({ compass: cc, variation: vr, deviation: dev }) };
     },
@@ -151,8 +151,8 @@
       const tc = rnd(0, 359), dev = nonZero(-6, 6), vr = Math.random() < 0.75 ? rnd(1, 12) : -rnd(1, 6);
       const mc = norm(tc - vr), cc = norm(mc - dev), rawM = tc - vr, rawC = mc - dev;
       return { kind: 'True → compass', prompt: `The course you drew in the chart is ${deg3(tc)} true. Variation is ${signed(vr)} and the deviation table gives ${signed(dev)}. What course do you steer by compass?`, unit: '° compass', answer: cc, tol: 0.5, isAngle: true,
-        steps: [`True ${deg3(tc)} ${vr >= 0 ? '−' : '+'} variation ${Math.abs(vr)}° = ${rawM}${rawM !== mc ? ` → ${deg3(mc)} (wrap)` : '°'} magnetic`,
-          `Magnetic ${deg3(mc)} ${dev >= 0 ? '−' : '+'} deviation ${Math.abs(dev)}° = ${rawC}${rawC !== cc ? ` → ${deg3(cc)} (wrap)` : '°'} compass`],
+        steps: [`True ${deg3(tc)} ${vr >= 0 ? '−' : '+'} variation ${Math.abs(vr)}° = ${rawM !== mc ? `${rawM} → ${deg3(mc)} (wrap)` : deg3(mc)} magnetic`,
+          `Magnetic ${deg3(mc)} ${dev >= 0 ? '−' : '+'} deviation ${Math.abs(dev)}° = ${rawC !== cc ? `${rawC} → ${deg3(cc)} (wrap)` : deg3(cc)} compass`],
         rule: 'F80: from true to compass do the opposite of CADET – SUBTRACT easterly, ADD westerly (F81: "error east, compass least; error west, compass best"). Worked example F83: 146° true with 4° W variation gives 150° magnetic.' + (vr < 0 ? ' Westerly variation is for practice only – Norway is easterly (F74).' : ''),
         art: () => S.courseTriangle({ true: tc, variation: vr, deviation: dev }) };
     },
@@ -162,20 +162,20 @@
       if (which === 't2m') {
         const mc = norm(start - v), raw = start - v;
         return { kind: 'Variation only', prompt: `True course ${deg3(start)}, variation ${signed(v)}. What is the magnetic course?`, unit: '° magnetic', answer: mc, tol: 0.5, isAngle: true,
-          steps: [`True ${deg3(start)} ${v >= 0 ? '−' : '+'} variation ${Math.abs(v)}° = ${raw}${raw !== mc ? ` → ${deg3(mc)} (wrap)` : '°'} magnetic`],
+          steps: [`True ${deg3(start)} ${v >= 0 ? '−' : '+'} variation ${Math.abs(v)}° = ${raw !== mc ? `${raw} → ${deg3(mc)} (wrap)` : deg3(mc)} magnetic`],
           rule: 'F80: Magnetic = True − variation (east positive), so easterly variation is subtracted and westerly added. F83 worked example: 146° true, 4° W → 150° magnetic.',
           art: () => S.courseTriangle({ true: start, variation: v, deviation: 0 }) };
       }
       if (which === 'm2t') {
         const tc = norm(start + v), raw = start + v;
         return { kind: 'Variation only', prompt: `Magnetic course ${deg3(start)}, variation ${signed(v)}. What is the true course?`, unit: '° true', answer: tc, tol: 0.5, isAngle: true,
-          steps: [`Magnetic ${deg3(start)} ${v >= 0 ? '+' : '−'} variation ${Math.abs(v)}° = ${raw}${raw !== tc ? ` → ${deg3(tc)} (wrap)` : '°'} true`],
+          steps: [`Magnetic ${deg3(start)} ${v >= 0 ? '+' : '−'} variation ${Math.abs(v)}° = ${raw !== tc ? `${raw} → ${deg3(tc)} (wrap)` : deg3(tc)} true`],
           rule: 'F80: True = Magnetic + variation with east positive (CADET). F73: variation is the angle between true and magnetic north.',
           art: () => S.courseTriangle({ compass: start, variation: v, deviation: 0 }) };
       }
       const dev = nonZero(-6, 6), mc = norm(start + dev), raw = start + dev;
       return { kind: 'Deviation only', prompt: `Compass course ${deg3(start)}, deviation ${signed(dev)}. What is the magnetic course?`, unit: '° magnetic', answer: mc, tol: 0.5, isAngle: true,
-        steps: [`Compass ${deg3(start)} ${dev >= 0 ? '+' : '−'} deviation ${Math.abs(dev)}° = ${raw}${raw !== mc ? ` → ${deg3(mc)} (wrap)` : '°'} magnetic`],
+        steps: [`Compass ${deg3(start)} ${dev >= 0 ? '+' : '−'} deviation ${Math.abs(dev)}° = ${raw !== mc ? `${raw} → ${deg3(mc)} (wrap)` : deg3(mc)} magnetic`],
         rule: 'F80: Magnetic = Compass + deviation (east positive). F78: deviation comes from the boat\'s own magnetism and changes with heading, so read it from the deviation table for this heading.',
         art: () => S.courseTriangle({ compass: start, variation: 0, deviation: dev }) };
     },
@@ -191,9 +191,11 @@
     // F86: relative bearing is measured from the bow; true bearing = true heading + relative bearing (mod 360).
     'relative'() {
       const hd = rnd(0, 359), rel = pick([10, 20, 30, 45, 60, 90, 120, 135, 225, 240, 270, 300, 315, 330, 340, 350]);
-      const tb = norm(hd + rel), raw = hd + rel, side = rel < 180 ? `${rel}° on the starboard bow (relative ${deg3(rel)})` : `${360 - rel}° on the port bow (relative ${deg3(rel)})`;
+      // "on the bow" only up to 90°; beyond that it is abeam / abaft the beam, so name the side and the angle from the bow
+      const tb = norm(hd + rel), raw = hd + rel, off = rel < 180 ? rel : 360 - rel, sideName = rel < 180 ? 'starboard' : 'port';
+      const side = off === 90 ? `abeam to ${sideName} (relative ${deg3(rel)})` : off < 90 ? `${off}° on the ${sideName} bow (relative ${deg3(rel)})` : `${off}° to ${sideName} of the bow, abaft the beam (relative ${deg3(rel)})`;
       return { kind: 'Relative → true bearing', prompt: `You are steering ${deg3(hd)} true and sight a beacon ${side}. What is the true bearing of the beacon?`, unit: '° true', answer: tb, tol: 0.5, isAngle: true,
-        steps: [`Relative bearing measured clockwise from the bow = ${deg3(rel)}`, `True bearing = heading + relative = ${hd} + ${rel} = ${raw}${raw !== tb ? ` → ${deg3(tb)} (wrap at 360)` : '°'}`],
+        steps: [`Relative bearing measured clockwise from the bow = ${deg3(rel)}`, `True bearing = heading + relative = ${hd} + ${rel} = ${raw !== tb ? `${raw} → ${deg3(tb)} (wrap at 360)` : deg3(tb)}`],
         rule: 'F86: a relative bearing is measured from the boat\'s bow, a true bearing from true north; only true bearings are plotted on the chart. Add the relative bearing (clockwise 0–360°) to the true heading.',
         art: () => bearingPlot({ heading: hd, bearing: tb, relative: rel, lines: [`Heading ${deg3(hd)} true`, `Relative ${deg3(rel)} (dashed arc)`, 'True bearing = heading + relative', `${hd} + ${rel} = ${raw}${raw !== tb ? ` − 360 = ${tb}` : ''}`, `= ${deg3(tb)} true`], label: `Heading ${deg3(hd)}, relative bearing ${deg3(rel)}, true bearing ${deg3(tb)}` }) };
     },
@@ -251,8 +253,9 @@
     // F76: the rose gives variation + annual change, e.g. "4° E 2020 (8'W)" = 4° E decreasing 8′ per year.
     // Worked example 3: "3° E 2020 (10'E)" → in 2026, 3° + 6 × 10′ = 4° E.  Values chosen so the result is a whole or half degree.
     'variation-update'() {
-      const base = rnd(2, 8), year = pick([2015, 2020]), ch = pick([[6, 5], [10, 6], [10, 3], [12, 5], [5, 6], [15, 2], [15, 4], [6, 10], [10, 9]]);
+      const base = rnd(2, 8), ch = pick([[6, 5], [10, 6], [10, 3], [12, 5], [5, 6], [15, 2], [15, 4], [6, 10], [10, 9]]);
       const [mins, years] = ch, dir = Math.random() < 0.7 ? 'E' : 'W';
+      const year = years > 6 ? 2015 : pick([2015, 2020]);        // target year stays ≤ 2026 (today), like a real chart excerpt
       const total = mins * years, delta = total / 60 * (dir === 'E' ? 1 : -1), result = base + delta;
       if (result <= 0) return templates['variation-update']();
       const target = year + years;
@@ -285,6 +288,9 @@
       <div class="stage" id="nvStage" hidden></div>`;
     const $ = s => root.querySelector(s);
     const input = $('#nvInput'), stage = $('#nvStage'), sol = $('#nvSolution'), result = $('#nvResult');
+    // .btn sets display:flex, which beats the [hidden] attribute, so toggle display explicitly.
+    const show = (el, on) => { el.hidden = !on; el.style.display = on ? '' : 'none'; };
+    const btnCheck = $('#nvCheck'), btnShow = $('#nvShow'), btnNext = $('#nvNext');
 
     function makeRound() {
       // never the same template twice in a row, and never the identical prompt
@@ -300,8 +306,8 @@
       $('#nvKind').textContent = round.kind; $('#nvPrompt').textContent = round.prompt; $('#nvUnit').textContent = round.unit;
       input.value = ''; input.disabled = false; input.placeholder = round.isClock ? 'HH:MM' : '?';
       result.textContent = ''; result.className = 'result';
-      sol.hidden = true; sol.innerHTML = ''; stage.hidden = true; stage.innerHTML = '';
-      $('#nvCheck').hidden = false; $('#nvShow').hidden = false; $('#nvNext').hidden = true;
+      show(sol, false); sol.innerHTML = ''; show(stage, false); stage.innerHTML = '';
+      show(btnCheck, true); show(btnShow, true); show(btnNext, false);
       input.focus();
     }
     function fmtAnswer(r) {
@@ -315,11 +321,11 @@
       input.disabled = true;
       result.className = 'result ' + (ok ? 'good' : 'badr');
       result.innerHTML = gaveUp ? `<strong>Solution shown.</strong> The answer is ${esc(fmtAnswer(round))}.` : ok ? `<strong>Correct.</strong> ${esc(fmtAnswer(round))}.` : `<strong>No.</strong> You typed ${esc(typed)}; the answer is ${esc(fmtAnswer(round))}.`;
-      sol.hidden = false;
+      show(sol, true);
       sol.innerHTML = `<div class="explain ${ok ? '' : 'bad'}"><div class="eyebrow" style="margin-bottom:.3rem">Worked solution</div><ol style="margin:0 0 .5rem;padding-left:1.3rem">${round.steps.map(s => `<li class="num" style="font-family:var(--font-body)">${esc(s)}</li>`).join('')}</ol><p class="small" style="margin:0;color:var(--ink-2)"><b>Rule:</b> ${esc(round.rule)}</p></div>`;
-      stage.hidden = false; stage.innerHTML = B.renderArt(round.art);
+      show(stage, true); stage.innerHTML = B.renderArt(round.art);
       $('#nvStreak').textContent = streak; $('#nvScore').textContent = `${right}/${total}`;
-      $('#nvCheck').hidden = true; $('#nvShow').hidden = true; $('#nvNext').hidden = false; $('#nvNext').focus();
+      show(btnCheck, false); show(btnShow, false); show(btnNext, true); btnNext.focus();
     }
     function check() {
       if (locked) return;
