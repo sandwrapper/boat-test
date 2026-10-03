@@ -126,23 +126,23 @@
 
   // ---------- IL-2 age ladder ----------
   function ageLadder() {
-    const W = 640, H = 380, rl = 262, rr = 330;
+    const W = 640, H = 380, rl = 250, rr = 310;
     let s = line(rl, 36, rl, 352, INK, { sw: 4 }) + line(rr, 36, rr, 352, INK, { sw: 4 });
     const rungs = [
-      [18, 62, ['high-speed certificate issued (boats capable of 50 knots or more);', 'recreational skipper certificate D5L (15 to 24 m)']],
-      [17, 122, ['may take the high-speed course (certificate comes at 18)']],
-      [16, 182, ['boating licence issued; may operate more than 10 hp']],
-      [14, 258, ['may sit the boating exam (licence held back until 16)']],
-      [13, 322, ['organised training or competition only, with safety supervision']],
+      [18, 62, ['high-speed certificate issued (50 knots or more);', 'skipper certificate D5L / D5LA (15 to 24 m)']],
+      [17, 122, ['may take the high-speed course', '(the certificate is issued at 18)']],
+      [16, 182, ['boating licence issued;', 'may operate more than 10 hp (7.5 kW)']],
+      [14, 258, ['may sit the boating exam', '(licence held back until 16)']],
+      [13, 322, ['organised training or competition only,', 'with safety supervision']],
     ];
     rungs.forEach(([age, y, txt]) => {
       s += line(rl, y, rr, y, INK, { sw: 4 }) + `<circle cx="${(rl + rr) / 2}" cy="${y}" r="15" fill="${PAPER}" stroke="${INK}" stroke-width="2"/>` + T((rl + rr) / 2, y, String(age), { size: 13, weight: 800 });
-      s += lines(rr + 16, y - (txt.length - 1) * 7, txt, { size: 12, anchor: 'start', lh: 14, fill: INK2 });
+      s += lines(rr + 16, y - (txt.length - 1) * 7, txt, { size: 11.5, anchor: 'start', lh: 14, fill: INK2 });
     });
     // bracket "under 16" covering the 13 and 14 rungs up to the 16 rung
     s += `<path d="M${rl - 14},188 h-10 v150 h10" fill="none" stroke="${WARN}" stroke-width="2"/>`;
-    s += lines(rl - 34, 232, ['Under 16: at most 10 hp (7.5 kW)', 'AND at most 8 m.', 'No speed-capability limit', 'since 1 July 2021.'], { size: 12, anchor: 'end', lh: 15, weight: 600, fill: INK2 });
-    s += T(170, 300, '"10 knots"', { size: 13, fill: MUTED, weight: 700 }) + line(140, 300, 200, 300, MUTED, { sw: 2 }) + T(170, 316, 'old rule, abolished 1 July 2021', { size: 10, fill: MUTED });
+    s += lines(rl - 34, 222, ['Under 16: max 10 hp (7.5 kW)', 'AND max 8 m.', 'No speed-capability limit', 'since 1 July 2021.'], { size: 12, anchor: 'end', lh: 15, weight: 600, fill: INK2 });
+    s += T(130, 300, '"10 knots"', { size: 13, fill: MUTED, weight: 700 }) + line(98, 300, 162, 300, MUTED, { sw: 2 }) + T(130, 316, 'old rule, abolished 1 July 2021', { size: 10, fill: MUTED });
     s += T(W / 2, 18, 'Age steps for recreational boating', { size: 15, weight: 700 });
     s += T(610, 366, 'rules from the licence regulation of 3 March 2009', { size: 10, fill: MUTED, anchor: 'end' });
     return S.svg(W, H, s, { label: 'Age ladder: 13, 14, 16, 17 and 18' });
@@ -150,21 +150,21 @@
 
   // ---------- IL-3 alcohol limits ----------
   function alcoholGraphic() {
-    const W = 640, H = 340, wl = 160;
-    let s = rect(0, wl, W, 14, SHALLOW, 'none', { rx: 0 }) + line(300, 20, 300, 320, LINE, { dash: '4 4' });
+    const W = 640, H = 360, wl = 160;
+    let s = rect(0, wl, W, 14, SHALLOW, 'none', { rx: 0 }) + line(300, 20, 300, 236, LINE, { dash: '4 4' });
     s += boatSide(70, wl, 150, 22, C.hullLight, { cabin: 18, outboard: true });
-    s += T(150, 56, '0.8 ‰', { size: 34, weight: 800 }) + T(150, 90, 'blood alcohol', { size: 11, fill: MUTED }) + T(150, 112, '0.4 mg/l breath', { size: 15, weight: 700, fill: INK2 });
-    s += T(150, wl + 32, 'small craft under 15 m', { size: 13, weight: 700 }) + T(150, wl + 48, 'Small Craft Act, Section 33', { size: 11, fill: MUTED });
-    s += shipSide(360, wl, 240, 26, C.hullDark);
-    s += T(480, 56, '0.2 ‰', { size: 34, weight: 800 }) + T(480, 90, 'blood alcohol', { size: 11, fill: MUTED }) + T(480, 112, '0.1 mg/l breath', { size: 15, weight: 700, fill: INK2 });
-    s += T(480, wl + 32, 'ships 15 m and over', { size: 13, weight: 700 }) + T(480, wl + 48, 'Maritime Code, Section 143', { size: 11, fill: MUTED });
+    s += T(150, 50, '0.8 ‰', { size: 34, weight: 800 }) + T(150, 80, 'blood alcohol', { size: 11, fill: MUTED });
+    s += T(150, wl + 32, 'small craft under 15 m', { size: 13, weight: 700 }) + T(150, wl + 50, '0.4 mg/l breath', { size: 14, weight: 700, fill: INK2 }) + T(150, wl + 67, 'Small Craft Act, Section 33', { size: 11, fill: MUTED });
+    s += shipSide(360, wl, 240, 22, C.hullDark);
+    s += T(480, 50, '0.2 ‰', { size: 34, weight: 800 }) + T(480, 80, 'blood alcohol', { size: 11, fill: MUTED });
+    s += T(480, wl + 32, 'ships 15 m and over', { size: 13, weight: 700 }) + T(480, wl + 50, '0.1 mg/l breath', { size: 14, weight: 700, fill: INK2 }) + T(480, wl + 67, 'Maritime Code, Section 143', { size: 11, fill: MUTED });
     // who is covered by the 0.8 rule
-    s += `<path d="M30,258 L50,258 L62,250 L56,262 L24,262 Z" fill="${C.hullLight}" stroke="${INK}" stroke-width="1"/><path d="M44,250 L44,222 L60,250 Z" fill="${C.white}" stroke="${INK}" stroke-width="1"/>`;
-    s += lines(74, 246, ['Covered: any boat with an engine, sailing boats', '4.5 m or longer, and boats carrying paying passengers'], { size: 11, anchor: 'start', lh: 13, fill: INK2 });
-    s += `<path d="M24,300 L60,300 L54,308 L30,308 Z" fill="${C.hullLight}" stroke="${INK}" stroke-width="1"/>` + line(38, 300, 30, 290, INK, { sw: 1.2 }) + line(48, 300, 56, 290, INK, { sw: 1.2 });
-    s += lines(74, 294, ['Not covered: rowing boats and sailing boats under 4.5 m without', 'an engine. The general "unfit" rule (Section 32) still applies.'], { size: 11, anchor: 'start', lh: 13, fill: INK2 });
-    s += clock(350, 272, 22) + T(350, 306, '6 h', { size: 14, weight: 800 });
-    s += lines(386, 258, ['After an incident that may be investigated:', 'no alcohol or other intoxicants for', 'six hours after the trip ended.'], { size: 11, anchor: 'start', lh: 14, fill: INK2 });
+    s += `<path d="M30,278 L50,278 L62,270 L56,282 L24,282 Z" fill="${C.hullLight}" stroke="${INK}" stroke-width="1"/><path d="M44,270 L44,242 L60,270 Z" fill="${C.white}" stroke="${INK}" stroke-width="1"/>`;
+    s += lines(74, 266, ['Covered: any boat with an engine, sailing boats', '4.5 m or longer, and boats carrying paying passengers'], { size: 11, anchor: 'start', lh: 13, fill: INK2 });
+    s += `<path d="M24,322 L60,322 L54,330 L30,330 Z" fill="${C.hullLight}" stroke="${INK}" stroke-width="1"/>` + line(38, 322, 30, 312, INK, { sw: 1.2 }) + line(48, 322, 56, 312, INK, { sw: 1.2 });
+    s += lines(74, 316, ['Not covered: rowing boats and sailing boats under 4.5 m without', 'an engine. The general "unfit" rule (Section 32) still applies.'], { size: 11, anchor: 'start', lh: 13, fill: INK2 });
+    s += clock(440, 290, 22) + T(440, 326, '6 h', { size: 14, weight: 800 });
+    s += lines(474, 268, ['After an incident that may', 'be investigated: no alcohol', 'or other intoxicants for six', 'hours after the trip ended.'], { size: 11, anchor: 'start', lh: 14, fill: INK2 });
     return S.svg(W, H, s, { label: 'Alcohol limits: 0.8 per mille under 15 m, 0.2 per mille from 15 m' });
   }
 
@@ -226,24 +226,25 @@
     s += arrow([[30, 90], [600, 90]], INK, { sw: 2.2 }) + boatPlan(300, 90, 40, 15, C.hullLight, 90, { wake: true });
     s += rect(30, 24, 580, 44, PAPER, LINE) + lines(320, 38, ['Normal speed, but always adapt speed so that your wash causes no danger,', 'damage or nuisance to swimmers, paddlers, other boats, quays or wildlife (Section 2).'], { size: 11.5, lh: 14, fill: INK2 });
     // buoy label
-    s += rect(318, 290, 300, 50, PAPER, LINE) + lines(468, 303, ['Yellow buoys of a public bathing area:', 'no anchoring, no moving under motor or sail inside;', 'max 5 knots within 50 m of the buoys.'], { size: 11, lh: 13.5, fill: INK2 });
-    // signpost
-    s += line(600, 395, 600, 352, INK, { sw: 3 }) + rect(576, 338, 48, 22, C.white, INK, { rx: 3 }) + T(600, 349, '5 knots', { size: 10.5, weight: 800, fill: C.black });
-    s += T(600, 376, 'local limit', { size: 9.5, fill: C.black, weight: 600 }) + T(600, 387, '(sign)', { size: 9.5, fill: C.black, weight: 600 });
+    s += rect(318, 282, 300, 48, PAPER, LINE) + lines(468, 295, ['Yellow buoys of a public bathing area:', 'no anchoring, no moving under motor or sail inside;', 'max 5 knots within 50 m of the buoys.'], { size: 11, lh: 13.5, fill: INK2 });
+    // signpost for a local (municipal) limit
+    s += line(560, 396, 560, 358, INK, { sw: 3 }) + rect(536, 336, 48, 22, C.white, INK, { rx: 3 }) + T(560, 347, '5 knots', { size: 10.5, weight: 800, fill: C.black });
+    s += T(590, 372, 'local limit', { size: 9.5, fill: C.black, weight: 600, anchor: 'start' }) + T(590, 384, 'on a sign', { size: 9.5, fill: C.black, weight: 600, anchor: 'start' });
     return S.svg(W, H, s, { label: 'Plan view: 5 knots within 50 m of bathers and bathing-area buoys' });
   }
 
   // ---------- IL-6 signal flag A ----------
   function flagA(o) {
     o = o || {};
-    const W = 360, H = o.labels === false ? 240 : 310, x = 40, y = 20, fw = 300, fh = 200;
+    const W = 360, H = o.labels === false ? 240 : 328, x = 40, y = 20, fw = 300, fh = 200;
     let s = line(x, y - 10, x, y + fh + 20, INK2, { sw: 4 });
     s += `<rect x="${x}" y="${y}" width="${fw / 2}" height="${fh}" fill="#FFFFFF" stroke="#9a9a9a" stroke-width="1"/>`;
     s += `<polygon points="${x + fw / 2},${y} ${x + fw},${y} ${x + fw * 0.75},${y + fh / 2} ${x + fw},${y + fh} ${x + fw / 2},${y + fh}" fill="#0038A8" stroke="#0038A8" stroke-width="1"/>`;
     if (o.labels !== false) {
-      s += T(W / 2, 248, 'Signal flag A (Alpha): white at the hoist, blue at the fly, swallow-tailed', { size: 11.5, weight: 700 });
-      s += T(W / 2, 268, '"I have a diver down; keep well clear at slow speed"', { size: 11.5, fill: INK2 });
-      s += lines(W / 2, 286, ['Pass with caution; power-driven vessels stop', 'the engine if possible (Norwegian Rule 42).'], { size: 11, lh: 13, fill: INK2 });
+      s += T(W / 2, 248, 'Signal flag A (Alpha)', { size: 13, weight: 700 });
+      s += T(W / 2, 265, 'white at the hoist, blue at the fly, swallow-tailed', { size: 11.5, weight: 600, fill: INK2 });
+      s += T(W / 2, 285, '"I have a diver down; keep well clear at slow speed"', { size: 11.5, fill: INK2 });
+      s += lines(W / 2, 303, ['Pass with caution; power-driven vessels stop', 'the engine if possible (Norwegian Rule 42).'], { size: 11, lh: 13, fill: INK2 });
     }
     return S.svg(W, H, s, { label: 'Signal flag A: white and blue, swallow-tailed' });
   }
@@ -258,12 +259,13 @@
     s += T(120, 40, 'LAND', { size: 13, weight: 700, fill: '#2f4a1f' }) + T(520, 40, 'LAND', { size: 13, weight: 700, fill: '#2f4a1f' });
     s += ferryPlan(325, 215, 180, 52) + arrow([[325, 118], [325, 76]], INK, { sw: 2.2 });
     s += rect(262, 318, 126, 20, PAPER, INK2, { rx: 4 }) + T(325, 328, 'scheduled ferry', { size: 11, weight: 700 });
-    // small motorboat ahead on the ferry's port bow, turning toward its own shore and away
-    s += boatPlan(282, 356, 34, 13, C.hullLight, -15) + curveArrow(282, 338, 272, 310, 258, 290, BAD, { sw: 2.2 });
+    // small motorboat coming down the sound ahead of the ferry, turning toward the left-hand shore
+    s += boatPlan(274, 70, 34, 13, C.hullLight, 195) + curveArrow(268, 88, 258, 108, 250, 128, BAD, { sw: 2.2 });
     // small sailing boat coming down the sound, turning toward the right-hand shore
     s += boatPlan(378, 110, 36, 14, C.hullLight, 165, { sail: true }) + curveArrow(382, 128, 392, 156, 404, 180, BAD, { sw: 2.2 });
-    s += rect(80, 352, 150, 36, PAPER, BAD, { rx: 5 }) + lines(155, 364, ['small craft keep', 'out of the way (Rule 44)'], { size: 11, weight: 700, lh: 13, fill: BAD });
-    s += rect(440, 120, 160, 36, PAPER, BAD, { rx: 5 }) + lines(520, 132, ['sail or motor, open or', 'decked: the duty is the same'], { size: 11, weight: 600, lh: 13, fill: BAD });
+    s += rect(40, 110, 170, 36, PAPER, BAD, { rx: 5 }) + lines(125, 122, ['small craft keep out of', 'the way (Rule 44)'], { size: 11, weight: 700, lh: 13, fill: BAD });
+    s += rect(440, 200, 160, 36, PAPER, BAD, { rx: 5 }) + lines(520, 212, ['sail or motor, open or', 'decked: the duty is the same'], { size: 11, weight: 600, lh: 13, fill: BAD });
+    s += rect(40, 300, 170, 50, PAPER, LINE, { rx: 5 }) + lines(125, 313, ['In open water, away from', 'fairways and harbours, the', 'ordinary COLREG rules apply.'], { size: 10.5, lh: 13, fill: INK2 });
     s += T(W / 2, 20, 'Narrow sound, busy fairway or harbour area', { size: 14, weight: 700 });
     return S.svg(W, H, s, { label: 'Plan view of a narrow sound: pleasure craft keep out of the way of a scheduled ferry' });
   }
