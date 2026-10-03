@@ -3280,9 +3280,11 @@ window.BOAT = (function () {
     return relabel(reframe(svg, '0 48 640 138', 640), 'Night: the rhythm of a light shown as a timeline of one period, light and dark');
   }
   // sectorLight(): 640 × 580 with boat captions ("too far to PORT — turn to starboard") and a legend box at the bottom.
-  const KEEP_SECTOR = /^(\d{3}°|RED|GREEN|WHITE = fairway|foul water|sector light \(fyrlykt\)|Fl WRG 4s 21m 18-12M)$/;
+  // Only the colour names, the bearings and the light description stay: "WHITE = fairway" and "foul water" would answer
+  // the sector-meaning questions.
+  const KEEP_SECTOR = /^(\d{3}°|RED|GREEN|WHITE = fairway|Fl WRG 4s 21m 18-12M)$/;
   function sectorArt() {
-    let svg = stripText(S.sectorLight({ preset: 'fairway' }), KEEP_SECTOR);
+    let svg = stripText(S.sectorLight({ preset: 'fairway' }), KEEP_SECTOR).replace('>WHITE = fairway<', '>WHITE<');
     svg = svg.replace(/<rect x="24" y="\d+" width="592"[^>]*\/>/, '');
     return relabel(reframe(svg, '0 0 640 512', 600), 'Plan view of a sector light: a white sector over the fairway, a red sector to the left and a green sector to the right as seen by a boat heading towards the light; limits as true bearings');
   }
@@ -3293,7 +3295,7 @@ window.BOAT = (function () {
   function poleArt(variant) {
     let svg = stripText(S.pointerPole(variant));
     svg = svg.replace(/<polygon points="[^"]*" fill="var\(--paper\)"[^>]*\/>/g, '').replace(/<polygon points="[^"]*" fill="var\(--ink-2\)"\s*\/>/g, '').replace(/<line [^>]*stroke="var\(--ink-2\)" stroke-width="1\.6"\/>/g, '');
-    return relabel(reframe(svg, '0 66 480 226', 440), `An iron pole standing on a rock with ${variant === 'both' ? 'two pointer arms carrying a white reflector' : 'one pointer arm pointing ' + variant + ', carrying a ' + (variant === 'left' ? 'green' : 'red') + ' reflector'}`);
+    return relabel(reframe(svg, '100 68 280 224', 420), `An iron pole standing on a rock with ${variant === 'both' ? 'two pointer arms carrying a white reflector' : 'one pointer arm pointing ' + variant + ', carrying a ' + (variant === 'left' ? 'green' : 'red') + ' reflector'}`);
   }
   // A chart light description in large type with one token highlighted (no library helper prints a description alone).
   function descArt(tokens, hi) {
