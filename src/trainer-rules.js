@@ -346,27 +346,31 @@
      Each option knows when it is TRUE for a round (holds), so distractors are always wrong for that
      round and the correct option is the one decide() derived. */
   const WHO = [
-    { k: 'own-15', t: 'You: she is on your starboard side (Rule 15)', holds: d => d.who === 'own' && d.rule === '15' },
+    // Rule 15 is also literally true for a motorboat with a ferry/cargo ship on her starboard side in a narrow
+    // channel (both power-driven), so it is not offered as a distractor there: Rule 44 is the rule that decides.
+    { k: 'own-15', t: 'You: she is on your starboard side (Rule 15)', holds: d => d.who === 'own' && d.rule === '15', when: sc => !(sc.d.rule === '44' && sc.sit === 'crossing-starboard' && V[sc.own.kind].cat === 'power') },
     { k: 'own-18', t: 'You: she ranks above you in the Rule 18 pecking order', holds: d => d.who === 'own' && d.rule === '18' },
     { k: 'own-13', t: 'You: you are overtaking her (Rule 13)', holds: d => d.who === 'own' && d.rule === '13' },
     { k: 'own-12', t: 'You: port tack gives way to starboard tack (Rule 12(a)(i))', holds: d => d.who === 'own' && d.rule === '12i' },
     { k: 'own-12w', t: 'You: the windward boat gives way (Rule 12(a)(ii))', holds: d => d.who === 'own' && d.rule === '12ii' },
     { k: 'own-44', t: 'You: pleasure craft keep clear of ferries and commercial traffic in narrow waters (Norwegian Rule 44)', holds: d => d.who === 'own' && d.rule === '44' },
     { k: 'own-18d', t: 'You: do not impede a vessel constrained by her draught (Rule 18(d))', holds: d => d.who === 'own' && d.rule === '18d' },
-    { k: 'own-43', t: 'You: a kayak or rowing boat keeps well out of the way of other vessels (Norwegian Rule 43)', holds: d => d.who === 'own' && d.rule === '43' },
+    // Rule 43 always binds a kayak, so when the kayak's answer is Rule 44 (ferry in a narrow sound) this is not a distractor.
+    { k: 'own-43', t: 'You: a kayak or rowing boat keeps well out of the way of other vessels (Norwegian Rule 43)', holds: d => d.who === 'own' && d.rule === '43', when: sc => V[sc.own.kind].cat !== 'oars' },
     { k: 'oth-15', t: 'The other vessel: you are on her starboard side (Rule 15)', holds: d => d.who === 'other' && d.rule === '15' },
     { k: 'oth-18', t: 'The other vessel: a power-driven vessel keeps out of the way of a sailing vessel (Rule 18)', holds: d => d.who === 'other' && d.rule === '18' },
     { k: 'oth-13', t: 'The other vessel: she is overtaking you (Rule 13)', holds: d => d.who === 'other' && d.rule === '13' },
     { k: 'oth-12', t: 'The other vessel: she is on port tack (Rule 12(a)(i))', holds: d => d.who === 'other' && d.rule === '12i' },
     { k: 'oth-12w', t: 'The other vessel: she is the windward boat (Rule 12(a)(ii))', holds: d => d.who === 'other' && d.rule === '12ii' },
-    { k: 'oth-43', t: 'The rowing boat keeps well out of your way (Norwegian Rule 43) — but you still slow down and pass well clear', holds: d => d.who === 'other' && d.rule === '43' },
-    { k: 'both-14', t: 'Both of you: head-on, each alters course to starboard (Rule 14)', holds: d => d.who === 'both' },
+    { k: 'oth-43', t: 'The rowing boat or kayak keeps well out of your way (Norwegian Rule 43) — but you still slow down and pass well clear', holds: d => d.who === 'other' && d.rule === '43', when: sc => V[sc.other.kind].cat === 'oars' },   // only meaningful when she IS a rowing boat/kayak
+    // Two power-driven vessels bow to bow in a narrow channel: Rule 14 is not wrong, but Rule 44 decides, so it is not offered as a distractor there.
+    { k: 'both-14', t: 'Both of you: head-on, each alters course to starboard (Rule 14)', holds: d => d.who === 'both', when: sc => !(sc.d.rule === '44' && sc.sit === 'head-on' && V[sc.own.kind].cat === 'power') },
     { k: 'none', t: 'Neither: her bearing is steady, so there is no risk of collision', holds: () => false },
     { k: 'sail-always', t: 'The motorboat, always: a sailing vessel has priority in every situation', holds: () => false, when: sc => [sc.own.kind, sc.other.kind].some(k => V[k].draw.sail) },
     { k: 'big', t: 'The smaller boat, always: a big ship has right of way wherever she is', holds: () => false, when: sc => [sc.own.kind, sc.other.kind].some(k => V[k].commercial || V[k].cat === 'cbd') },
   ];
   const ACT = [
-    { k: 'stbd-astern', t: 'Alter course to starboard early and substantially and pass astern of her; do not cross ahead' },
+    { k: 'stbd-astern', t: 'Alter course to starboard early and substantially and pass astern of her; do not cross ahead', when: sc => sc.sit !== 'head-on' },   // head-on: "alter to starboard" is right, so never a distractor there
     { k: 'r18', t: 'Keep out of her way whichever side she is on: alter early, pass well clear, preferably astern' },
     { k: 'overtake', t: 'Keep clear of her until you are finally past and clear; pass on either side at a safe distance' },
     { k: 'sail-give', t: 'Keep clear: bear away or tack early to pass astern of the other boat', when: sc => V[sc.own.kind].draw.sail },
@@ -378,7 +382,7 @@
     { k: 'standon', t: 'Keep course and speed and watch her; if she clearly does nothing, act yourself, but not by turning to port' },
     { k: 'standon-ot', t: 'Keep course and speed; she must keep clear of you until she is finally past and clear' },
     { k: 'sail-stand', t: 'Stand on: keep course and speed, but watch her and be ready to act if she does nothing', when: sc => V[sc.own.kind].draw.sail },
-    { k: 'rowing', t: 'Slow down, keep a sharp look-out and pass well clear with little wash while the rowing boat keeps out of your way', when: sc => V[sc.other.kind].cat === 'oars' },
+    { k: 'rowing', t: 'Slow down, keep a sharp look-out and pass well clear with little wash while the rowing boat or kayak keeps out of your way', when: sc => V[sc.other.kind].cat === 'oars' },
     { k: 'port-ahead', t: 'Alter course to port and cross ahead of her' },
     { k: 'speed-up', t: 'Increase speed to get past before she arrives' },
     { k: 'five-hold', t: 'Sound five short blasts and hold your course until she moves' },
@@ -499,6 +503,13 @@
         if (!/Rule/.test(r.explain) || r.explain.length < 80) out.push(`${tpl.id}: explanation missing a rule citation`);
         if (!r.art.includes('<svg')) out.push(`${tpl.id}: no picture`);
         if (/GIVE-WAY|STAND-ON/.test(r.art)) out.push(`${tpl.id}: picture leaks the answer`);
+        // no distractor may be a true statement for the round (two defensible answers)
+        const others = r.choices.filter((c, k) => k !== r.answer).join(' | ');
+        if (i % 2 === 0) {
+          if (V[tpl.own].cat === 'oars' && /Rule 43\)/.test(others)) out.push(`${tpl.id}: Rule 43 (also true) offered as a distractor to a kayak`);
+          if (sc.d.rule === '44' && sc.sit === 'crossing-starboard' && V[tpl.own].cat === 'power' && /You: she is on your starboard side/.test(others)) out.push(`${tpl.id}: Rule 15 (also true) offered as a distractor`);
+          if (sc.d.rule === '44' && sc.sit === 'head-on' && V[tpl.own].cat === 'power' && /Rule 14\)/.test(others)) out.push(`${tpl.id}: Rule 14 (also true) offered as a distractor`);
+        } else if (sc.sit === 'head-on' && /Alter course to starboard early/.test(others)) out.push(`${tpl.id}: "alter to starboard" offered as a distractor in a head-on round`);
       }
     });
     return out;

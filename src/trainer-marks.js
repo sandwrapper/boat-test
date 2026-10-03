@@ -192,7 +192,7 @@
   const SIDE = {
     port: 'Leave it on my PORT (left) side', stbd: 'Leave it on my STARBOARD (right) side',
     either: 'Either side, at a safe distance — the danger lies directly beneath the mark',
-    around: 'Either side — navigable water all around (centre of the fairway)',
+    around: 'Either side — it marks NO danger: navigable water all around (centre-fairway / mid-channel mark)',
     N: 'Pass NORTH of it — the safe water lies to the north', E: 'Pass EAST of it — the safe water lies to the east',
     S: 'Pass SOUTH of it — the safe water lies to the south', W: 'Pass WEST of it — the safe water lies to the west',
     special: 'It marks a special area or feature shown on the chart, not a side of the channel — check the chart',
@@ -219,7 +219,7 @@
     PR('cardinal-w', WHERE, 'W', ['E', 'S', 'N'], 'Yellow–black–yellow with the cones point to point is a WEST cardinal mark: pass WEST of it, the danger lies to its east (IALA R1001 §2.2.1, Table 6).'),
     // Isolated danger (M-F33, M-F34), safe water (M-F36, M-F37), special (M-F40, M-F42), wreck (M-F45).
     PR('isolated-danger', HOW, 'either', ['around', 'N', 'special'], 'Black with a red band and two black spheres: an isolated danger mark, moored on or above the danger itself. Navigable water lies all around, but pass at a safe distance and check the chart — the mark does not show how far the danger extends (IALA R1001 §2.3).'),
-    PR('safe-water', HOW, 'around', ['either', 'port', 'special'], 'Red and white vertical stripes with a red sphere: a safe water (centre fairway) mark. It marks no danger — navigable water all around — and is used as a mid-channel, landfall or best-passage-under-a-bridge mark; normally keep to the starboard side of the fairway (IALA R1001 §2.4; Kystverket §5).'),
+    PR('safe-water', HOW, 'around', ['either', 'port', 'special'], 'Red and white vertical stripes with a red sphere: a safe water (centre fairway) mark. It marks no danger — navigable water all around — and is used as a mid-channel, landfall or best-passage-under-a-bridge mark (IALA R1001 §2.4; Kystverket §5). In a narrow fairway keep to its starboard side (COLREG Rule 9).'),
     PR('special', HOW, 'special', ['around', 'port', 'either'], 'A yellow mark with a yellow X is a special mark: it marks an area or feature shown on the chart — a fish farm, cable, bathing area, anchorage or similar — and says nothing about a channel side. Read the chart for what it marks (IALA R1001 Table 9; Kystverket §6).'),
     PR('wreck', HOW, 'wreck', ['around', 'special', 'either'], 'Blue and yellow vertical stripes with an upright yellow cross: the emergency wreck marking buoy, placed on a NEW danger until it is charted and permanently marked. Keep well clear and check Notices to Mariners (IALA R1001 §2.6).'),
   ];
