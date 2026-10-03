@@ -363,8 +363,8 @@ window.BOAT_SVG = (function () {
     if (o.glow !== false) s += `<circle cx="${fmt(x)}" cy="${fmt(y)}" r="${r * 3}" fill="${col}" opacity=".13"/><circle cx="${fmt(x)}" cy="${fmt(y)}" r="${r * 1.8}" fill="${col}" opacity=".3"/>`;
     s += `<circle cx="${fmt(x)}" cy="${fmt(y)}" r="${r}" fill="${col}"${o.stroke ? ` stroke="${o.stroke}" stroke-width="1.5"` : ''}/>`;
     if (o.label) {
-      const right = o.side !== 'left';
-      s += txt(x + (right ? r + 7 : -r - 7), y + (o.dy || 0), o.label, { size: o.size || 11, fill: o.fill || NIGHT_MUTED, anchor: right ? 'start' : 'end', weight: 600 });
+      const right = o.side !== 'left', arr = Array.isArray(o.label) ? o.label : [o.label], lh = 12;
+      s += lines(x + (right ? r + 7 : -r - 7), y + (o.dy || 0) - (arr.length - 1) * lh / 2, arr, { size: o.size || 11, fill: o.fill || NIGHT_MUTED, anchor: right ? 'start' : 'end', weight: 600, lh });
     }
     return s;
   }
@@ -390,7 +390,12 @@ window.BOAT_SVG = (function () {
     o = o || {};
     const b = len * (o.beam || .38), hb = b / 2;
     let body;
-    if (o.kayak) body = `<polygon points="0,${-len / 2} ${hb},0 0,${len / 2} ${-hb},0" fill="${fill}" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round"/><line x1="${-hb - 12}" y1="6" x2="${hb + 12}" y2="-6" stroke="var(--ink)" stroke-width="2"/>`;
+    if (o.kayak) {
+      // Slim pointed hull (two cubic sides), a dark cockpit and a paddle with blades, so it reads as a small boat at a glance.
+      const cw = fmt(hb * 1.7), q = fmt(len / 4), pl = hb + 8, pa = fmt(Math.atan2(-14, 2 * pl) * 180 / Math.PI);
+      const blade = (bx, by) => `<ellipse cx="${fmt(bx)}" cy="${fmt(by)}" rx="4.5" ry="2.2" fill="var(--ink)" transform="rotate(${pa} ${fmt(bx)} ${fmt(by)})"/>`;
+      body = `<path d="M0,${fmt(-len / 2)} C${cw},${-q} ${cw},${q} 0,${fmt(len / 2)} C${-cw},${q} ${-cw},${-q} 0,${fmt(-len / 2)} Z" fill="${fill}" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round"/><ellipse cx="0" cy="${fmt(len * .06)}" rx="${fmt(hb * .55)}" ry="${fmt(len * .14)}" fill="var(--ink-2)" opacity=".65"/><line x1="${fmt(-pl)}" y1="7" x2="${fmt(pl)}" y2="-7" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>` + blade(-pl - 1, 7.3) + blade(pl + 1, -7.3);
+    }
     else body = `<polygon points="0,${-len / 2} ${hb},${-len / 6} ${hb},${len / 2 - 3} ${-hb},${len / 2 - 3} ${-hb},${-len / 6}" fill="${fill}" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round"/>`;
     let extra = '';
     if (o.ferry) extra += `<rect x="${-hb * .7}" y="${-len * .12}" width="${hb * 1.4}" height="${len * .5}" rx="3" fill="#f4f4f4" stroke="var(--ink-2)"/>`;
@@ -464,7 +469,9 @@ window.BOAT_SVG = (function () {
   /* ---------------------------------------------------------------- vesselLights (what you see at night) */
   // Light definition: arc = mh masthead | sp port sidelight | ss starboard sidelight | st sternlight | tw towing light | ar all-round.
   // lon: +1 bow … −1 stern; h: height units above deck; lat: −1 port … +1 starboard; mw: only when making way.
-  const L = (arc, color, lon, h, lat, mw) => ({ arc, color, lon, h, lat: lat || 0, mw: !!mw });
+  // tag: optional label shown instead of the bare colour word (a string or an array of lines).
+  const L = (arc, color, lon, h, lat, mw, tag) => ({ arc, color, lon, h, lat: lat || 0, mw: !!mw, tag });
+  const MINE = ['green', '(mine clearance)'];
   const sidesL = (lon, h, mw) => [L('sp', 'red', lon, h, -1, mw), L('ss', 'green', lon, h, 1, mw)];
   const sternL = (h, mw) => L('st', 'white', -1, h, 0, mw);
   const VIEWS = ['ahead', 'port', 'starboard', 'astern'];
@@ -485,11 +492,13 @@ window.BOAT_SVG = (function () {
     'nuc': { name: 'Vessel not under command', rule: 'Rule 27(a): two all-round RED lights; sidelights + sternlight when making way, no masthead light', lights: [L('ar', 'red', 0, 4), L('ar', 'red', 0, 3), ...sidesL(.4, 1, true), sternL(.8, true)] },
     // Annex I §2(f): the red-white-red stack is carried BELOW the masthead light, so the masthead light sits highest, forward.
     'ram': { name: 'Vessel restricted in her ability to manoeuvre', rule: 'Rule 27(b): all-round RED–WHITE–RED (below the masthead light); + masthead light, sidelights, sternlight when making way', lights: [L('mh', 'white', .55, 5.2, 0, true), L('ar', 'red', -.1, 4), L('ar', 'white', -.1, 3), L('ar', 'red', -.1, 2), ...sidesL(.3, 1, true), sternL(.8, true)] },
-    'cbd': { name: 'Vessel constrained by her draught', rule: 'Rule 28: three all-round RED lights in a vertical line + normal power-driven lights', lights: [L('ar', 'red', .1, 5.6), L('ar', 'red', .1, 4.6), L('ar', 'red', .1, 3.6), L('mh', 'white', .6, 2.8), L('mh', 'white', -.45, 4.2), ...sidesL(.3, 1.4), sternL(.8)] },
+    // Annex I §2(f): the Rule 28 reds are carried below the masthead lights — here vertically between the forward and the (higher) after masthead light, as on the RAM card.
+    'cbd': { name: 'Vessel constrained by her draught', rule: 'Rule 28: three all-round RED lights in a vertical line (below the masthead lights) + normal power-driven lights', lights: [L('mh', 'white', .6, 2.6), L('mh', 'white', -.45, 5.6), L('ar', 'red', .1, 4.8), L('ar', 'red', .1, 3.9), L('ar', 'red', .1, 3), ...sidesL(.3, 1.4), sternL(.8)] },
     'pilot': { name: 'Pilot vessel on duty', rule: 'Rule 29: all-round WHITE over RED at the masthead; + sidelights and sternlight when underway', lights: [L('ar', 'white', .1, 4), L('ar', 'red', .1, 3), ...sidesL(.4, 1, true), sternL(.8, true)] },
     'towing': { name: 'Power-driven vessel towing astern', rule: 'Rule 24(a): two masthead lights in a vertical line (three if tow > 200 m), sidelights, sternlight, YELLOW towing light above the sternlight', lights: o => [...Array.from({ length: o.long ? 3 : 2 }, (_, i) => L('mh', 'white', .4, 2.8 + i)), ...sidesL(.5, 1), sternL(.8), L('tw', 'yellow', -1, 1.6)] },
     'towed': { name: 'Vessel being towed', rule: 'Rule 24(e): sidelights + sternlight', lights: [...sidesL(.6, .9), sternL(.8)] },
-    'minesweeping': { name: 'Vessel engaged in mine clearance', rule: 'Rule 27(f): three all-round GREEN lights (foremast head + each fore yardarm) + power-driven lights; keep 1,000 m away', lights: [L('ar', 'green', 0, 5), L('ar', 'green', 0, 4, -1.2), L('ar', 'green', 0, 4, 1.2), L('mh', 'white', .6, 2.8), ...sidesL(.3, 1.2), sternL(.8)] },
+    // The three greens are labelled as the mine-clearance signal and the sidelights sit lower and wider, and are named, so the green sidelight is not counted as a fourth green.
+    'minesweeping': { name: 'Vessel engaged in mine clearance', rule: 'Rule 27(f): three all-round GREEN lights (foremast head + each fore yardarm) + power-driven lights; keep 1,000 m away', lights: [L('ar', 'green', 0, 5, 0, false, MINE), L('ar', 'green', 0, 4, -1.2, false, MINE), L('ar', 'green', 0, 4, 1.2, false, MINE), L('mh', 'white', .6, 2.8), L('sp', 'red', .3, 1.2, -1.4, false, 'red sidelight'), L('ss', 'green', .3, 1.2, 1.4, false, 'green sidelight'), sternL(.8)] },
   };
   const VIEW_HINT = {
     ahead: 'her bow points at YOU — her red (port) light is on YOUR right',
@@ -531,7 +540,7 @@ window.BOAT_SVG = (function () {
     lights.forEach(l => {
       const x = px(l), y = py(l), key = fmt(x) + ',' + fmt(y);
       if (seen.has(key)) return; seen.add(key);
-      g += lamp(x, y, l.color, { r: 6.5, label: l.color, side: x < cx ? 'left' : 'right' });
+      g += lamp(x, y, l.color, { r: 6.5, label: l.tag || l.color, side: x < cx ? 'left' : 'right' });
     });
     const title = def.name + (making ? '' : ', stopped');
     g += txt(cx, 20, title, { size: title.length > 36 ? 12 : 13, weight: 700, fill: NIGHT_INK });
@@ -555,7 +564,8 @@ window.BOAT_SVG = (function () {
     const TYPES = ['motorboat', 'sailboat', 'ship', 'fishing', 'tug'];
     if (!TYPES.includes(type)) fail('shipProfile type', type, TYPES);
     const day = !!opts.day, ink = day ? DAY_INK : NIGHT_INK, mut = day ? DAY_MUTED : NIGHT_MUTED, hull = day ? HULL_GREY : NIGHT_HULL_P, bg = day ? DAY_SKY : C.night;
-    const W = type === 'tug' ? 640 : 560, H = type === 'tug' ? 320 : 300, wl = 200;
+    const wide = type === 'tug' || (type === 'ship' && day);   // the ship's day picture carries an "at anchor by day" inset at lower right
+    const W = wide ? 640 : 560, H = type === 'tug' ? 320 : wide ? 348 : 300, wl = 200;
     const lp = (x, y, color) => lamp(x, y, color, { r: 6, glow: !day, stroke: day ? DAY_INK : null });
     const note = (x, y, s, o) => txt(x, y, s, Object.assign({ size: 11, fill: ink, weight: 600, halo: bg }, o || {}));
     const notes = (x, y, arr, o) => lines(x, y, arr, Object.assign({ size: 11, fill: ink, weight: 600, halo: bg, lh: 13 }, o || {}));
@@ -592,8 +602,16 @@ window.BOAT_SVG = (function () {
       g += lp(43, 166, 'white') + note(26, 140, 'Sternlight (white)', { anchor: 'start' }) + leader(43, 161, 50, 148);
       g += dash(415, 92, 300, 92, mut, 1) + dash(140, 56, 300, 56, mut, 1) + dim(300, 56, 92, '≥ 4.5 m higher', true);
       g += line(140, 230, 415, 230, ink, 1) + arrowHead(140, 230, 270, ink, 7) + arrowHead(415, 230, 90, ink, 7) + note(277, 243, 'horizontal distance ≥ half the ship’s length', { size: 10, weight: 500 });
-      // Anchor ball hung from the forestay, forward; a vessel at anchor shows no masthead, side or stern lights, so say so.
-      if (day) g += line(415, 96, 538, 171, '#555', 1.5) + line(470, 130, 470, 137, '#555', 1.5) + shape('ball', 470, 137) + leader(478, 160, 500, 206) + notes(548, 212, ['At anchor by day: one black ball', 'forward (Rule 30) — only when', 'anchored; then NO masthead,', 'side or stern lights are shown'], { anchor: 'end' });
+      // Underway she shows no day shape, so the anchor ball is NOT hung on the main profile: it lives in a separate
+      // "at anchor by day" inset (own mini ship, ball forward, no lights), clear of the horizontal-distance label.
+      if (day) {
+        const bx = 436, by = 206, bw = 192, bh = 102, wi = by + 58, mx = bx + 150;
+        g += `<clipPath id="sp-anchor-inset"><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6"/></clipPath><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6" fill="${DAY_SKY}"/><g clip-path="url(#sp-anchor-inset)"><rect x="${bx}" y="${wi}" width="${bw}" height="${bh}" fill="${DAY_SEA}"/></g>`;
+        g += `<polygon points="${bx + 16},${wi} ${bx + 20},${wi - 10} ${bx + 160},${wi - 10} ${bx + 174},${wi - 5} ${bx + 170},${wi}" fill="${hull}"/>` + box(bx + 34, wi - 22, 34, 12) + line(mx, wi - 10, mx, wi - 26, '#555', 2) + dayShapeGlyph('ball', mx, wi - 37, .25);
+        g += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6" fill="none" stroke="${DAY_MUTED}" stroke-width="1"/>`;
+        g += note(bx + bw / 2, by + 12, 'AT ANCHOR by day — not underway', { size: 10, weight: 700 });
+        g += notes(bx + bw / 2, wi + 13, ['one black ball forward (Rule 30),', 'and NO masthead, side or', 'stern lights are shown'], { size: 10, weight: 500, lh: 12, halo: DAY_SEA });
+      }
       cap = 'Power-driven vessel of 50 m or more: two masthead lights, the after one at least 4.5 m higher than the forward one. Under 50 m the after masthead light is optional (Rule 23(a)).';
       label = 'Side view of a ship over 50 m with forward and higher after masthead lights, green sidelight and sternlight';
     } else if (type === 'fishing') {
@@ -682,12 +700,13 @@ window.BOAT_SVG = (function () {
     const tag = (x, y, s, fill, o) => txt(x, y, s, Object.assign({ size: 12, weight: 700, fill: fill || 'var(--ink)', halo: 'var(--shallow)' }, o || {}));
     const roleTag = (x, y, role, extra) => tag(x, y, role, role === 'GIVE-WAY' ? 'var(--bad)' : 'var(--sea)') + (extra ? lines(x, y + 15, wrap(extra, 34), { size: 11, halo: 'var(--shallow)' }) : '');
     let cap = '', label = '';
-    const standardCrossing = (otherOpts, ownOpts, ownLabel, otherLabel) => {
+    const standardCrossing = (otherOpts, ownOpts, ownLabel, otherLabel, avoid) => {
+      const av = Object.assign({ curve: [[170, 282], [170, 228], [300, 250], [405, 215]], text: [310, 290, ['turns to STARBOARD,', 'passes ASTERN of her']] }, avoid || {});
       // own vessel bottom-left heading north; other on the starboard bow heading west; courses meet at P.
       g += course(340, 150, 270, 56, 40, 170, 150, 'var(--ink-2)') + course(170, 310, 0, 56, 40, 170, 150, 'var(--ink-2)');
       g += planBoat(340, 150, 270, 56, STAND, Object.assign({ lights: true }, otherOpts)) + planBoat(170, 310, 0, 56, GIVE, Object.assign({ lights: true }, ownOpts));
       g += xmark(170, 165) + tag(110, 165, 'do not cross ahead', 'var(--bad)', { size: 11 });
-      g += curve([170, 282], [170, 228], [300, 250], [405, 215], 'var(--bad)') + lines(310, 290, ['turns to STARBOARD,', 'passes ASTERN of her'], { size: 11, weight: 600, halo: 'var(--shallow)' });
+      g += curve(av.curve[0], av.curve[1], av.curve[2], av.curve[3], 'var(--bad)') + lines(av.text[0], av.text[1], av.text[2], { size: 11, weight: 600, halo: 'var(--shallow)' });
       g += roleTag(170, 352, 'GIVE-WAY', ownLabel) + roleTag(340, 102, 'STAND-ON', otherLabel);
     };
     if (name === 'crossing-starboard') {
@@ -753,8 +772,10 @@ window.BOAT_SVG = (function () {
       label = 'Power-driven vessel gives way to a sailing vessel under sail; inset shows a sailing boat with engine running and cone apex down, which counts as power-driven';
     } else if (name === 'sail-vs-fishing') {
       g += windArrow(22, 240, 78, 240, 50, 222);
-      g += `<path d="M368,150 C400,140 430,165 470,150" fill="none" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="3 4"/>` + tag(420, 176, 'nets / lines astern', 'var(--ink-2)', { size: 10, weight: 500 });
-      standardCrossing({ power: true }, { sail: 1 }, 'SAILING vessel', 'ENGAGED IN FISHING: two cones apexes together');
+      // Her gear trails astern (east) and ENDS at a float, and the avoiding track curves round that end, so the sailing
+      // boat visibly passes astern of her AND outside her gear.
+      g += `<path d="M368,150 C388,142 406,160 426,152" fill="none" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="3 4"/><circle cx="429" cy="152" r="3.5" fill="var(--paper)" stroke="var(--ink-2)" stroke-width="1.5"/>` + tag(390, 172, 'nets / lines astern', 'var(--ink-2)', { size: 10, weight: 500 });
+      standardCrossing({ power: true }, { sail: 1 }, 'SAILING vessel', 'ENGAGED IN FISHING: two cones apexes together', { curve: [[170, 282], [170, 226], [350, 268], [452, 190]], text: [300, 300, ['turns to STARBOARD, passes', 'ASTERN of her — outside her gear']] });
       // The day shape as it really hangs: two cones apexes together in a VERTICAL line, drawn as an icon beside the vessel.
       g += line(438, 136, 438, 146, 'var(--ink-2)', 2) + dayShapeGlyph('two-cones', 438, 99, .4) + line(400, 124, 426, 124, 'var(--ink-2)', 1);
       cap = 'A vessel ENGAGED IN FISHING (two cones apexes together by day; red over white — or green over white when trawling — at night) has priority over sailing AND power-driven vessels (Rule 18(a)(iii), (b)(iii)). Keep clear of her and of her gear.';
@@ -765,7 +786,7 @@ window.BOAT_SVG = (function () {
       g += lines(205, 185, ['SCHEDULED FERRY', 'keeps to ITS starboard side'], { size: 11, weight: 700, halo: 'var(--shallow)', lh: 13 });
       g += planBoat(280, 250, 0, 40, GIVE, { sail: 1, lights: true }) + curve([280, 230], [280, 215], [292, 208], [300, 190], 'var(--bad)') + planBoat(290, 340, 0, 40, GIVE, { power: true, lights: true }) + curve([290, 320], [290, 305], [302, 298], [310, 282], 'var(--bad)');
       g += lines(395, 240, ['KEEP CLEAR', '(Norwegian Rule 44)', 'slow down, keep right'], { size: 11, weight: 700, fill: 'var(--bad)', halo: 'var(--shallow)', lh: 13 });
-      g += planBoat(330, 300, 10, 26, 'var(--paper)', { kayak: true, beam: .32 }) + lines(405, 330, ['kayak / rowing boat:', 'Rule 43 — caution, slow,', 'keep WELL out of the way'], { size: 10, weight: 600, halo: 'var(--shallow)', lh: 12 });
+      g += planBoat(332, 352, 0, 34, 'var(--paper)', { kayak: true, beam: .4 }) + lines(412, 306, ['kayak / rowing boat:', 'Rule 43 — caution, slow,', 'keep WELL out of the way'], { size: 10, weight: 600, halo: 'var(--shallow)', lh: 12 });
       g += `<rect x="12" y="48" width="222" height="26" rx="13" fill="var(--paper)" stroke="var(--line)"/><rect x="22" y="57" width="24" height="8" fill="var(--sea)"/>` + txt(52, 61, '1 long blast ≥ 10 s from ~0.5 NM (NO Rule 41)', { size: 9, anchor: 'start' });
       cap = 'Keep to the starboard side of a narrow channel (Rule 9(a)). Boats under 20 m and sailing vessels must not impede a vessel that can only navigate inside the channel (Rule 9(b)). In Norwegian narrow waters, busy fairways and harbours, pleasure craft keep out of the way of larger vessels, ferries and commercial traffic (Rule 44).';
       label = 'Narrow channel: a ferry keeps to its starboard side while a small motorboat, a sailing boat and a kayak keep clear on their own starboard side';
@@ -818,7 +839,8 @@ window.BOAT_SVG = (function () {
       t += d + gap;
     }
     const total = Math.ceil(t - gap + (doubt ? 2 : 0));
-    const U = 22, x0 = 24, top = 52, hgt = 34, W = Math.max(400, Math.min(640, x0 * 2 + total * U + 20)), H = 176;
+    const U = 22, top = 52, hgt = 34, W = Math.max(400, Math.min(640, 68 + total * U)), H = 176;
+    const x0 = Math.round((W - total * U) / 2);   // the timeline is centred, so a one-blast signal does not sit lost at the left edge
     const col = doubt ? 'var(--warn)' : 'var(--sea)';
     let g = `<rect width="${W}" height="${H}" rx="8" fill="var(--paper-2)"/>`;
     blasts.forEach((b, i) => {
@@ -834,14 +856,40 @@ window.BOAT_SVG = (function () {
     for (let s = 0; s <= total; s++) { g += line(x0 + s * U, ry, x0 + s * U, ry + (s % 5 === 0 ? 7 : 4), 'var(--ink-2)', 1); if (total <= 12 || s % 2 === 0) g += txt(x0 + s * U, ry + 16, String(s), { size: 10, fill: 'var(--muted)' }); }
     g += txt(x0 + total * U + 14, ry + 16, 's', { size: 10, fill: 'var(--muted)' });
     const sym = compact.replace(/\./g, '·').replace(/-/g, '—').split('').join(' ');
-    g += txt(x0, 22, sym + (doubt ? ' …' : ''), { size: 18, weight: 700, anchor: 'start' });
+    g += txt(W / 2, 22, sym + (doubt ? ' …' : ''), { size: 18, weight: 700 });
     const meaning = opts.meaning || MEANINGS[compact] || '';
     if (meaning) g += caption(W / 2, H - 44, meaning, Math.floor(W / 6.2), { size: 11, lh: 13 });
     return S.svg(W, H, g, { label: `Sound signal ${sym}: ${meaning || pattern}` });
   }
 
+  /* ---------------------------------------------------------------- flagA (fact sheet IL-11, Norwegian Rule 42) */
+  const FLAG_BLUE = '#1E6FD9', FLAG_EDGE = '#9aa5b1';
+  function flagA() {
+    const W = 560, H = 300, fx = 44, fy = 48, fw = 240, fh = 160;   // 3 : 2, hoist on the left
+    let g = `<rect width="${W}" height="${H}" rx="8" fill="var(--paper-2)"/>`;
+    g += txt(W / 2, 24, 'Signal flag A (Alpha) — “I have a diver down; keep well clear at slow speed”', { size: 13, weight: 700 });
+    // staff, white hoist half (thin grey outline so it shows on a pale page), blue fly half with the swallow-tail notch
+    // cut from the fly edge: outer points (3,0) and (3,2), apex at (2.25,1) in flag units of fw/3.
+    const u = fw / 3;
+    g += line(fx - 6, fy - 10, fx - 6, fy + fh + 30, 'var(--ink-2)', 3) + `<circle cx="${fx - 6}" cy="${fy - 13}" r="4" fill="var(--ink-2)"/>`;
+    g += `<rect x="${fx}" y="${fy}" width="${fmt(u * 1.5)}" height="${fh}" fill="#ffffff" stroke="${FLAG_EDGE}" stroke-width="1"/>`;
+    g += `<polygon points="${fmt(fx + u * 1.5)},${fy} ${fx + fw},${fy} ${fmt(fx + u * 2.25)},${fy + fh / 2} ${fx + fw},${fy + fh} ${fmt(fx + u * 1.5)},${fy + fh}" fill="${FLAG_BLUE}" stroke="${FLAG_EDGE}" stroke-width="1"/>`;
+    g += txt(fx + u * .75, fy + fh / 2 - 6, 'WHITE', { size: 13, weight: 700, fill: DAY_MUTED }) + txt(fx + u * .75, fy + fh / 2 + 10, 'hoist half', { size: 10, fill: DAY_MUTED });
+    g += txt(fx + u * 1.85, fy + fh / 2 - 6, 'BLUE', { size: 13, weight: 700, fill: '#ffffff' }) + txt(fx + u * 1.85, fy + fh / 2 + 10, 'fly half', { size: 10, fill: '#ffffff' });
+    g += line(fx + u * 2.25 + 4, fy + fh / 2 + 6, fx + fw - 10, fy + fh + 18, 'var(--ink-2)', 1) + txt(fx + fw - 8, fy + fh + 26, 'swallow-tail notch at the fly', { size: 10, fill: 'var(--ink-2)', anchor: 'end' });
+    g += txt(fx - 14, fy + fh + 26, 'hoist', { size: 10, fill: 'var(--ink-2)', anchor: 'start' });
+    // the North American red flag with a white diagonal stripe, crossed out
+    const rx = 380, ry = 80, rw = 140, rh = 93;
+    g += `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${C.red}"/><polygon points="${rx},${ry} ${rx + 18},${ry} ${rx + rw},${ry + rh - 18} ${rx + rw},${ry + rh} ${rx + rw - 18},${ry + rh} ${rx},${ry + 18}" fill="#ffffff"/>`;
+    g += line(rx - 8, ry - 8, rx + rw + 8, ry + rh + 8, 'var(--bad)', 5) + line(rx - 8, ry + rh + 8, rx + rw + 8, ry - 8, 'var(--bad)', 5);
+    g += txt(rx + rw / 2, 58, 'NOT the Norwegian signal', { size: 12, weight: 700, fill: 'var(--bad)' });
+    g += lines(rx + rw / 2, 196, ['red with a white diagonal stripe:', 'the North American “diver down” flag'], { size: 10, fill: 'var(--ink-2)', lh: 13 });
+    g += caption(W / 2, 258, 'Other vessels pass with caution and power-driven vessels stop the engine if possible (Norwegian Rule 42). The flag — or a rigid replica — is on the dive boat or a buoy, and divers may be far from it, so keep well clear at slow speed.', 94, { size: 11, lh: 14 });
+    return S.svg(W, H, g, { label: 'Signal flag A: white hoist half, blue fly half with a swallow-tail notch — I have a diver down, keep well clear at slow speed; beside it, crossed out, the red flag with a white diagonal stripe which is not the Norwegian signal' });
+  }
+
   /* ---------------------------------------------------------------- export + gallery */
-  Object.assign(S, { lightArcs, vesselLights, shipProfile, dayShape, encounter, soundSignal });
+  Object.assign(S, { lightArcs, vesselLights, shipProfile, dayShape, encounter, soundSignal, flagA });
   const G = (name, fn) => S.gallery.push({ name, svg: fn });
   G('lightArcs all', () => lightArcs());
   G('lightArcs masthead+stern', () => lightArcs({ only: ['masthead', 'stern'] }));
@@ -874,6 +922,7 @@ window.BOAT_SVG = (function () {
   ENCOUNTERS.forEach(n => G(`encounter ${n}`, () => encounter(n)));
   G('encounter overtaking sail', () => encounter('overtaking', { sail: true }));
   ['.', '..', '...', '.....', '-', '- -', '- . .', '- . . .', '- - .', '- - . .', '- . - .', '. - .'].forEach(p => G(`soundSignal ${p}`, () => soundSignal(p)));
+  G('flag A', () => flagA());
 })();
 
 </script>
@@ -3254,32 +3303,38 @@ window.BOAT = (function () {
     if (kind === 'turn-stbd') g += boatPath(cx, cy) + curve(`M${cx},${cy - 40} C${cx + 5},${cy - 70} ${cx + 40},${cy - 80} ${cx + 75},${cy - 70}`) + S.text(cx + 70, cy - 48, 'to STARBOARD', { size: 11, weight: 700, fill: 'var(--accent)' });
     else if (kind === 'turn-port') g += boatPath(cx, cy) + curve(`M${cx},${cy - 40} C${cx - 5},${cy - 70} ${cx - 40},${cy - 80} ${cx - 75},${cy - 70}`) + S.text(cx - 60, cy - 48, 'to PORT', { size: 11, weight: 700, fill: 'var(--accent)' });
     else if (kind === 'astern') g += boatPath(cx, cy) + curve(`M${cx},${cy + 40} L${cx},${cy + 85}`) + S.text(cx + 48, cy + 70, 'engine astern', { size: 11, weight: 700, fill: 'var(--accent)' });
-    else if (kind === 'doubt') g += boatPath(cx, cy) + boatPath(cx + 120, cy - 60, .8, 225) + S.text(cx + 60, cy - 10, '?', { size: 44, weight: 800, fill: 'var(--warn)' });
+    else if (kind === 'doubt') g += boatPath(cx, cy) + boatPath(cx + 90, cy - 62, .75, 205) + S.text(cx + 52, cy - 4, '?', { size: 44, weight: 800, fill: 'var(--warn)' });
     else if (kind === 'overtake-stbd' || kind === 'overtake-port' || kind === 'agree' || kind === 'narrow' || kind === 'channel-entry') {
       // narrow channel: shore bands left and right, vessel A ahead in the centre, B astern
       g += `<rect x="0" y="0" width="38" height="${H}" fill="var(--line)"/><rect x="${W / 2 - 38}" y="0" width="38" height="${H}" fill="var(--line)"/>`;
       const ax = W / 4, ay = 70;
-      if (kind === 'channel-entry') { g += boatPath(ax, 185, .8) + S.text(ax, 20, 'narrow channel ahead', { size: 11, weight: 700, fill: 'var(--ink-2)' }) + curve(`M${ax},${145} L${ax},${60}`) + S.text(ax, 110, '≈ ½ NM', { size: 11, fill: 'var(--ink-2)', halo: 'var(--shallow)' }); }
+      if (kind === 'channel-entry') { g += boatPath(ax, 185, .8) + S.text(ax, 20, 'narrow channel ahead', { size: 11, weight: 700, fill: 'var(--ink-2)' }) + curve(`M${ax},${145} L${ax},${60}`) + S.text(ax + 12, 105, '≈ ½ NM', { size: 11, fill: 'var(--ink-2)', anchor: 'start' }); }
       else if (kind === 'narrow') { g += boatPath(ax, 170, .8) + boatPath(ax, 60, .8, 180) + S.text(ax, 115, 'too narrow to pass', { size: 11, weight: 700, fill: 'var(--bad)' }); }
       else {
         const side = kind === 'overtake-port' ? -1 : 1;
-        g += boatPath(ax, ay, .8) + S.text(ax + 44, ay, 'A', { size: 13, weight: 700 });
+        g += boatPath(ax, ay, .8) + S.text(ax - 44 * side, ay, 'A', { size: 13, weight: 700 });   // label on the side away from B's track
         const bx = ax + side * 34;
         g += boatPath(bx, 175, .8) + S.text(bx + 44 * side, 175, 'B', { size: 13, weight: 700 });
         if (kind === 'agree') g += S.text(ax, 20, 'A agrees', { size: 11, weight: 700, fill: 'var(--ok)' });
-        else g += curve(`M${bx},${140} C${bx},${100} ${ax + side * 50},${90} ${ax + side * 52},${30}`) + S.text(ax, 20, side > 0 ? "A's STARBOARD side" : "A's PORT side", { size: 11, weight: 700, fill: 'var(--accent)' });
+        else g += curve(`M${bx},${140} C${bx},${100} ${ax + side * 50},${90} ${ax + side * 52},${44}`) + S.text(ax, 16, side > 0 ? "A's STARBOARD side" : "A's PORT side", { size: 11, weight: 700, fill: 'var(--accent)' });
       }
     }
     else if (kind === 'bend') {
-      g += `<path d="M0,0 L${W / 2 - 20},0 L${W / 2 - 20},120 Q${W / 2 - 20},150 ${W / 2 - 50},150 L0,150 Z" fill="var(--line)"/>`;
-      g += boatPath(W / 2 + 40, 180, .8) + S.text(W / 2 + 40, 215, 'you', { size: 11, fill: 'var(--ink-2)' }) + S.text(W / 2 - 110, 190, 'hidden vessel?', { size: 11, fill: 'var(--ink-2)', italic: true });
-      g += boatPath(60, 195, .7, 270);
+      // channel runs up the right of the panel, then turns left around a headland that fills the lower left
+      g += `<path d="M0,70 L120,70 Q160,70 160,110 L160,${H} L0,${H} Z" fill="var(--line)"/>`;
+      g += boatPath(200, 185, .8) + S.text(200, 222, 'you', { size: 11, fill: 'var(--ink-2)' });
+      g += boatPath(70, 36, .7, 90) + S.text(70, 60, 'hidden vessel?', { size: 11, fill: 'var(--ink-2)', italic: true });
+      g += curve(`M200,140 L200,60 Q200,36 176,36 L130,36`);
     }
     else if (kind === 'fog-power' || kind === 'fog-stopped' || kind === 'fog-sail' || kind === 'fog-tow' || kind === 'fog-towed' || kind === 'fog-fishing-anchor' || kind === 'fog-small') {
       g += `<rect width="${W / 2}" height="${H}" rx="8" fill="var(--paper-2)" opacity=".85"/>`;
       if (kind === 'fog-sail') g += boatPath(cx, cy, .9) + sailPath(cx + 4, cy - 8);
-      else if (kind === 'fog-tow') g += boatPath(cx - 40, cy + 10, .7) + `<line x1="${cx - 40}" y1="${cy - 14}" x2="${cx + 40}" y2="${cy - 60}" stroke="var(--ink)" stroke-width="1.5"/>` + boatPath(cx + 40, cy - 30, .6);
-      else if (kind === 'fog-towed') g += boatPath(cx + 40, cy - 30, .6) + `<line x1="${cx - 40}" y1="${cy - 14}" x2="${cx + 40}" y2="${cy - 60}" stroke="var(--ink)" stroke-width="1.5"/>` + boatPath(cx - 40, cy + 10, .7) + S.text(cx - 40, cy + 50, 'you (towed)', { size: 11, fill: 'var(--ink-2)' });
+      else if (kind === 'fog-tow' || kind === 'fog-towed') {
+        // tug ahead (higher on the page), towline, towed boat astern; both heading up
+        g += `<line x1="${cx}" y1="${cy - 26}" x2="${cx}" y2="${cy + 22}" stroke="var(--ink)" stroke-width="1.5"/>` + boatPath(cx, cy - 50, .7) + boatPath(cx, cy + 42, .6);
+        g += S.text(cx + 30, cy - 50, kind === 'fog-tow' ? 'you (towing)' : 'tug', { size: 11, fill: 'var(--ink-2)', anchor: 'start' });
+        g += S.text(cx + 30, cy + 42, kind === 'fog-towed' ? 'you (towed)' : 'tow', { size: 11, fill: 'var(--ink-2)', anchor: 'start' });
+      }
       else if (kind === 'fog-fishing-anchor') g += boatPath(cx, cy, .9) + S.text(cx, cy + 4, '⚓', { size: 22 }) + S.text(cx, cy + 50, 'fishing vessel, at anchor', { size: 11, fill: 'var(--ink-2)' });
       else g += boatPath(cx, cy, kind === 'fog-small' ? .7 : .9);
       if (kind === 'fog-power') g += `<path d="M${cx - 10},${cy + 40} q-6,20 -10,45 M${cx + 10},${cy + 40} q6,20 10,45" fill="none" stroke="var(--sea)" stroke-width="2" opacity=".8"/>`;
@@ -3553,6 +3608,14 @@ window.BOAT = (function () {
       if (player.ctx) { try { player.ctx.close(); } catch (e) { /* ignore */ } player.ctx = null; }
       if (typeof cleanupDrill === 'function') cleanupDrill();
     };
+  }
+
+  // Register every trainer picture in the illustration gallery so check-topic.js --gallery renders them for review.
+  if (S.gallery) {
+    ['turn-stbd', 'turn-port', 'astern', 'doubt', 'overtake-stbd', 'overtake-port', 'agree', 'narrow', 'channel-entry', 'bend', 'fog-power', 'fog-stopped', 'fog-sail', 'fog-tow', 'fog-towed', 'fog-fishing-anchor', 'fog-small', 'anchor', 'aground', 'distress', 'sail-sight']
+      .forEach(k => S.gallery.push({ name: `trainer-sound scene ${k}`, svg: () => scene(k, 'Title line', 'Second line\nthird line') }));
+    ['long10', 'anchor', 'aground', 'continuous'].forEach(k => S.gallery.push({ name: `trainer-sound timeline ${k}`, svg: () => customArt(k, 'caption') }));
+    S.gallery.push({ name: 'trainer-sound signalArt - - .', svg: () => signalArt('- - .', 'Narrow channel') });
   }
 
   B.registerTrainer({
@@ -4777,24 +4840,25 @@ window.BOAT = (function () {
 
   // ---------- Illustration 8: the Rule 18 pecking order ----------
   function peckingLadder() {
-    const W = 480, H = 470, x0 = 24, bw = 300;
+    const W = 480, H = 530, x0 = 24, bw = 300, ix = x0 + bw - 18; // ix = icon column
     let g = rect(0, 0, W, H, PAPER2, 'none', { rx: 8 });
     g += txt(x0 + bw / 2, 22, 'Rule 18: who keeps out of the way of whom', { size: 14, weight: 700 });
-    const rung = (y, h, title, note, fill, stroke, dash) => rect(x0, y, bw, h, fill, stroke, { dash }) + txt(x0 + 12, y + 16, title, { size: 12.5, weight: 700, anchor: 'start' }) + txt(x0 + 12, y + h - 13, note, { size: 10.5, anchor: 'start', fill: INK2 });
     // top rung: NUC and RAM side by side (equal top tier, F65-F67)
-    g += rect(x0, 40, bw, 76, PAPER, INK) + txt(x0 + bw / 2, 54, 'HIGHEST PRIORITY', { size: 10, fill: MUTED, weight: 700 });
-    g += txt(x0 + 10, 72, 'Not under command', { size: 12, weight: 700, anchor: 'start' }) + txt(x0 + 10, 88, 'night: red over red', { size: 10.5, anchor: 'start', fill: INK2 }) + txt(x0 + 10, 102, 'day: two balls', { size: 10.5, anchor: 'start', fill: INK2 }) + lamp(x0 + 130, 84, C.red, 4) + lamp(x0 + 130, 98, C.red, 4);
-    g += line(x0 + 150, 48, x0 + 150, 108, LINE, 1);
-    g += txt(x0 + 160, 72, 'Restricted in ability', { size: 12, weight: 700, anchor: 'start' }) + txt(x0 + 160, 86, 'to manoeuvre', { size: 12, weight: 700, anchor: 'start' }) + txt(x0 + 160, 102, 'red-white-red / ball-diamond-ball', { size: 10, anchor: 'start', fill: INK2 }) + lamp(x0 + 288, 70, C.red, 4) + lamp(x0 + 288, 82, C.white, 4) + lamp(x0 + 288, 94, C.red, 4);
-    // CBD: a "do not impede" case, dashed (F68)
-    g += rung(124, 52, 'Constrained by her draught', 'everyone else avoids impeding her (Rule 18(d)) — three red lights / a cylinder', PAPER, INK2, '6 4') + lamp(x0 + 286, 136, C.red, 4) + lamp(x0 + 286, 148, C.red, 4) + lamp(x0 + 286, 160, C.red, 4);
-    g += rung(184, 52, 'Engaged in fishing', 'nets, lines, trawl that restrict manoeuvring (NOT trolling) — red over white / two cones', PAPER, INK) + lamp(x0 + 286, 198, C.red, 4) + lamp(x0 + 286, 212, C.white, 4);
-    g += rung(244, 52, 'Sailing vessel', 'under sail with the engine NOT in use', PAPER, INK) + boat(x0 + 282, 270, 0, 30, HULL, { sail: 1 });
-    g += rung(304, 52, 'Power-driven vessel', 'any vessel propelled by machinery, incl. a yacht motor-sailing', PAPER, INK) + boat(x0 + 282, 330, 0, 30, HULL, { power: true });
-    g += rect(x0, 366, bw, 34, 'none', INK2, { dash: '3 3' }) + txt(x0 + bw / 2, 383, 'Seaplane / WIG craft: keep well clear of everyone', { size: 11, fill: INK2 });
-    // side arrow
-    g += line(x0 + bw + 20, 350, x0 + bw + 20, 60, INK, 2.5) + head(x0 + bw + 20, 56, 0, INK, 10) + lines(x0 + bw + 32, 150, ['each rung', 'keeps out of', 'the way of', 'every rung', 'ABOVE it'], { size: 11.5, weight: 700, anchor: 'start', lh: 14 });
-    g += lines(x0 + bw + 32, 250, ['Overridden by:', 'Rule 13 overtaking,', 'Rule 9 narrow channel,', 'Rule 10 traffic lanes,', 'Norwegian Rules', '43 and 44 (small craft', 'keep clear of ferries', 'and commercial traffic', 'in confined waters)'], { size: 10.5, anchor: 'start', lh: 13, fill: INK2 });
+    g += rect(x0, 40, bw, 90, PAPER, INK) + txt(x0 + bw / 2, 52, 'HIGHEST PRIORITY', { size: 10, fill: MUTED, weight: 700 });
+    g += txt(x0 + 10, 70, 'Not under command', { size: 12, weight: 700, anchor: 'start' }) + lines(x0 + 10, 88, ['night: red over red', 'day: two balls'], { size: 10.5, anchor: 'start', fill: INK2, lh: 14 }) + lamp(x0 + 128, 94, C.red, 4) + lamp(x0 + 128, 108, C.red, 4);
+    g += line(x0 + 150, 48, x0 + 150, 122, LINE, 1);
+    g += lines(x0 + 160, 70, ['Restricted in ability', 'to manoeuvre'], { size: 12, weight: 700, anchor: 'start', lh: 14 }) + lines(x0 + 160, 102, ['red - white - red lights', 'ball - diamond - ball'], { size: 10.5, anchor: 'start', fill: INK2, lh: 14 }) + lamp(ix, 88, C.red, 4) + lamp(ix, 100, C.white, 4) + lamp(ix, 112, C.red, 4);
+    // lower rungs: title + two note lines + icon at the right
+    const rung = (y, title, n1, n2, icon, dash) => rect(x0, y, bw, 64, PAPER, dash ? INK2 : INK, { dash }) + txt(x0 + 10, y + 16, title, { size: 12.5, weight: 700, anchor: 'start' }) + lines(x0 + 10, y + 36, [n1, n2], { size: 10.5, anchor: 'start', fill: INK2, lh: 14 }) + icon;
+    g += rung(138, 'Constrained by her draught', 'everyone else avoids impeding her (18(d))', 'three red lights / a cylinder', lamp(ix, 152, C.red, 4) + lamp(ix, 164, C.red, 4) + lamp(ix, 176, C.red, 4), '6 4');
+    g += rung(210, 'Engaged in fishing', 'gear that restricts manoeuvring (not trolling)', 'red over white / two cones apex to apex', lamp(ix, 232, C.red, 4) + lamp(ix, 246, C.white, 4));
+    g += rung(282, 'Sailing vessel', 'under sail with the engine NOT in use', 'power-driven vessels keep clear of her', boat(ix, 314, 0, 30, HULL, { sail: 1 }));
+    g += rung(354, 'Power-driven vessel', 'any vessel propelled by machinery,', 'including a yacht that is motor-sailing', boat(ix, 386, 0, 30, HULL, { power: true }));
+    g += rect(x0, 426, bw, 34, 'none', INK2, { dash: '3 3' }) + txt(x0 + bw / 2, 443, 'Seaplane / WIG craft: keep well clear of everyone', { size: 11, fill: INK2 });
+    // side arrow and notes
+    const sx = x0 + bw + 20;
+    g += line(sx, 410, sx, 60, INK, 2.5) + head(sx, 56, 0, INK, 10) + lines(sx + 12, 150, ['each rung', 'keeps out of', 'the way of', 'every rung', 'ABOVE it'], { size: 11.5, weight: 700, anchor: 'start', lh: 14 });
+    g += lines(sx + 12, 250, ['Overridden by:', 'Rule 13 overtaking,', 'Rule 9 narrow', 'channel, Rule 10', 'traffic lanes, and', 'Norwegian Rules', '43 and 44 (small', 'craft keep clear of', 'ferries and ships', 'in confined waters)'], { size: 10.5, anchor: 'start', lh: 13, fill: INK2 });
     g += rect(0, H - 56, W, 56, PAPER, 'none', { rx: 0, opacity: .92 }) + caption(W / 2, H - 38, 'A vessel keeps out of the way of everything above her. Rowing boats and kayaks are vessels but have no rung: in Norway Rules 43 and 44 tell them to keep well clear; you still avoid them.', 92, { size: 11, lh: 13 });
     return S.svg(W, H, g, { label: 'Ladder of priority under Rule 18: not under command and restricted in ability to manoeuvre at the top, then constrained by draught, fishing, sailing, power-driven' });
   }
@@ -5527,7 +5591,7 @@ window.BOAT = (function () {
 <li><strong>Pilot vessel on duty</strong> (Rule 29): white over red all-round at the masthead, plus sidelights and sternlight when underway. "White over red, pilot ahead."</li>
 <li><strong>Norwegian Coast Guard</strong> on fisheries protection: an all-round blue light at the highest masthead (Norwegian Rule 53d).</li>
 </ul>
-<p>In Norwegian narrow waters, busy fairways and harbours, pleasure craft under 15 m must keep out of the way of larger vessels and ferries anyway (Norwegian Rule 44), so when you identify a ship's lights at night the practical answer is almost always: keep well clear, early.</p>`,
+<p>In Norwegian narrow waters, busy fairways and harbours, pleasure craft must as far as practicable keep out of the way of larger vessels, scheduled ferries and other commercial traffic anyway (Norwegian Rule 44), so when you identify a ship's lights at night the practical answer is almost always: keep well clear, early.</p>`,
         illustration: () => S.shipProfile('ship'),
         caption: 'Power-driven vessel of 50 m or more: forward masthead light low near the bow, after masthead light higher and further aft, green starboard sidelight, white sternlight.',
         keyFacts: ['50 m and over: two masthead lights, the after one at least 4.5 m higher; optional under 50 m', 'The LOWER masthead light is nearer the bow: it tells you her heading', 'Three all-round reds + normal lights = constrained by her draught (cylinder by day)', 'White over red at the masthead = pilot vessel on duty', 'All-round blue light = Norwegian Coast Guard'],
@@ -6190,13 +6254,12 @@ window.BOAT = (function () {
         title: 'Fog signals of other vessels, and what a small boat must do',
         html: `<p>The rest of Rule 35 lets you identify, by ear, what kind of vessel is hidden in the fog and whether she can get out of your way. The pattern "one prolonged then short blasts" always means "something other than an ordinary power-driven vessel".</p>
 <ul>
-<li><strong>One prolonged + two short</strong> every ≤ 2 min: a <strong>sailing vessel</strong>, a vessel engaged in fishing, a vessel not under command, a vessel restricted in her ability to manoeuvre, a vessel constrained by her draught, and a vessel towing or pushing (Rule 35(c)). A fishing vessel at anchor and a vessel restricted in her ability to manoeuvre working at anchor use this signal too, instead of the bell (Rule 35(d)).</li>
-<li><strong>One prolonged + three short</strong> every ≤ 2 min: a <strong>manned vessel being towed</strong>, or the last vessel of the tow, sounded right after the tug's signal if possible (Rule 35(e)). Hear it and you know there is a towline somewhere ahead of it: never try to pass between.</li>
-<li><strong>Bell rung rapidly for about 5 seconds</strong> at intervals of not more than <strong>one minute</strong>: a vessel <strong>at anchor</strong> (Rule 35(g)). On a vessel of 100 m or more the gong follows aft. She may add <strong>short, prolonged, short</strong> on the whistle to warn a vessel approaching her.</li>
+<li><strong>One prolonged + two short</strong> every ≤ 2 min: a <strong>sailing vessel</strong>, a vessel engaged in fishing, a vessel not under command, a vessel restricted in her ability to manoeuvre, a vessel constrained by her draught, and a vessel towing or pushing (Rule 35(c)). A fishing vessel at anchor uses this signal too, instead of the bell (Rule 35(d)).</li>
+<li><strong>One prolonged + three short</strong> every ≤ 2 min: a <strong>manned vessel being towed</strong>, or the last vessel of the tow, sounded right after the tug's signal if possible (Rule 35(e)). There is a towline ahead of it: never pass between.</li>
+<li><strong>Bell rung rapidly for about 5 seconds</strong> at intervals of not more than <strong>one minute</strong>: a vessel <strong>at anchor</strong> (Rule 35(g)). She may add <strong>short, prolonged, short</strong> on the whistle to warn a vessel approaching her.</li>
 <li>Same bell signal with <strong>three separate strokes before and after</strong> the rapid ringing: a vessel <strong>aground</strong> (Rule 35(h)). Shoal water: keep well clear.</li>
-<li><strong>Four short blasts</strong>: a pilot vessel's identity signal, in addition to her normal signal (Rule 35(k)).</li>
 </ul>
-<p>Now the paragraphs that concern you directly. A vessel of <strong>12 m or more but under 20 m</strong> need not give the bell signals, but if she does not she must make some other efficient sound signal at least every 2 minutes (Rule 35(i)). A vessel <strong>under 12 m</strong> is not obliged to give any of the Rule 35 signals, but if she does not she <strong>shall make some other efficient sound signal at intervals of not more than 2 minutes</strong> (Rule 35(j)). The curriculum cites "Rule 35 (a) and (i)"; the lettering shifted when a paragraph was inserted in 2003, and the intent is this small-craft rule. In practice a motorboat under 12 m simply gives the one prolonged blast every two minutes, because that is what everyone else will understand.</p>
+<p>Now the paragraphs that concern you directly. A vessel of <strong>12 m or more but under 20 m</strong> need not give the bell signals, but if she does not she must make some other efficient sound signal at least every 2 minutes (Rule 35(i)). A vessel <strong>under 12 m</strong> is not obliged to give any of the Rule 35 signals, but if she does not she <strong>shall make some other efficient sound signal at intervals of not more than 2 minutes</strong> (Rule 35(j)). The curriculum cites "Rule 35 (a) and (i)"; the intent is this small-craft rule. In practice a motorboat under 12 m simply gives one prolonged blast every two minutes, because that is what everyone understands.</p>
 <div class="callout warn"><p>Two clocks: whistle fog signals repeat at least every <strong>2 minutes</strong>; the anchor and aground bell signals at least every <strong>1 minute</strong>.</p></div>`,
         illustration: () => fogTable(),
         caption: 'Rule 35 at a glance. Whistle signals every two minutes at most; bell signals (anchor, aground) every minute at most.',
@@ -6242,7 +6305,7 @@ window.BOAT = (function () {
         title: 'What is not distress, and why you may never test a flare',
         html: `<p>A distress signal works only because everyone trusts it. One false alarm sends lifeboats and helicopters to sea for nothing, and ten false alarms teach people to ignore the real one. That is why <strong>Annex IV paragraph 2</strong> is absolute:</p>
 <div class="callout rule"><p>The use or exhibition of any of the foregoing signals, except for the purpose of indicating distress and need of assistance, and the use of other signals which may be confused with any of the above signals, <strong>is prohibited</strong> (Annex IV 2).</p></div>
-<p>So you may not fire an old red flare "to see if it still works", not on New Year's Eve, not in the harbour, not after phoning the coast radio first. Expired pyrotechnics go back to the retailer or to the police as hazardous goods. Shouting Mayday as a joke on channel 16 is equally forbidden. The exam asks this almost every time in one form or another, and the answer is always no.</p>
+<p>So you may not fire an old red flare "to see if it still works", not on New Year's Eve, not in the harbour. Expired pyrotechnics go back to the retailer or to the police as hazardous goods. Shouting Mayday as a joke on channel 16 is equally forbidden. The exam asks this in one form or another, and the answer is always no.</p>
 <p>The second trap is colour. Distress pyrotechnics are <strong>red</strong> (rockets, stars, parachute flares, hand flares) or <strong>orange</strong> (smoke). A <strong>white</strong> flare or white hand-held light is not a distress signal; white pyrotechnics are used to light up a scene or attract attention. A <strong>green</strong> flare is not listed either. Remember too that the ball may be <em>above or below</em> the square flag, that flag <strong>A</strong> means "diver down" and not distress, and that waving one arm is a greeting while slowly raising and lowering <em>both outstretched</em> arms is distress.</p>
 <p>What about attracting attention without being in distress? <strong>Rule 36</strong> allows light or sound signals that cannot be mistaken for any signal in the Rules, or a searchlight pointed at the danger, provided it does not embarrass another vessel or look like an aid to navigation. It adds that high-intensity intermittent or revolving lights such as <strong>strobe lights shall be avoided</strong>. The five-blast doubt signal is also not a distress signal: it is a warning between two vessels in sight of each other.</p>
 <div class="callout tip"><p>For the picture question "which of these is (not) a distress signal", scan for colour first: red light or orange smoke = distress; white or green = not.</p></div>`,
@@ -6258,8 +6321,8 @@ window.BOAT = (function () {
         html: `<p>A mobile phone call reaches one person. A VHF call reaches every vessel within range and the coast radio station at the same time, and the coast radio station is the door to the rescue service. That is why the curriculum, and the exam, treat the VHF as the primary means of alerting at sea, and why two of its numbers are part-4 material.</p>
 <div class="callout rule"><p><strong>VHF channel 16</strong> (156.8 MHz) is the international distress, safety and calling channel for voice. The Norwegian coast radio stations keep a continuous listening watch on it.<br><strong>VHF channel 70</strong> (156.525 MHz) is the <strong>DSC</strong> (Digital Selective Calling) channel: digital alerts only, never voice.</p></div>
 <p><strong>DSC</strong> is the red button on a modern VHF. Lift the spring-loaded cover, <strong>press and hold the red DISTRESS button</strong> until the radio confirms the alert has gone (usually a few seconds; follow your radio's manual). The set then transmits a digital distress alert on channel 70 containing your <strong>MMSI</strong> (a nine-digit identity) and, if a GPS is connected, your position, and switches itself to channel 16 for the voice call that follows. For the button to work correctly, the boat's MMSI must be programmed into the radio; the MMSI and a call sign are assigned with the radio licence.</p>
-<p>Range and limitations: a VHF has a limited range, but within that range one call alerts every listening vessel and the coast radio at once. Mobile coverage along the coast is patchy and a phone reaches a single party, so the Society for Sea Rescue's advice is that a mobile phone can never replace a VHF. Use the phone as a backup: <strong>120</strong> reaches the coast radio, and 112 works on any mobile.</p>
-<p>Paperwork: a VHF on a Norwegian recreational boat needs a <strong>radio licence</strong> for the boat (basic VHF and AIS licence NOK 200 a year, which gives you the call sign and MMSI) and the operator needs the <strong>Short Range Certificate (SRC)</strong>. Since 1 January 2026 both come from the Norwegian Maritime Authority. The boating licence exam itself does not require an SRC and tests only channel 16, DSC, 120 and the limits of VHF and mobile phone.</p>`,
+<p>Range and limitations: a VHF has a limited range, but within that range one call alerts every listening vessel and the coast radio at once. Mobile coverage along the coast is patchy and a phone reaches a single party, so the Society for Sea Rescue's advice is that a mobile phone can never replace a VHF. As a backup, <strong>120</strong> reaches the coast radio by phone.</p>
+<p>Paperwork: a VHF on a Norwegian recreational boat needs a <strong>radio licence</strong> for the boat (basic VHF and AIS licence NOK 200 a year, which gives you the call sign and MMSI) and the operator needs the <strong>Short Range Certificate (SRC)</strong>. Since 1 January 2026 both come from the Norwegian Maritime Authority. The boating licence exam itself does not require an SRC.</p>`,
         illustration: () => radioPanel(16, { chLabel: ['channel 16:', 'distress, safety', 'and calling'] }),
         caption: 'Channel 16 for voice distress and calling. The red DISTRESS button sends a digital alert with your MMSI and position on channel 70.',
         keyFacts: ['VHF channel 16 = distress, safety and calling channel (voice); coast radio keeps a continuous watch on it', 'VHF channel 70 = DSC digital alerts only; never talk on 70', 'DSC: lift the cover, press and hold the red DISTRESS button until confirmed; sends MMSI (9 digits) and GPS position, then switch to 16 and speak', 'VHF alerts everyone in range at once; a mobile phone reaches one party and coverage at sea is patchy', 'Boat needs a radio licence (NOK 200/yr, gives call sign and MMSI); operator needs the SRC; both from the Norwegian Maritime Authority since 2026'],
@@ -6531,15 +6594,15 @@ window.BOAT = (function () {
       { kind: 'isolated-danger', light: true, label: ['Isolated danger', 'black, red band', 'white Fl(2)'] },
       { kind: 'safe-water', light: true, label: ['Safe water', 'red/white stripes', 'white light'] },
       { kind: 'special', light: true, label: ['Special', 'yellow', 'yellow light'] },
-    ], { footer: 'By day: colour, shape and topmark. By night: colour and rhythm of the light (F3).', label: 'Six marks side by side: red can port lateral with red light, green cone starboard lateral with green light, black-over-yellow north cardinal with two cones up and white light, black pillar with red band and two black balls (isolated danger), red and white vertically striped sphere with red ball (safe water), yellow pillar with yellow X (special).' });
+    ], { footer: 'By day: colour, shape and topmark. By night: colour and rhythm of the light.', label: 'Six marks side by side: red can port lateral with red light, green cone starboard lateral with green light, black-over-yellow north cardinal with two cones up and white light, black pillar with red band and two black balls (isolated danger), red and white vertically striped sphere with red ball (safe water), yellow pillar with yellow X (special).' });
   }
   function lateralRow() {
-    return markRow('Lateral marks: IALA buoys and the Norwegian spar and perch forms', [
+    return markRow('Lateral marks: IALA buoys and the Norwegian spar forms', [
       { kind: 'lateral-port', form: 'can', label: ['Port: red CAN', 'red can topmark'] },
       { kind: 'lateral-starboard', form: 'cone', label: ['Starboard: green CONE', 'green cone topmark'] },
       { kind: 'lateral-port', form: 'spar', label: ['Norwegian red spar', 'BLUNT top, red band'] },
       { kind: 'lateral-starboard', form: 'spar', label: ['Norwegian green spar', 'POINTED top, green band'] },
-    ], { footer: 'Keep red to port and green to starboard when travelling in the direction of buoyage (F12).', label: 'Four lateral marks: red can buoy with red can topmark, green conical buoy with green cone topmark, red Norwegian spar buoy with a blunt top and one red reflective band, green Norwegian spar buoy with a pointed top and one green reflective band.' });
+    ], { footer: 'Keep red to port and green to starboard when travelling in the direction of buoyage.', label: 'Four lateral marks: red can buoy with red can topmark, green conical buoy with green cone topmark, red Norwegian spar buoy with a blunt top and one red reflective band, green Norwegian spar buoy with a pointed top and one green reflective band.' });
   }
   function dangerRow() {
     return markRow('Isolated danger, safe water, special and emergency wreck marks', [
@@ -6547,7 +6610,7 @@ window.BOAT = (function () {
       { kind: 'safe-water', light: true, label: ['Safe water', 'red/white VERTICAL, red ball', 'Iso, Oc, LFl 10s or Mo(A) W'] },
       { kind: 'special', light: true, label: ['Special mark', 'yellow, yellow X', 'yellow light, e.g. Fl(4) Y'] },
       { kind: 'wreck', light: true, label: ['Emergency wreck', 'blue/yellow VERTICAL, yellow +', 'Al Bu/Y 1 s each'] },
-    ], { footer: 'Horizontal bands = danger-type marks; vertical stripes = safe water or a new wreck (trap 4).', label: 'Four marks: black pillar with a broad red band and two black spheres (isolated danger, white Fl(2) light); red and white vertically striped sphere with a red ball (safe water); yellow pillar with a yellow X (special, yellow light); blue and yellow vertically striped pillar with an upright yellow cross (emergency wreck, alternating blue and yellow light).' });
+    ], { footer: 'Horizontal bands = danger-type marks; vertical stripes = safe water or a new wreck.', label: 'Four marks: black pillar with a broad red band and two black spheres (isolated danger, white Fl(2) light); red and white vertically striped sphere with a red ball (safe water); yellow pillar with a yellow X (special, yellow light); blue and yellow vertically striped pillar with an upright yellow cross (emergency wreck, alternating blue and yellow light).' });
   }
   /* IL-6: the four cardinal light rhythms on 15-second timelines (IALA Tables 5-6, F23-F26, F28) */
   function cardinalRhythms() {
@@ -6568,7 +6631,7 @@ window.BOAT = (function () {
       for (let t = 0; t <= 15; t++) inner += `<line x1="${fx(x0 + t * sx)}" y1="${by + 34}" x2="${fx(x0 + t * sx)}" y2="${by + 38}" stroke="${INK2}" stroke-width="1"/>`;
     });
     for (let t = 0; t <= 15; t += 5) inner += T(x0 + t * sx, 300, t + ' s', { size: 11, fill: INK2 });
-    inner += T(Wd / 2, Ht - 6, 'Q = 50 or 60 flashes a minute; VQ = 100 or 120 a minute with periods 5 s / 10 s / 10 s (F29).', { size: 10.5, fill: MUTED });
+    inner += T(Wd / 2, Ht - 6, 'Q = 50 or 60 flashes a minute. VQ = 100 or 120 a minute, with shorter periods: east 5 s, south 10 s, west 10 s.', { size: 10.5, fill: MUTED });
     return S.svg(Wd, Ht, inner, { label: 'Four timelines of white flashes: north continuous quick flashes; east three flashes every 10 seconds; south six flashes followed by one long flash every 15 seconds; west nine flashes every 15 seconds.' });
   }
   /* plan-view boat, bow up */
@@ -6621,7 +6684,7 @@ window.BOAT = (function () {
     title: 'Sea marks, lights and sector lights',
     order: 5,
     examShare: 6,
-    examWeight: 'about 5–8 of 50 questions, many of them in part 4',
+    examWeight: 'about 5 to 10 of 50 questions, many of them in part 4',
     summary: 'How Norway marks its waters and how you read the marks by day and by night: the direction of buoyage and the red and green lateral marks, the four black-and-yellow cardinal marks and their clock-face light rhythms, isolated danger, safe water, special and emergency wreck marks, the Norwegian spar buoys without topmarks, iron poles with pointer arms, light characters such as Fl, Oc, Iso and Q, how to decode a light description on the chart, sector lights (white = fairway, red to port and green to starboard when you head for the light), leading lines and bridge marking. This is curriculum part 3; the lateral and cardinal systems, special marks, pointer poles and the sectors and characters of minor lights are also part 4 items 1.4.1 and 1.4.2, where more than two wrong answers fail the whole exam.',
     sections: [
       // 1 ------------------------------------------------------------
@@ -6720,7 +6783,7 @@ window.BOAT = (function () {
         id: 'norwegian-spars',
         title: 'Norwegian spar buoys: reading colour, top shape and reflectors',
         html: `<p>Because most Norwegian spars carry no topmark, you must identify them by <strong>colour bands and the shape of the top</strong>. For laterals you already know the rule: red blunt, green pointed. For cardinals the rule is just as simple: spars that are <strong>black at the top (north and east) have a pointed top</strong>; spars that are <strong>yellow at the top (south and west) have a blunt top</strong>. So a black-over-yellow spar with a pointed top is a north cardinal; a yellow-over-black spar with a flat top is a south cardinal; a black–yellow–black pointed spar is east; a yellow–black–yellow blunt spar is west. The top shape confirms what the colours already say, which helps when paint has faded or the light is poor.</p>
-<p>At night the colours are shown by <strong>reflective tape</strong>, normally 20 cm wide, in the colour of the field it sits on, with one exception: <strong>blue tape stands for black</strong>, because black does not reflect. The reflector bands are near the top of the spar. Cardinals: north one blue band over one yellow band; east two blue bands; south one yellow over one blue; west two yellow bands. Isolated danger: blue over red. Safe water: red over white. Special: one yellow band. Laterals: one red or one green band. A searchlight on a spar therefore shows you its identity even when the paint is invisible.</p>
+<p>At night the colours are shown by <strong>reflective tape</strong>, normally 20 cm wide, in the colour of the field it sits on, with one exception: <strong>blue tape stands for black</strong>. The reflector bands are near the top of the spar. Cardinals: north one blue band over one yellow band; east two blue bands; south one yellow over one blue; west two yellow bands. Isolated danger: blue over red. Safe water: red over white. Special: one yellow band. Laterals: one red or one green band. A searchlight on a spar therefore shows you its identity even when the paint is invisible.</p>
 <div class="callout warn"><p>Blue reflective tape means <em>black paint</em> on a Norwegian mark. A buoy with blue and yellow painted <em>stripes</em> is something else entirely: the emergency wreck buoy.</p></div>
 <p>One more reminder that applies to every floating mark: it swings on its mooring inside a "watch circle", it may drift, capsize or lose its light, and its charted position is only approximate because buoys are checked periodically, sometimes a year apart. Use buoys as signposts, not as fixed reference points, and never pass close to any mark, because the danger it guards and its mooring are right beside it.</p>`,
         illustration: () => S.sparRule(),
@@ -6786,7 +6849,7 @@ window.BOAT = (function () {
       {
         id: 'leading-lines',
         title: 'Leading lines, floodlights and bridge marking',
-        html: `<p>A <strong>leading line</strong> is two marks or lights that appear <strong>exactly one above the other</strong> when you are on the correct track. The <strong>front mark is lower</strong>, the <strong>rear mark is higher</strong>. Daymarks may be two lattice beacons, two red squares, or two triangles with the <strong>front one apex up and the rear one apex down</strong>. Leading lights may be white, red or yellow, preferably not fixed. On the chart the line is drawn solid where it is the track to follow and dashed beyond, with its bearing in degrees and tenths, for example "Ldg 025.5°", normally the direction towards the marks.</p>
+        html: `<p>A <strong>leading line</strong> is two marks or lights that appear <strong>exactly one above the other</strong> when you are on the correct track. The <strong>front mark is lower</strong>, the <strong>rear mark is higher</strong>. Daymarks may be two wooden beacons, two red squares, or two triangles with the <strong>front one apex up and the rear one apex down</strong>. Leading lights may be white, red or yellow, preferably not fixed. On the chart the line is drawn solid where it is the track to follow and dashed beyond, with its bearing in degrees and tenths, for example "Ldg 025.5°", normally the direction towards the marks.</p>
 <p>Drift off the line and the marks separate sideways. Because the near front mark swings across your view faster than the distant rear mark, <strong>the rear mark appears displaced towards the side you are on</strong>. Rear mark to the right of the front mark: you are right of the line, <strong>steer left</strong>. Rear mark to the left: you are left of the line, <strong>steer right</strong>. Steer from the rear mark towards the front mark.</p>
 <p><strong>Indirect lighting</strong> is a <strong>fixed yellow floodlight</strong> that illuminates a headland, skerry, breakwater head or bridge pier. You see the lit object, not the lamp, which gives "daylight navigation" and better distance judgement in the dark.</p>
 <p><strong>Bridges</strong> over navigable water are marked like a channel: <strong>red and green lights</strong> on the sides of the navigable span, <strong>white lights</strong> at the centre of the span, and floodlit piers. Signs on the bridge repeat the message: a <strong>green triangle (apex up)</strong> marks the starboard side of the span and a <strong>red square</strong> the port side, relative to the direction of buoyage, while a <strong>circle with red and white vertical stripes</strong> (the safe-water colours) shows the <strong>best point of passage</strong>; a safe water mark may also be used for that. The charted <strong>vertical clearance</strong> under a bridge or power line is referred to <strong>highest astronomical tide</strong>, the worst case for your mast.</p>`,
@@ -6799,7 +6862,7 @@ window.BOAT = (function () {
       {
         id: 'on-the-chart',
         title: 'Marks and lights on the chart, and the classic traps',
-        html: `<p>Norwegian charts use their own symbols for buoys, spar buoys, beacons and poles, and <strong>topmarks are not charted</strong>, so you read the <strong>colour abbreviations</strong> beside the symbol: <strong>BY</strong> black over yellow = north cardinal, <strong>BYB</strong> = east, <strong>YB</strong> = south, <strong>YBY</strong> = west, <strong>BRB</strong> = isolated danger, <strong>RW</strong> = safe water, <strong>Y</strong> = special, <strong>R</strong> and <strong>G</strong> = laterals. The lateral system applies to all fixed and floating marks <em>except</em> lighthouses, landfall lights, leading lights and marks, sector lights and large light-floats, which are described individually. A lit aid carries a <strong>magenta flare</strong>; a sector light is drawn with coloured arcs, the white sector as a <strong>yellow arc</strong>; the direction of buoyage, where needed, is a <strong>magenta arrow</strong>. Sector limits and leading lines use true bearings.</p>
+        html: `<p>Norwegian charts use their own symbols for buoys, spar buoys, beacons and poles, and <strong>topmarks are not charted</strong>, so you read the <strong>colour abbreviations</strong> beside the symbol: <strong>BY</strong> black over yellow = north cardinal, <strong>BYB</strong> = east, <strong>YB</strong> = south, <strong>YBY</strong> = west, <strong>BRB</strong> = isolated danger, <strong>RW</strong> = safe water, <strong>Y</strong> = special, <strong>R</strong> and <strong>G</strong> = laterals. The IALA system applies to all fixed and floating marks <em>except</em> lighthouses, landfall lights, leading lights and marks, sector lights and large light-floats, which are described individually. A lit aid carries a <strong>magenta flare</strong>; a sector light is drawn with coloured arcs, the white sector as a <strong>yellow arc</strong>; the direction of buoyage, where needed, is a <strong>magenta arrow</strong>. Sector limits and leading lines use true bearings.</p>
 <p>Faults in marks and lights should be reported to the Coastal Administration's navigational warning coordinator, and all changes are published in the Norwegian Notices to Mariners every 14 days: keep your chart corrected.</p>
 <h4>The traps that cost part-4 points</h4>
 <ul>
@@ -6841,7 +6904,7 @@ window.BOAT = (function () {
       { front: 'Why the long flash after six quick flashes?', back: 'So that six cannot be confused with three or nine (IALA). Long flash = 2 s or more.' },
       { front: 'Quick and very quick flash rates?', back: 'Q = 50 or 60 per minute (chart range 50-79); VQ = 100 or 120 per minute (range 80-159).' },
       { front: 'Norwegian cardinal spars without topmarks: top shape?', back: 'Black at the top (N, E) = pointed; yellow at the top (S, W) = blunt.' },
-      { front: 'Blue reflective tape on a Norwegian mark?', back: 'Stands for black paint (black does not reflect). Tape is normally 20 cm wide.' },
+      { front: 'Blue reflective tape on a Norwegian mark?', back: 'Stands for black paint. Tape is normally 20 cm wide.' },
       { front: 'Isolated danger mark?', back: 'Black with red horizontal band(s), two black spheres, white Fl(2). Water all around: pass either side at a safe distance.' },
       { front: 'Safe water mark?', back: 'Red/white vertical stripes, one red sphere, white Iso, Oc, LFl 10s or Mo(A). Navigable all around; mid-channel, landfall, best passage under a bridge.' },
       { front: 'Special mark?', back: 'Yellow, yellow X topmark, yellow light (typically Fl(4) Y). Fish farms, cables, bathing areas, anchorages, military areas.' },

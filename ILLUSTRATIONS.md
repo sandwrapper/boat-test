@@ -58,7 +58,12 @@ BOAT_SVG.gallery.push({ name: 'vesselLights power<50 ahead', svg: () => BOAT_SVG
   Include a wind arrow when sails are involved. Overtaking sector: 135° astern (from 22.5° abaft each beam).
 - `soundSignal(pattern)` — timeline of blasts: `'.'` short (about 1 s), `'-'` prolonged (4–6 s), spaces as gaps;
   e.g. `soundSignal('.')`, `soundSignal('.....')`, `soundSignal('-')`, `soundSignal('- - ')`, `soundSignal('- . .')`, `soundSignal('- . . .')`.
-  Draw to scale (prolonged ≈ 5× short) with labels.
+  Draw to scale (prolonged ≈ 5× short) with labels; the timeline is centred so short signals do not sit at the left edge.
+- `flagA()` — signal flag A (Alpha), rectangle 3:2 with the hoist on the left: hoist half WHITE (thin grey outline),
+  fly half BLUE (#1E6FD9), swallow-tail notch cut from the fly edge (outer points (3,0) and (3,2), apex at (2.25,1));
+  caption "I have a diver down; keep well clear at slow speed" with the Norwegian Rule 42 duties (pass with caution,
+  power-driven vessels stop the engine if possible; divers may be far from the flag). Beside it, crossed out, the red
+  flag with a white diagonal stripe labelled "NOT the Norwegian signal". Gallery entry `'flag A'`.
 
 ## src/svg-marks.js
 - `mark(kind, opts)` — a navigation mark on water, large and clear, correct colours top-to-bottom and

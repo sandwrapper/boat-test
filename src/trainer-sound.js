@@ -122,20 +122,20 @@
     if (kind === 'turn-stbd') g += boatPath(cx, cy) + curve(`M${cx},${cy - 40} C${cx + 5},${cy - 70} ${cx + 40},${cy - 80} ${cx + 75},${cy - 70}`) + S.text(cx + 70, cy - 48, 'to STARBOARD', { size: 11, weight: 700, fill: 'var(--accent)' });
     else if (kind === 'turn-port') g += boatPath(cx, cy) + curve(`M${cx},${cy - 40} C${cx - 5},${cy - 70} ${cx - 40},${cy - 80} ${cx - 75},${cy - 70}`) + S.text(cx - 60, cy - 48, 'to PORT', { size: 11, weight: 700, fill: 'var(--accent)' });
     else if (kind === 'astern') g += boatPath(cx, cy) + curve(`M${cx},${cy + 40} L${cx},${cy + 85}`) + S.text(cx + 48, cy + 70, 'engine astern', { size: 11, weight: 700, fill: 'var(--accent)' });
-    else if (kind === 'doubt') g += boatPath(cx, cy) + boatPath(cx + 120, cy - 60, .8, 225) + S.text(cx + 60, cy - 10, '?', { size: 44, weight: 800, fill: 'var(--warn)' });
+    else if (kind === 'doubt') g += boatPath(cx, cy) + boatPath(cx + 90, cy - 62, .75, 205) + S.text(cx + 52, cy - 4, '?', { size: 44, weight: 800, fill: 'var(--warn)' });
     else if (kind === 'overtake-stbd' || kind === 'overtake-port' || kind === 'agree' || kind === 'narrow' || kind === 'channel-entry') {
       // narrow channel: shore bands left and right, vessel A ahead in the centre, B astern
       g += `<rect x="0" y="0" width="38" height="${H}" fill="var(--line)"/><rect x="${W / 2 - 38}" y="0" width="38" height="${H}" fill="var(--line)"/>`;
       const ax = W / 4, ay = 70;
-      if (kind === 'channel-entry') { g += boatPath(ax, 185, .8) + S.text(ax, 20, 'narrow channel ahead', { size: 11, weight: 700, fill: 'var(--ink-2)' }) + curve(`M${ax},${145} L${ax},${60}`) + S.text(ax, 110, '≈ ½ NM', { size: 11, fill: 'var(--ink-2)', halo: 'var(--shallow)' }); }
+      if (kind === 'channel-entry') { g += boatPath(ax, 185, .8) + S.text(ax, 20, 'narrow channel ahead', { size: 11, weight: 700, fill: 'var(--ink-2)' }) + curve(`M${ax},${145} L${ax},${60}`) + S.text(ax + 12, 105, '≈ ½ NM', { size: 11, fill: 'var(--ink-2)', anchor: 'start' }); }
       else if (kind === 'narrow') { g += boatPath(ax, 170, .8) + boatPath(ax, 60, .8, 180) + S.text(ax, 115, 'too narrow to pass', { size: 11, weight: 700, fill: 'var(--bad)' }); }
       else {
         const side = kind === 'overtake-port' ? -1 : 1;
-        g += boatPath(ax, ay, .8) + S.text(ax + 44, ay, 'A', { size: 13, weight: 700 });
+        g += boatPath(ax, ay, .8) + S.text(ax - 44 * side, ay, 'A', { size: 13, weight: 700 });   // label on the side away from B's track
         const bx = ax + side * 34;
         g += boatPath(bx, 175, .8) + S.text(bx + 44 * side, 175, 'B', { size: 13, weight: 700 });
         if (kind === 'agree') g += S.text(ax, 20, 'A agrees', { size: 11, weight: 700, fill: 'var(--ok)' });
-        else g += curve(`M${bx},${140} C${bx},${100} ${ax + side * 50},${90} ${ax + side * 52},${30}`) + S.text(ax, 20, side > 0 ? "A's STARBOARD side" : "A's PORT side", { size: 11, weight: 700, fill: 'var(--accent)' });
+        else g += curve(`M${bx},${140} C${bx},${100} ${ax + side * 50},${90} ${ax + side * 52},${44}`) + S.text(ax, 16, side > 0 ? "A's STARBOARD side" : "A's PORT side", { size: 11, weight: 700, fill: 'var(--accent)' });
       }
     }
     else if (kind === 'bend') {

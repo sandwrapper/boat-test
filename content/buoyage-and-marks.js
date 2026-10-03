@@ -113,15 +113,15 @@
       { kind: 'isolated-danger', light: true, label: ['Isolated danger', 'black, red band', 'white Fl(2)'] },
       { kind: 'safe-water', light: true, label: ['Safe water', 'red/white stripes', 'white light'] },
       { kind: 'special', light: true, label: ['Special', 'yellow', 'yellow light'] },
-    ], { footer: 'By day: colour, shape and topmark. By night: colour and rhythm of the light (F3).', label: 'Six marks side by side: red can port lateral with red light, green cone starboard lateral with green light, black-over-yellow north cardinal with two cones up and white light, black pillar with red band and two black balls (isolated danger), red and white vertically striped sphere with red ball (safe water), yellow pillar with yellow X (special).' });
+    ], { footer: 'By day: colour, shape and topmark. By night: colour and rhythm of the light.', label: 'Six marks side by side: red can port lateral with red light, green cone starboard lateral with green light, black-over-yellow north cardinal with two cones up and white light, black pillar with red band and two black balls (isolated danger), red and white vertically striped sphere with red ball (safe water), yellow pillar with yellow X (special).' });
   }
   function lateralRow() {
-    return markRow('Lateral marks: IALA buoys and the Norwegian spar and perch forms', [
+    return markRow('Lateral marks: IALA buoys and the Norwegian spar forms', [
       { kind: 'lateral-port', form: 'can', label: ['Port: red CAN', 'red can topmark'] },
       { kind: 'lateral-starboard', form: 'cone', label: ['Starboard: green CONE', 'green cone topmark'] },
       { kind: 'lateral-port', form: 'spar', label: ['Norwegian red spar', 'BLUNT top, red band'] },
       { kind: 'lateral-starboard', form: 'spar', label: ['Norwegian green spar', 'POINTED top, green band'] },
-    ], { footer: 'Keep red to port and green to starboard when travelling in the direction of buoyage (F12).', label: 'Four lateral marks: red can buoy with red can topmark, green conical buoy with green cone topmark, red Norwegian spar buoy with a blunt top and one red reflective band, green Norwegian spar buoy with a pointed top and one green reflective band.' });
+    ], { footer: 'Keep red to port and green to starboard when travelling in the direction of buoyage.', label: 'Four lateral marks: red can buoy with red can topmark, green conical buoy with green cone topmark, red Norwegian spar buoy with a blunt top and one red reflective band, green Norwegian spar buoy with a pointed top and one green reflective band.' });
   }
   function dangerRow() {
     return markRow('Isolated danger, safe water, special and emergency wreck marks', [
@@ -129,7 +129,7 @@
       { kind: 'safe-water', light: true, label: ['Safe water', 'red/white VERTICAL, red ball', 'Iso, Oc, LFl 10s or Mo(A) W'] },
       { kind: 'special', light: true, label: ['Special mark', 'yellow, yellow X', 'yellow light, e.g. Fl(4) Y'] },
       { kind: 'wreck', light: true, label: ['Emergency wreck', 'blue/yellow VERTICAL, yellow +', 'Al Bu/Y 1 s each'] },
-    ], { footer: 'Horizontal bands = danger-type marks; vertical stripes = safe water or a new wreck (trap 4).', label: 'Four marks: black pillar with a broad red band and two black spheres (isolated danger, white Fl(2) light); red and white vertically striped sphere with a red ball (safe water); yellow pillar with a yellow X (special, yellow light); blue and yellow vertically striped pillar with an upright yellow cross (emergency wreck, alternating blue and yellow light).' });
+    ], { footer: 'Horizontal bands = danger-type marks; vertical stripes = safe water or a new wreck.', label: 'Four marks: black pillar with a broad red band and two black spheres (isolated danger, white Fl(2) light); red and white vertically striped sphere with a red ball (safe water); yellow pillar with a yellow X (special, yellow light); blue and yellow vertically striped pillar with an upright yellow cross (emergency wreck, alternating blue and yellow light).' });
   }
   /* IL-6: the four cardinal light rhythms on 15-second timelines (IALA Tables 5-6, F23-F26, F28) */
   function cardinalRhythms() {
@@ -150,7 +150,7 @@
       for (let t = 0; t <= 15; t++) inner += `<line x1="${fx(x0 + t * sx)}" y1="${by + 34}" x2="${fx(x0 + t * sx)}" y2="${by + 38}" stroke="${INK2}" stroke-width="1"/>`;
     });
     for (let t = 0; t <= 15; t += 5) inner += T(x0 + t * sx, 300, t + ' s', { size: 11, fill: INK2 });
-    inner += T(Wd / 2, Ht - 6, 'Q = 50 or 60 flashes a minute; VQ = 100 or 120 a minute with periods 5 s / 10 s / 10 s (F29).', { size: 10.5, fill: MUTED });
+    inner += T(Wd / 2, Ht - 6, 'Q = 50 or 60 flashes a minute. VQ = 100 or 120 a minute, with shorter periods: east 5 s, south 10 s, west 10 s.', { size: 10.5, fill: MUTED });
     return S.svg(Wd, Ht, inner, { label: 'Four timelines of white flashes: north continuous quick flashes; east three flashes every 10 seconds; south six flashes followed by one long flash every 15 seconds; west nine flashes every 15 seconds.' });
   }
   /* plan-view boat, bow up */
@@ -203,7 +203,7 @@
     title: 'Sea marks, lights and sector lights',
     order: 5,
     examShare: 6,
-    examWeight: 'about 5–8 of 50 questions, many of them in part 4',
+    examWeight: 'about 5 to 10 of 50 questions, many of them in part 4',
     summary: 'How Norway marks its waters and how you read the marks by day and by night: the direction of buoyage and the red and green lateral marks, the four black-and-yellow cardinal marks and their clock-face light rhythms, isolated danger, safe water, special and emergency wreck marks, the Norwegian spar buoys without topmarks, iron poles with pointer arms, light characters such as Fl, Oc, Iso and Q, how to decode a light description on the chart, sector lights (white = fairway, red to port and green to starboard when you head for the light), leading lines and bridge marking. This is curriculum part 3; the lateral and cardinal systems, special marks, pointer poles and the sectors and characters of minor lights are also part 4 items 1.4.1 and 1.4.2, where more than two wrong answers fail the whole exam.',
     sections: [
       // 1 ------------------------------------------------------------
@@ -302,7 +302,7 @@
         id: 'norwegian-spars',
         title: 'Norwegian spar buoys: reading colour, top shape and reflectors',
         html: `<p>Because most Norwegian spars carry no topmark, you must identify them by <strong>colour bands and the shape of the top</strong>. For laterals you already know the rule: red blunt, green pointed. For cardinals the rule is just as simple: spars that are <strong>black at the top (north and east) have a pointed top</strong>; spars that are <strong>yellow at the top (south and west) have a blunt top</strong>. So a black-over-yellow spar with a pointed top is a north cardinal; a yellow-over-black spar with a flat top is a south cardinal; a black–yellow–black pointed spar is east; a yellow–black–yellow blunt spar is west. The top shape confirms what the colours already say, which helps when paint has faded or the light is poor.</p>
-<p>At night the colours are shown by <strong>reflective tape</strong>, normally 20 cm wide, in the colour of the field it sits on, with one exception: <strong>blue tape stands for black</strong>, because black does not reflect. The reflector bands are near the top of the spar. Cardinals: north one blue band over one yellow band; east two blue bands; south one yellow over one blue; west two yellow bands. Isolated danger: blue over red. Safe water: red over white. Special: one yellow band. Laterals: one red or one green band. A searchlight on a spar therefore shows you its identity even when the paint is invisible.</p>
+<p>At night the colours are shown by <strong>reflective tape</strong>, normally 20 cm wide, in the colour of the field it sits on, with one exception: <strong>blue tape stands for black</strong>. The reflector bands are near the top of the spar. Cardinals: north one blue band over one yellow band; east two blue bands; south one yellow over one blue; west two yellow bands. Isolated danger: blue over red. Safe water: red over white. Special: one yellow band. Laterals: one red or one green band. A searchlight on a spar therefore shows you its identity even when the paint is invisible.</p>
 <div class="callout warn"><p>Blue reflective tape means <em>black paint</em> on a Norwegian mark. A buoy with blue and yellow painted <em>stripes</em> is something else entirely: the emergency wreck buoy.</p></div>
 <p>One more reminder that applies to every floating mark: it swings on its mooring inside a "watch circle", it may drift, capsize or lose its light, and its charted position is only approximate because buoys are checked periodically, sometimes a year apart. Use buoys as signposts, not as fixed reference points, and never pass close to any mark, because the danger it guards and its mooring are right beside it.</p>`,
         illustration: () => S.sparRule(),
@@ -368,7 +368,7 @@
       {
         id: 'leading-lines',
         title: 'Leading lines, floodlights and bridge marking',
-        html: `<p>A <strong>leading line</strong> is two marks or lights that appear <strong>exactly one above the other</strong> when you are on the correct track. The <strong>front mark is lower</strong>, the <strong>rear mark is higher</strong>. Daymarks may be two lattice beacons, two red squares, or two triangles with the <strong>front one apex up and the rear one apex down</strong>. Leading lights may be white, red or yellow, preferably not fixed. On the chart the line is drawn solid where it is the track to follow and dashed beyond, with its bearing in degrees and tenths, for example "Ldg 025.5°", normally the direction towards the marks.</p>
+        html: `<p>A <strong>leading line</strong> is two marks or lights that appear <strong>exactly one above the other</strong> when you are on the correct track. The <strong>front mark is lower</strong>, the <strong>rear mark is higher</strong>. Daymarks may be two wooden beacons, two red squares, or two triangles with the <strong>front one apex up and the rear one apex down</strong>. Leading lights may be white, red or yellow, preferably not fixed. On the chart the line is drawn solid where it is the track to follow and dashed beyond, with its bearing in degrees and tenths, for example "Ldg 025.5°", normally the direction towards the marks.</p>
 <p>Drift off the line and the marks separate sideways. Because the near front mark swings across your view faster than the distant rear mark, <strong>the rear mark appears displaced towards the side you are on</strong>. Rear mark to the right of the front mark: you are right of the line, <strong>steer left</strong>. Rear mark to the left: you are left of the line, <strong>steer right</strong>. Steer from the rear mark towards the front mark.</p>
 <p><strong>Indirect lighting</strong> is a <strong>fixed yellow floodlight</strong> that illuminates a headland, skerry, breakwater head or bridge pier. You see the lit object, not the lamp, which gives "daylight navigation" and better distance judgement in the dark.</p>
 <p><strong>Bridges</strong> over navigable water are marked like a channel: <strong>red and green lights</strong> on the sides of the navigable span, <strong>white lights</strong> at the centre of the span, and floodlit piers. Signs on the bridge repeat the message: a <strong>green triangle (apex up)</strong> marks the starboard side of the span and a <strong>red square</strong> the port side, relative to the direction of buoyage, while a <strong>circle with red and white vertical stripes</strong> (the safe-water colours) shows the <strong>best point of passage</strong>; a safe water mark may also be used for that. The charted <strong>vertical clearance</strong> under a bridge or power line is referred to <strong>highest astronomical tide</strong>, the worst case for your mast.</p>`,
@@ -381,7 +381,7 @@
       {
         id: 'on-the-chart',
         title: 'Marks and lights on the chart, and the classic traps',
-        html: `<p>Norwegian charts use their own symbols for buoys, spar buoys, beacons and poles, and <strong>topmarks are not charted</strong>, so you read the <strong>colour abbreviations</strong> beside the symbol: <strong>BY</strong> black over yellow = north cardinal, <strong>BYB</strong> = east, <strong>YB</strong> = south, <strong>YBY</strong> = west, <strong>BRB</strong> = isolated danger, <strong>RW</strong> = safe water, <strong>Y</strong> = special, <strong>R</strong> and <strong>G</strong> = laterals. The lateral system applies to all fixed and floating marks <em>except</em> lighthouses, landfall lights, leading lights and marks, sector lights and large light-floats, which are described individually. A lit aid carries a <strong>magenta flare</strong>; a sector light is drawn with coloured arcs, the white sector as a <strong>yellow arc</strong>; the direction of buoyage, where needed, is a <strong>magenta arrow</strong>. Sector limits and leading lines use true bearings.</p>
+        html: `<p>Norwegian charts use their own symbols for buoys, spar buoys, beacons and poles, and <strong>topmarks are not charted</strong>, so you read the <strong>colour abbreviations</strong> beside the symbol: <strong>BY</strong> black over yellow = north cardinal, <strong>BYB</strong> = east, <strong>YB</strong> = south, <strong>YBY</strong> = west, <strong>BRB</strong> = isolated danger, <strong>RW</strong> = safe water, <strong>Y</strong> = special, <strong>R</strong> and <strong>G</strong> = laterals. The IALA system applies to all fixed and floating marks <em>except</em> lighthouses, landfall lights, leading lights and marks, sector lights and large light-floats, which are described individually. A lit aid carries a <strong>magenta flare</strong>; a sector light is drawn with coloured arcs, the white sector as a <strong>yellow arc</strong>; the direction of buoyage, where needed, is a <strong>magenta arrow</strong>. Sector limits and leading lines use true bearings.</p>
 <p>Faults in marks and lights should be reported to the Coastal Administration's navigational warning coordinator, and all changes are published in the Norwegian Notices to Mariners every 14 days: keep your chart corrected.</p>
 <h4>The traps that cost part-4 points</h4>
 <ul>
@@ -423,7 +423,7 @@
       { front: 'Why the long flash after six quick flashes?', back: 'So that six cannot be confused with three or nine (IALA). Long flash = 2 s or more.' },
       { front: 'Quick and very quick flash rates?', back: 'Q = 50 or 60 per minute (chart range 50-79); VQ = 100 or 120 per minute (range 80-159).' },
       { front: 'Norwegian cardinal spars without topmarks: top shape?', back: 'Black at the top (N, E) = pointed; yellow at the top (S, W) = blunt.' },
-      { front: 'Blue reflective tape on a Norwegian mark?', back: 'Stands for black paint (black does not reflect). Tape is normally 20 cm wide.' },
+      { front: 'Blue reflective tape on a Norwegian mark?', back: 'Stands for black paint. Tape is normally 20 cm wide.' },
       { front: 'Isolated danger mark?', back: 'Black with red horizontal band(s), two black spheres, white Fl(2). Water all around: pass either side at a safe distance.' },
       { front: 'Safe water mark?', back: 'Red/white vertical stripes, one red sphere, white Iso, Oc, LFl 10s or Mo(A). Navigable all around; mid-channel, landfall, best passage under a bridge.' },
       { front: 'Special mark?', back: 'Yellow, yellow X topmark, yellow light (typically Fl(4) Y). Fish farms, cables, bathing areas, anchorages, military areas.' },
