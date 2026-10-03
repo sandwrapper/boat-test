@@ -35,8 +35,8 @@
     if (o.glow !== false) s += `<circle cx="${fmt(x)}" cy="${fmt(y)}" r="${r * 3}" fill="${col}" opacity=".13"/><circle cx="${fmt(x)}" cy="${fmt(y)}" r="${r * 1.8}" fill="${col}" opacity=".3"/>`;
     s += `<circle cx="${fmt(x)}" cy="${fmt(y)}" r="${r}" fill="${col}"${o.stroke ? ` stroke="${o.stroke}" stroke-width="1.5"` : ''}/>`;
     if (o.label) {
-      const right = o.side !== 'left';
-      s += txt(x + (right ? r + 7 : -r - 7), y + (o.dy || 0), o.label, { size: o.size || 11, fill: o.fill || NIGHT_MUTED, anchor: right ? 'start' : 'end', weight: 600 });
+      const right = o.side !== 'left', arr = Array.isArray(o.label) ? o.label : [o.label], lh = 12;
+      s += lines(x + (right ? r + 7 : -r - 7), y + (o.dy || 0) - (arr.length - 1) * lh / 2, arr, { size: o.size || 11, fill: o.fill || NIGHT_MUTED, anchor: right ? 'start' : 'end', weight: 600, lh });
     }
     return s;
   }
@@ -62,7 +62,12 @@
     o = o || {};
     const b = len * (o.beam || .38), hb = b / 2;
     let body;
-    if (o.kayak) body = `<polygon points="0,${-len / 2} ${hb},0 0,${len / 2} ${-hb},0" fill="${fill}" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round"/><line x1="${-hb - 12}" y1="6" x2="${hb + 12}" y2="-6" stroke="var(--ink)" stroke-width="2"/>`;
+    if (o.kayak) {
+      // Slim pointed hull (two cubic sides), a dark cockpit and a paddle with blades, so it reads as a small boat at a glance.
+      const cw = fmt(hb * 1.7), q = fmt(len / 4), pl = hb + 8, pa = fmt(Math.atan2(-14, 2 * pl) * 180 / Math.PI);
+      const blade = (bx, by) => `<ellipse cx="${fmt(bx)}" cy="${fmt(by)}" rx="4.5" ry="2.2" fill="var(--ink)" transform="rotate(${pa} ${fmt(bx)} ${fmt(by)})"/>`;
+      body = `<path d="M0,${fmt(-len / 2)} C${cw},${-q} ${cw},${q} 0,${fmt(len / 2)} C${-cw},${q} ${-cw},${-q} 0,${fmt(-len / 2)} Z" fill="${fill}" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round"/><ellipse cx="0" cy="${fmt(len * .06)}" rx="${fmt(hb * .55)}" ry="${fmt(len * .14)}" fill="var(--ink-2)" opacity=".65"/><line x1="${fmt(-pl)}" y1="7" x2="${fmt(pl)}" y2="-7" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>` + blade(-pl - 1, 7.3) + blade(pl + 1, -7.3);
+    }
     else body = `<polygon points="0,${-len / 2} ${hb},${-len / 6} ${hb},${len / 2 - 3} ${-hb},${len / 2 - 3} ${-hb},${-len / 6}" fill="${fill}" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round"/>`;
     let extra = '';
     if (o.ferry) extra += `<rect x="${-hb * .7}" y="${-len * .12}" width="${hb * 1.4}" height="${len * .5}" rx="3" fill="#f4f4f4" stroke="var(--ink-2)"/>`;
@@ -136,7 +141,9 @@
   /* ---------------------------------------------------------------- vesselLights (what you see at night) */
   // Light definition: arc = mh masthead | sp port sidelight | ss starboard sidelight | st sternlight | tw towing light | ar all-round.
   // lon: +1 bow … −1 stern; h: height units above deck; lat: −1 port … +1 starboard; mw: only when making way.
-  const L = (arc, color, lon, h, lat, mw) => ({ arc, color, lon, h, lat: lat || 0, mw: !!mw });
+  // tag: optional label shown instead of the bare colour word (a string or an array of lines).
+  const L = (arc, color, lon, h, lat, mw, tag) => ({ arc, color, lon, h, lat: lat || 0, mw: !!mw, tag });
+  const MINE = ['green', '(mine clearance)'];
   const sidesL = (lon, h, mw) => [L('sp', 'red', lon, h, -1, mw), L('ss', 'green', lon, h, 1, mw)];
   const sternL = (h, mw) => L('st', 'white', -1, h, 0, mw);
   const VIEWS = ['ahead', 'port', 'starboard', 'astern'];
@@ -157,11 +164,13 @@
     'nuc': { name: 'Vessel not under command', rule: 'Rule 27(a): two all-round RED lights; sidelights + sternlight when making way, no masthead light', lights: [L('ar', 'red', 0, 4), L('ar', 'red', 0, 3), ...sidesL(.4, 1, true), sternL(.8, true)] },
     // Annex I §2(f): the red-white-red stack is carried BELOW the masthead light, so the masthead light sits highest, forward.
     'ram': { name: 'Vessel restricted in her ability to manoeuvre', rule: 'Rule 27(b): all-round RED–WHITE–RED (below the masthead light); + masthead light, sidelights, sternlight when making way', lights: [L('mh', 'white', .55, 5.2, 0, true), L('ar', 'red', -.1, 4), L('ar', 'white', -.1, 3), L('ar', 'red', -.1, 2), ...sidesL(.3, 1, true), sternL(.8, true)] },
-    'cbd': { name: 'Vessel constrained by her draught', rule: 'Rule 28: three all-round RED lights in a vertical line + normal power-driven lights', lights: [L('ar', 'red', .1, 5.6), L('ar', 'red', .1, 4.6), L('ar', 'red', .1, 3.6), L('mh', 'white', .6, 2.8), L('mh', 'white', -.45, 4.2), ...sidesL(.3, 1.4), sternL(.8)] },
+    // Annex I §2(f): the Rule 28 reds are carried below the masthead lights — here vertically between the forward and the (higher) after masthead light, as on the RAM card.
+    'cbd': { name: 'Vessel constrained by her draught', rule: 'Rule 28: three all-round RED lights in a vertical line (below the masthead lights) + normal power-driven lights', lights: [L('mh', 'white', .6, 2.6), L('mh', 'white', -.45, 5.6), L('ar', 'red', .1, 4.8), L('ar', 'red', .1, 3.9), L('ar', 'red', .1, 3), ...sidesL(.3, 1.4), sternL(.8)] },
     'pilot': { name: 'Pilot vessel on duty', rule: 'Rule 29: all-round WHITE over RED at the masthead; + sidelights and sternlight when underway', lights: [L('ar', 'white', .1, 4), L('ar', 'red', .1, 3), ...sidesL(.4, 1, true), sternL(.8, true)] },
     'towing': { name: 'Power-driven vessel towing astern', rule: 'Rule 24(a): two masthead lights in a vertical line (three if tow > 200 m), sidelights, sternlight, YELLOW towing light above the sternlight', lights: o => [...Array.from({ length: o.long ? 3 : 2 }, (_, i) => L('mh', 'white', .4, 2.8 + i)), ...sidesL(.5, 1), sternL(.8), L('tw', 'yellow', -1, 1.6)] },
     'towed': { name: 'Vessel being towed', rule: 'Rule 24(e): sidelights + sternlight', lights: [...sidesL(.6, .9), sternL(.8)] },
-    'minesweeping': { name: 'Vessel engaged in mine clearance', rule: 'Rule 27(f): three all-round GREEN lights (foremast head + each fore yardarm) + power-driven lights; keep 1,000 m away', lights: [L('ar', 'green', 0, 5), L('ar', 'green', 0, 4, -1.2), L('ar', 'green', 0, 4, 1.2), L('mh', 'white', .6, 2.8), ...sidesL(.3, 1.2), sternL(.8)] },
+    // The three greens are labelled as the mine-clearance signal and the sidelights sit lower and wider, and are named, so the green sidelight is not counted as a fourth green.
+    'minesweeping': { name: 'Vessel engaged in mine clearance', rule: 'Rule 27(f): three all-round GREEN lights (foremast head + each fore yardarm) + power-driven lights; keep 1,000 m away', lights: [L('ar', 'green', 0, 5, 0, false, MINE), L('ar', 'green', 0, 4, -1.2, false, MINE), L('ar', 'green', 0, 4, 1.2, false, MINE), L('mh', 'white', .6, 2.8), L('sp', 'red', .3, 1.2, -1.4, false, 'red sidelight'), L('ss', 'green', .3, 1.2, 1.4, false, 'green sidelight'), sternL(.8)] },
   };
   const VIEW_HINT = {
     ahead: 'her bow points at YOU — her red (port) light is on YOUR right',
@@ -203,7 +212,7 @@
     lights.forEach(l => {
       const x = px(l), y = py(l), key = fmt(x) + ',' + fmt(y);
       if (seen.has(key)) return; seen.add(key);
-      g += lamp(x, y, l.color, { r: 6.5, label: l.color, side: x < cx ? 'left' : 'right' });
+      g += lamp(x, y, l.color, { r: 6.5, label: l.tag || l.color, side: x < cx ? 'left' : 'right' });
     });
     const title = def.name + (making ? '' : ', stopped');
     g += txt(cx, 20, title, { size: title.length > 36 ? 12 : 13, weight: 700, fill: NIGHT_INK });
@@ -227,7 +236,8 @@
     const TYPES = ['motorboat', 'sailboat', 'ship', 'fishing', 'tug'];
     if (!TYPES.includes(type)) fail('shipProfile type', type, TYPES);
     const day = !!opts.day, ink = day ? DAY_INK : NIGHT_INK, mut = day ? DAY_MUTED : NIGHT_MUTED, hull = day ? HULL_GREY : NIGHT_HULL_P, bg = day ? DAY_SKY : C.night;
-    const W = type === 'tug' ? 640 : 560, H = type === 'tug' ? 320 : 300, wl = 200;
+    const wide = type === 'tug' || (type === 'ship' && day);   // the ship's day picture carries an "at anchor by day" inset at lower right
+    const W = wide ? 640 : 560, H = type === 'tug' ? 320 : wide ? 348 : 300, wl = 200;
     const lp = (x, y, color) => lamp(x, y, color, { r: 6, glow: !day, stroke: day ? DAY_INK : null });
     const note = (x, y, s, o) => txt(x, y, s, Object.assign({ size: 11, fill: ink, weight: 600, halo: bg }, o || {}));
     const notes = (x, y, arr, o) => lines(x, y, arr, Object.assign({ size: 11, fill: ink, weight: 600, halo: bg, lh: 13 }, o || {}));
@@ -264,8 +274,16 @@
       g += lp(43, 166, 'white') + note(26, 140, 'Sternlight (white)', { anchor: 'start' }) + leader(43, 161, 50, 148);
       g += dash(415, 92, 300, 92, mut, 1) + dash(140, 56, 300, 56, mut, 1) + dim(300, 56, 92, '≥ 4.5 m higher', true);
       g += line(140, 230, 415, 230, ink, 1) + arrowHead(140, 230, 270, ink, 7) + arrowHead(415, 230, 90, ink, 7) + note(277, 243, 'horizontal distance ≥ half the ship’s length', { size: 10, weight: 500 });
-      // Anchor ball hung from the forestay, forward; a vessel at anchor shows no masthead, side or stern lights, so say so.
-      if (day) g += line(415, 96, 538, 171, '#555', 1.5) + line(470, 130, 470, 137, '#555', 1.5) + shape('ball', 470, 137) + leader(478, 160, 500, 206) + notes(548, 212, ['At anchor by day: one black ball', 'forward (Rule 30) — only when', 'anchored; then NO masthead,', 'side or stern lights are shown'], { anchor: 'end' });
+      // Underway she shows no day shape, so the anchor ball is NOT hung on the main profile: it lives in a separate
+      // "at anchor by day" inset (own mini ship, ball forward, no lights), clear of the horizontal-distance label.
+      if (day) {
+        const bx = 436, by = 206, bw = 192, bh = 102, wi = by + 58, mx = bx + 150;
+        g += `<clipPath id="sp-anchor-inset"><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6"/></clipPath><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6" fill="${DAY_SKY}"/><g clip-path="url(#sp-anchor-inset)"><rect x="${bx}" y="${wi}" width="${bw}" height="${bh}" fill="${DAY_SEA}"/></g>`;
+        g += `<polygon points="${bx + 16},${wi} ${bx + 20},${wi - 10} ${bx + 160},${wi - 10} ${bx + 174},${wi - 5} ${bx + 170},${wi}" fill="${hull}"/>` + box(bx + 34, wi - 22, 34, 12) + line(mx, wi - 10, mx, wi - 26, '#555', 2) + dayShapeGlyph('ball', mx, wi - 37, .25);
+        g += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6" fill="none" stroke="${DAY_MUTED}" stroke-width="1"/>`;
+        g += note(bx + bw / 2, by + 12, 'AT ANCHOR by day — not underway', { size: 10, weight: 700 });
+        g += notes(bx + bw / 2, wi + 13, ['one black ball forward (Rule 30),', 'and NO masthead, side or', 'stern lights are shown'], { size: 10, weight: 500, lh: 12 });
+      }
       cap = 'Power-driven vessel of 50 m or more: two masthead lights, the after one at least 4.5 m higher than the forward one. Under 50 m the after masthead light is optional (Rule 23(a)).';
       label = 'Side view of a ship over 50 m with forward and higher after masthead lights, green sidelight and sternlight';
     } else if (type === 'fishing') {
@@ -354,12 +372,13 @@
     const tag = (x, y, s, fill, o) => txt(x, y, s, Object.assign({ size: 12, weight: 700, fill: fill || 'var(--ink)', halo: 'var(--shallow)' }, o || {}));
     const roleTag = (x, y, role, extra) => tag(x, y, role, role === 'GIVE-WAY' ? 'var(--bad)' : 'var(--sea)') + (extra ? lines(x, y + 15, wrap(extra, 34), { size: 11, halo: 'var(--shallow)' }) : '');
     let cap = '', label = '';
-    const standardCrossing = (otherOpts, ownOpts, ownLabel, otherLabel) => {
+    const standardCrossing = (otherOpts, ownOpts, ownLabel, otherLabel, avoid) => {
+      const av = Object.assign({ curve: [[170, 282], [170, 228], [300, 250], [405, 215]], text: [310, 290, ['turns to STARBOARD,', 'passes ASTERN of her']] }, avoid || {});
       // own vessel bottom-left heading north; other on the starboard bow heading west; courses meet at P.
       g += course(340, 150, 270, 56, 40, 170, 150, 'var(--ink-2)') + course(170, 310, 0, 56, 40, 170, 150, 'var(--ink-2)');
       g += planBoat(340, 150, 270, 56, STAND, Object.assign({ lights: true }, otherOpts)) + planBoat(170, 310, 0, 56, GIVE, Object.assign({ lights: true }, ownOpts));
       g += xmark(170, 165) + tag(110, 165, 'do not cross ahead', 'var(--bad)', { size: 11 });
-      g += curve([170, 282], [170, 228], [300, 250], [405, 215], 'var(--bad)') + lines(310, 290, ['turns to STARBOARD,', 'passes ASTERN of her'], { size: 11, weight: 600, halo: 'var(--shallow)' });
+      g += curve(av.curve[0], av.curve[1], av.curve[2], av.curve[3], 'var(--bad)') + lines(av.text[0], av.text[1], av.text[2], { size: 11, weight: 600, halo: 'var(--shallow)' });
       g += roleTag(170, 352, 'GIVE-WAY', ownLabel) + roleTag(340, 102, 'STAND-ON', otherLabel);
     };
     if (name === 'crossing-starboard') {
@@ -425,8 +444,10 @@
       label = 'Power-driven vessel gives way to a sailing vessel under sail; inset shows a sailing boat with engine running and cone apex down, which counts as power-driven';
     } else if (name === 'sail-vs-fishing') {
       g += windArrow(22, 240, 78, 240, 50, 222);
-      g += `<path d="M368,150 C400,140 430,165 470,150" fill="none" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="3 4"/>` + tag(420, 176, 'nets / lines astern', 'var(--ink-2)', { size: 10, weight: 500 });
-      standardCrossing({ power: true }, { sail: 1 }, 'SAILING vessel', 'ENGAGED IN FISHING: two cones apexes together');
+      // Her gear trails astern (east) and ENDS at a float, and the avoiding track curves round that end, so the sailing
+      // boat visibly passes astern of her AND outside her gear.
+      g += `<path d="M368,150 C388,142 406,160 426,152" fill="none" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="3 4"/><circle cx="429" cy="152" r="3.5" fill="var(--paper)" stroke="var(--ink-2)" stroke-width="1.5"/>` + tag(390, 172, 'nets / lines astern', 'var(--ink-2)', { size: 10, weight: 500 });
+      standardCrossing({ power: true }, { sail: 1 }, 'SAILING vessel', 'ENGAGED IN FISHING: two cones apexes together', { curve: [[170, 282], [170, 226], [350, 268], [452, 190]], text: [300, 300, ['turns to STARBOARD, passes', 'ASTERN of her — outside her gear']] });
       // The day shape as it really hangs: two cones apexes together in a VERTICAL line, drawn as an icon beside the vessel.
       g += line(438, 136, 438, 146, 'var(--ink-2)', 2) + dayShapeGlyph('two-cones', 438, 99, .4) + line(400, 124, 426, 124, 'var(--ink-2)', 1);
       cap = 'A vessel ENGAGED IN FISHING (two cones apexes together by day; red over white — or green over white when trawling — at night) has priority over sailing AND power-driven vessels (Rule 18(a)(iii), (b)(iii)). Keep clear of her and of her gear.';
@@ -437,7 +458,7 @@
       g += lines(205, 185, ['SCHEDULED FERRY', 'keeps to ITS starboard side'], { size: 11, weight: 700, halo: 'var(--shallow)', lh: 13 });
       g += planBoat(280, 250, 0, 40, GIVE, { sail: 1, lights: true }) + curve([280, 230], [280, 215], [292, 208], [300, 190], 'var(--bad)') + planBoat(290, 340, 0, 40, GIVE, { power: true, lights: true }) + curve([290, 320], [290, 305], [302, 298], [310, 282], 'var(--bad)');
       g += lines(395, 240, ['KEEP CLEAR', '(Norwegian Rule 44)', 'slow down, keep right'], { size: 11, weight: 700, fill: 'var(--bad)', halo: 'var(--shallow)', lh: 13 });
-      g += planBoat(330, 300, 10, 26, 'var(--paper)', { kayak: true, beam: .32 }) + lines(405, 330, ['kayak / rowing boat:', 'Rule 43 — caution, slow,', 'keep WELL out of the way'], { size: 10, weight: 600, halo: 'var(--shallow)', lh: 12 });
+      g += planBoat(332, 352, 0, 34, 'var(--paper)', { kayak: true, beam: .4 }) + lines(412, 306, ['kayak / rowing boat:', 'Rule 43 — caution, slow,', 'keep WELL out of the way'], { size: 10, weight: 600, halo: 'var(--shallow)', lh: 12 });
       g += `<rect x="12" y="48" width="222" height="26" rx="13" fill="var(--paper)" stroke="var(--line)"/><rect x="22" y="57" width="24" height="8" fill="var(--sea)"/>` + txt(52, 61, '1 long blast ≥ 10 s from ~0.5 NM (NO Rule 41)', { size: 9, anchor: 'start' });
       cap = 'Keep to the starboard side of a narrow channel (Rule 9(a)). Boats under 20 m and sailing vessels must not impede a vessel that can only navigate inside the channel (Rule 9(b)). In Norwegian narrow waters, busy fairways and harbours, pleasure craft keep out of the way of larger vessels, ferries and commercial traffic (Rule 44).';
       label = 'Narrow channel: a ferry keeps to its starboard side while a small motorboat, a sailing boat and a kayak keep clear on their own starboard side';
@@ -490,7 +511,8 @@
       t += d + gap;
     }
     const total = Math.ceil(t - gap + (doubt ? 2 : 0));
-    const U = 22, x0 = 24, top = 52, hgt = 34, W = Math.max(400, Math.min(640, x0 * 2 + total * U + 20)), H = 176;
+    const U = 22, top = 52, hgt = 34, W = Math.max(400, Math.min(640, 68 + total * U)), H = 176;
+    const x0 = Math.round((W - total * U) / 2);   // the timeline is centred, so a one-blast signal does not sit lost at the left edge
     const col = doubt ? 'var(--warn)' : 'var(--sea)';
     let g = `<rect width="${W}" height="${H}" rx="8" fill="var(--paper-2)"/>`;
     blasts.forEach((b, i) => {
@@ -506,14 +528,40 @@
     for (let s = 0; s <= total; s++) { g += line(x0 + s * U, ry, x0 + s * U, ry + (s % 5 === 0 ? 7 : 4), 'var(--ink-2)', 1); if (total <= 12 || s % 2 === 0) g += txt(x0 + s * U, ry + 16, String(s), { size: 10, fill: 'var(--muted)' }); }
     g += txt(x0 + total * U + 14, ry + 16, 's', { size: 10, fill: 'var(--muted)' });
     const sym = compact.replace(/\./g, '·').replace(/-/g, '—').split('').join(' ');
-    g += txt(x0, 22, sym + (doubt ? ' …' : ''), { size: 18, weight: 700, anchor: 'start' });
+    g += txt(W / 2, 22, sym + (doubt ? ' …' : ''), { size: 18, weight: 700 });
     const meaning = opts.meaning || MEANINGS[compact] || '';
     if (meaning) g += caption(W / 2, H - 44, meaning, Math.floor(W / 6.2), { size: 11, lh: 13 });
     return S.svg(W, H, g, { label: `Sound signal ${sym}: ${meaning || pattern}` });
   }
 
+  /* ---------------------------------------------------------------- flagA (fact sheet IL-11, Norwegian Rule 42) */
+  const FLAG_BLUE = '#1E6FD9', FLAG_EDGE = '#9aa5b1';
+  function flagA() {
+    const W = 560, H = 300, fx = 44, fy = 48, fw = 240, fh = 160;   // 3 : 2, hoist on the left
+    let g = `<rect width="${W}" height="${H}" rx="8" fill="var(--paper-2)"/>`;
+    g += txt(W / 2, 24, 'Signal flag A (Alpha) — “I have a diver down; keep well clear at slow speed”', { size: 13, weight: 700 });
+    // staff, white hoist half (thin grey outline so it shows on a pale page), blue fly half with the swallow-tail notch
+    // cut from the fly edge: outer points (3,0) and (3,2), apex at (2.25,1) in flag units of fw/3.
+    const u = fw / 3;
+    g += line(fx - 6, fy - 10, fx - 6, fy + fh + 30, 'var(--ink-2)', 3) + `<circle cx="${fx - 6}" cy="${fy - 13}" r="4" fill="var(--ink-2)"/>`;
+    g += `<rect x="${fx}" y="${fy}" width="${fmt(u * 1.5)}" height="${fh}" fill="#ffffff" stroke="${FLAG_EDGE}" stroke-width="1"/>`;
+    g += `<polygon points="${fmt(fx + u * 1.5)},${fy} ${fx + fw},${fy} ${fmt(fx + u * 2.25)},${fy + fh / 2} ${fx + fw},${fy + fh} ${fmt(fx + u * 1.5)},${fy + fh}" fill="${FLAG_BLUE}" stroke="${FLAG_EDGE}" stroke-width="1"/>`;
+    g += txt(fx + u * .75, fy + fh / 2 - 6, 'WHITE', { size: 13, weight: 700, fill: DAY_MUTED }) + txt(fx + u * .75, fy + fh / 2 + 10, 'hoist half', { size: 10, fill: DAY_MUTED });
+    g += txt(fx + u * 1.85, fy + fh / 2 - 6, 'BLUE', { size: 13, weight: 700, fill: '#ffffff' }) + txt(fx + u * 1.85, fy + fh / 2 + 10, 'fly half', { size: 10, fill: '#ffffff' });
+    g += line(fx + u * 2.25 + 4, fy + fh / 2 + 6, fx + fw - 10, fy + fh + 18, 'var(--ink-2)', 1) + txt(fx + fw - 8, fy + fh + 26, 'swallow-tail notch at the fly', { size: 10, fill: 'var(--ink-2)', anchor: 'end' });
+    g += txt(fx - 14, fy + fh + 26, 'hoist', { size: 10, fill: 'var(--ink-2)', anchor: 'start' });
+    // the North American red flag with a white diagonal stripe, crossed out
+    const rx = 380, ry = 80, rw = 140, rh = 93;
+    g += `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${C.red}"/><polygon points="${rx},${ry} ${rx + 18},${ry} ${rx + rw},${ry + rh - 18} ${rx + rw},${ry + rh} ${rx + rw - 18},${ry + rh} ${rx},${ry + 18}" fill="#ffffff"/>`;
+    g += line(rx - 8, ry - 8, rx + rw + 8, ry + rh + 8, 'var(--bad)', 5) + line(rx - 8, ry + rh + 8, rx + rw + 8, ry - 8, 'var(--bad)', 5);
+    g += txt(rx + rw / 2, 58, 'NOT the Norwegian signal', { size: 12, weight: 700, fill: 'var(--bad)' });
+    g += lines(rx + rw / 2, 196, ['red with a white diagonal stripe:', 'the North American “diver down” flag'], { size: 10, fill: 'var(--ink-2)', lh: 13 });
+    g += caption(W / 2, 258, 'Other vessels pass with caution and power-driven vessels stop the engine if possible (Norwegian Rule 42). The flag — or a rigid replica — is on the dive boat or a buoy, and divers may be far from it, so keep well clear at slow speed.', 94, { size: 11, lh: 14 });
+    return S.svg(W, H, g, { label: 'Signal flag A: white hoist half, blue fly half with a swallow-tail notch — I have a diver down, keep well clear at slow speed; beside it, crossed out, the red flag with a white diagonal stripe which is not the Norwegian signal' });
+  }
+
   /* ---------------------------------------------------------------- export + gallery */
-  Object.assign(S, { lightArcs, vesselLights, shipProfile, dayShape, encounter, soundSignal });
+  Object.assign(S, { lightArcs, vesselLights, shipProfile, dayShape, encounter, soundSignal, flagA });
   const G = (name, fn) => S.gallery.push({ name, svg: fn });
   G('lightArcs all', () => lightArcs());
   G('lightArcs masthead+stern', () => lightArcs({ only: ['masthead', 'stern'] }));
@@ -546,4 +594,5 @@
   ENCOUNTERS.forEach(n => G(`encounter ${n}`, () => encounter(n)));
   G('encounter overtaking sail', () => encounter('overtaking', { sail: true }));
   ['.', '..', '...', '.....', '-', '- -', '- . .', '- . . .', '- - .', '- - . .', '- . - .', '. - .'].forEach(p => G(`soundSignal ${p}`, () => soundSignal(p)));
+  G('flag A', () => flagA());
 })();

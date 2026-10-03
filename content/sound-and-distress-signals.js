@@ -409,7 +409,7 @@
         html: `<p>The rest of Rule 35 lets you identify, by ear, what kind of vessel is hidden in the fog and whether she can get out of your way. The pattern "one prolonged then short blasts" always means "something other than an ordinary power-driven vessel".</p>
 <ul>
 <li><strong>One prolonged + two short</strong> every ≤ 2 min: a <strong>sailing vessel</strong>, a vessel engaged in fishing, a vessel not under command, a vessel restricted in her ability to manoeuvre, a vessel constrained by her draught, and a vessel towing or pushing (Rule 35(c)). A fishing vessel at anchor uses this signal too, instead of the bell (Rule 35(d)).</li>
-<li><strong>One prolonged + three short</strong> every ≤ 2 min: a <strong>manned vessel being towed</strong>, or the last vessel of the tow, sounded right after the tug's signal if possible (Rule 35(e)). Hear it and you know there is a towline somewhere ahead of it: never try to pass between.</li>
+<li><strong>One prolonged + three short</strong> every ≤ 2 min: a <strong>manned vessel being towed</strong>, or the last vessel of the tow, sounded right after the tug's signal if possible (Rule 35(e)). There is a towline ahead of it: never pass between.</li>
 <li><strong>Bell rung rapidly for about 5 seconds</strong> at intervals of not more than <strong>one minute</strong>: a vessel <strong>at anchor</strong> (Rule 35(g)). She may add <strong>short, prolonged, short</strong> on the whistle to warn a vessel approaching her.</li>
 <li>Same bell signal with <strong>three separate strokes before and after</strong> the rapid ringing: a vessel <strong>aground</strong> (Rule 35(h)). Shoal water: keep well clear.</li>
 </ul>
