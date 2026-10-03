@@ -196,7 +196,7 @@
 
   /* cardinalCompass() — a danger in the centre with the four cardinal marks placed N/E/S/W of it. */
   function cardinalCompass() {
-    const Wd = 640, Ht = 640, cx = 320, cy = 330, sc = 0.55;
+    const Wd = 640, Ht = 664, cx = 320, cy = 330, sc = 0.55;
     let inner = `<rect width="${Wd}" height="${Ht}" fill="${SHALLOW}" opacity=".55" rx="8"/>`;
     inner += title(Wd, 24, 'Cardinal marks: the name says on which side to pass', 17);
     /* quadrant boundaries NW–NE, NE–SE, SE–SW, SW–NW (true bearings 315°, 045°, 135°, 225° from the danger) */
@@ -210,9 +210,9 @@
     inner += rockBlob(cx, cy, 30, MUTED) + T(cx, cy + 2, 'DANGER', { size: 11, weight: 700, fill: PAPER }) + `<text x="${cx}" y="${cy - 40}" font-size="12" fill="${INK2}" text-anchor="middle">rock / shoal</text>`;
     const place = [
       { kind: 'cardinal-n', x: cx, wl: 215, letter: 'N', lx: cx - 95, ly: 120, boat: [cx + 125, 95, 270], side: 'pass NORTH of it', bx: cx + 125, by: 125 },
-      { kind: 'cardinal-e', x: 545, wl: cy + 60, letter: 'E', lx: 545, ly: cy + 85, boat: [605, cy - 95, 0], side: 'pass EAST', bx: 598, by: cy - 55 },
+      { kind: 'cardinal-e', x: 545, wl: cy + 60, letter: 'E', lx: 606, ly: cy + 45, boat: [605, cy - 95, 0], side: 'pass EAST', bx: 598, by: cy - 55 },
       { kind: 'cardinal-s', x: cx, wl: 560, letter: 'S', lx: cx - 95, ly: 470, boat: [cx + 125, 600, 90], side: 'pass SOUTH of it', bx: cx + 125, by: 625 },
-      { kind: 'cardinal-w', x: 95, wl: cy + 60, letter: 'W', lx: 95, ly: cy + 85, boat: [40, cy - 95, 180], side: 'pass WEST', bx: 42, by: cy - 55 },
+      { kind: 'cardinal-w', x: 95, wl: cy + 60, letter: 'W', lx: 36, ly: cy + 45, boat: [40, cy - 95, 180], side: 'pass WEST', bx: 42, by: cy - 55 },
     ];
     place.forEach(p => {
       const k = KINDS[p.kind], m = drawMark(p.kind, 'pillar', { idSuffix: '-cc' });
@@ -229,7 +229,7 @@
     });
     inner += `<line x1="${kx}" y1="${ky}" x2="${kx}" y2="${ky - 24}" stroke="${INK}" stroke-width="2"/><line x1="${kx}" y1="${ky}" x2="${kx + 18}" y2="${ky}" stroke="${INK}" stroke-width="2"/>`;
     inner += note(kx, ky + kr + 14, 'Clock face: 3 = E, 6 = S, 9 = W', { size: 11 }) + note(kx, ky + kr + 28, '12 = N (continuous)', { size: 11 });
-    inner += note(cx, Ht - 12, 'Cones point towards the black band: up = N, down = S, outward (base to base) = E, inward (point to point) = W', { size: 11.5 });
+    inner += note(cx, Ht - 14, 'Cones point towards the black band: up = N, down = S, outward (base to base) = E, inward (point to point) = W', { size: 11.5 });
     return S.svg(Wd, Ht, inner, { label: 'Cardinal marks around a danger: north mark (black over yellow, cones up) to the north, east mark (black-yellow-black, cones base to base) to the east, south mark (yellow over black, cones down) to the south, west mark (yellow-black-yellow, cones point to point) to the west. Pass on the named side. Clock face: 3 flashes east, 6 south, 9 west, continuous north.' });
   }
 
@@ -255,12 +255,11 @@
     inner += note(420, 300, 'GREEN', { size: 13, weight: 700, fill: G }) + note(420, 316, 'cones', { size: 12 }) + note(420, 332, 'odd nos.', { size: 11, fill: MUTED });
     /* boat entering: keeps to its starboard side of the channel */
     inner += boatPlan(290, 450, 0, 44);
-    inner += T(290, 490, 'entering', { size: 12, weight: 700 }) + T(290, 505, 'red to PORT, green to STARBOARD', { size: 11.5 });
-    inner += arrow(275, 450, 185, 450, R, { width: 1.5, head: 8, dash: '4 3' }) + arrow(305, 450, 310, 450, G, { width: 1.5, head: 8 });
+    inner += T(305, 490, 'entering:', { size: 12, weight: 700 }) + T(305, 505, 'red to PORT,', { size: 11.5 }) + T(305, 519, 'green to STARBOARD', { size: 11.5 });
     /* boat leaving */
     inner += boatPlan(190, 215, 180, 44);
-    inner += T(190, 250, 'leaving', { size: 12, weight: 700 }) + T(190, 265, 'red on STARBOARD, green on PORT', { size: 11.5 });
-    inner += note(240, 560, 'Travelling WITH the direction of buoyage: red cans on your left, green cones on your right (IALA Region A)', { size: 11 });
+    inner += T(178, 250, 'leaving:', { size: 12, weight: 700 }) + T(178, 265, 'red on STARBOARD,', { size: 11.5 }) + T(178, 279, 'green on PORT', { size: 11.5 });
+    inner += note(240, 560, 'With the direction of buoyage: red cans on your left, green cones on your right', { size: 11 });
     return S.svg(Wd, Ht, inner, { label: 'Channel entered from seaward (bottom) to the harbour (top). Magenta arrow shows the direction of buoyage. Red can marks with even numbers on the left (port), green cone marks with odd numbers on the right (starboard). A boat entering keeps red to port and green to starboard; a boat leaving has red on its starboard and green on its port side.' });
   }
 
@@ -356,12 +355,12 @@
       sectors: [[110, 170, 'G'], [170, 190, 'W'], [190, 250, 'R']],
       boats: [{ a: 180, r: 320, label: ['on track in the WHITE sector', 'steer towards the light'] }],
       ghosts: [{ a: 156, r: 300, label: ['too far to STARBOARD', 'you see GREEN — turn to port'] }, { a: 204, r: 300, label: ['too far to PORT', 'you see RED — turn to starboard'] }],
-      rocks: [[130, 150], [230, 150]], names: { W: 'WHITE = fairway' },
+      rocks: [[128, 262], [232, 262]], names: { W: 'WHITE = fairway' },
     },
     'two-fairways': {
       sectors: [[110, 150, 'G'], [150, 170, 'W'], [170, 195, 'R'], [195, 220, 'G'], [220, 240, 'W'], [240, 290, 'R']],
-      boats: [{ a: 160, r: 330, label: ['fairway 1: heading for the light', 'red to port, green to starboard'] }, { a: 230, r: 330, label: ['fairway 2: heading for the light', 'red to port, green to starboard'] }],
-      ghosts: [], rocks: [[130, 150], [182, 170], [207, 150], [265, 150]], names: {},
+      boats: [{ a: 160, r: 300, label: ['fairway 1: heading for the light', 'red to port, green to starboard'] }, { a: 228, r: 300, label: ['fairway 2: heading for the light', 'red to port, green to starboard'] }],
+      ghosts: [], rocks: [[130, 240], [182, 230], [207, 230], [265, 230]], names: {},
     },
   };
   /* sectorLight(opts) — plan view of a coast with a sector light; white = fairway, red/green = foul water. opts.preset: fairway | two-fairways */
@@ -370,7 +369,7 @@
     const preset = opts.preset || 'fairway';
     const P = SECTOR_PRESETS[preset];
     if (!P) throw bad('sectorLight preset', preset, Object.keys(SECTOR_PRESETS));
-    const Wd = 640, Ht = 560, lx = 320, ly = 118, RAD = 470;
+    const Wd = 640, Ht = 580, lx = 320, ly = 118, RAD = 470;
     const pt = (a, r) => [lx + r * Math.sin(deg(a)), ly - r * Math.cos(deg(a))];
     let inner = `<rect width="${Wd}" height="${Ht}" fill="${SHALLOW}" rx="8"/>`;
     /* sectors on the water (white drawn pale yellow, as on multicoloured charts) */
@@ -379,11 +378,11 @@
     const limits = []; P.sectors.forEach(s => { if (!limits.includes(s[0])) limits.push(s[0]); if (!limits.includes(s[1])) limits.push(s[1]); });
     limits.forEach(a => {
       const [x, y] = pt(a, RAD); inner += `<line x1="${lx}" y1="${ly}" x2="${fx(x)}" y2="${fx(y)}" stroke="${INK2}" stroke-width="1" stroke-dasharray="5 4" opacity=".8"/>`;
-      const [tx, ty] = pt(a, 408); inner += `<rect x="${fx(tx - 19)}" y="${fx(ty - 8)}" width="38" height="16" rx="3" fill="${PAPER}" opacity=".85"/>` + T(tx, ty, `${String(((a + 180) % 360)).padStart(3, '0')}°`, { size: 11.5, weight: 700 });
+      const [tx, ty] = pt(a, 250); inner += `<rect x="${fx(tx - 19)}" y="${fx(ty - 8)}" width="38" height="16" rx="3" fill="${PAPER}" opacity=".85"/>` + T(tx, ty, `${String(((a + 180) % 360)).padStart(3, '0')}°`, { size: 11.5, weight: 700 });
     });
     /* sector names */
     P.sectors.forEach(([a1, a2, c]) => {
-      const [x, y] = pt((a1 + a2) / 2, c === 'W' ? 225 : 170);
+      const [x, y] = pt((a1 + a2) / 2, c === 'W' ? 225 : (a2 - a1 < 30 ? 150 : 190));
       const nm = c === 'W' ? (P.names.W || 'WHITE') : c === 'R' ? 'RED' : 'GREEN';
       inner += T(x, y, nm, { size: c === 'W' ? 12 : 13, weight: 800, fill: c === 'W' ? INK : c === 'R' ? R : G }) + (c !== 'W' ? T(x, y + 15, 'foul water', { size: 11, fill: INK2 }) : '');
     });
@@ -396,15 +395,16 @@
     /* boats */
     P.boats.forEach(b => { const [x, y] = pt(b.a, b.r); inner += boatPlan(x, y, (b.a + 180) % 360, 40); inner += T(x, y + 36, b.label[0], { size: 11.5, weight: 700 }) + T(x, y + 50, b.label[1], { size: 11 }); });
     P.ghosts.forEach(b => { const [x, y] = pt(b.a, b.r); inner += `<g opacity=".75">${boatPlan(x, y, (b.a + 180) % 360, 36)}</g>`; inner += T(x, y + 34, b.label[0], { size: 11.5, weight: 700 }) + T(x, y + 48, b.label[1], { size: 11 }); });
-    inner += `<rect x="40" y="${Ht - 50}" width="${Wd - 80}" height="42" rx="6" fill="${PAPER}" opacity=".9"/>`;
-    inner += T(Wd / 2, Ht - 36, 'Heading TOWARDS the light in white: RED lies to PORT, GREEN to STARBOARD (IALA; all Norwegian sector lights since Nov 2025).', { size: 11.5, weight: 600 });
-    inner += T(Wd / 2, Ht - 20, 'Sector limits are true bearings from the sea towards the light. Shoals can still lie inside a white sector — check the chart.', { size: 11, fill: INK2 });
+    inner += `<rect x="24" y="${Ht - 66}" width="${Wd - 48}" height="58" rx="6" fill="${PAPER}" opacity=".92"/>`;
+    inner += T(Wd / 2, Ht - 52, 'Heading TOWARDS the light in its white sector: RED lies to PORT, GREEN to STARBOARD.', { size: 12, weight: 700 });
+    inner += T(Wd / 2, Ht - 36, '(IALA rule; all Norwegian sector lights converted by Nov 2025. With the light astern the picture is mirrored.)', { size: 11, fill: INK2 });
+    inner += T(Wd / 2, Ht - 20, 'Limits are true bearings from the sea towards the light. Shoals can still lie in a white sector — check the chart.', { size: 11, fill: INK2 });
     return S.svg(Wd, Ht, inner, { label: `Sector light plan view (${preset}): white sector marks the fairway; for a boat heading towards the light the red sector is on its port side and the green sector on its starboard side; red and green mean foul water. Sector limits given as true bearings from the sea.` });
   }
 
   /* leadingLine() — two leading marks in transit, with a boat on and off the line. */
   function leadingLine() {
-    const Wd = 640, Ht = 520;
+    const Wd = 640, Ht = 540;
     let inner = title(Wd, 22, 'Leading line (overett): two marks in line = you are on the track', 16);
     const win = (x, y, w, h, offset, cap1, cap2, good) => {
       let s = `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${PAPER}" stroke="${good ? C.green : LINE}" stroke-width="${good ? 2.5 : 1.2}"/>`;
@@ -415,15 +415,15 @@
       const fxm = cx, rxm = cx + offset;
       s += `<line x1="${rxm}" y1="${hz - 10}" x2="${rxm}" y2="${hz - 84}" stroke="${INK}" stroke-width="2"/>` + cone(rxm, hz - 56, 26, 28, false, R, `stroke="${INK}" stroke-width="1"`);
       s += `<line x1="${fxm}" y1="${hz + 8}" x2="${fxm}" y2="${hz - 40}" stroke="${INK}" stroke-width="2.5"/>` + cone(fxm, hz - 12, 30, 30, true, R, `stroke="${INK}" stroke-width="1"`);
-      s += T(cx, y + h - 34, cap1, { size: 12, weight: 700, fill: good ? C.green : INK }) + T(cx, y + h - 18, cap2, { size: 11.5 });
+      s += T(cx, y + h - 42, cap1, { size: 12, weight: 700, fill: good ? C.green : INK }) + T(cx, y + h - 26, cap2[0], { size: 11.5 }) + T(cx, y + h - 11, cap2[1], { size: 11.5, weight: 700 });
+      if (good) s += T(cx + 22, hz - 68, 'rear (higher)', { size: 11, anchor: 'start', fill: MUTED }) + T(cx + 22, hz - 24, 'front', { size: 11, anchor: 'start', fill: MUTED });
       return s;
     };
-    inner += win(16, 40, 196, 186, 0, 'ON the line', 'rear mark exactly above front mark', true);
-    inner += win(222, 40, 196, 186, -30, 'You are LEFT of the line', 'rear mark appears LEFT → steer RIGHT', false);
-    inner += win(428, 40, 196, 186, 30, 'You are RIGHT of the line', 'rear mark appears RIGHT → steer LEFT', false);
-    inner += note(107, 70, 'rear mark', { size: 11, fill: MUTED }) + note(107, 86, '(higher, apex down)', { size: 11, fill: MUTED });
+    inner += win(16, 40, 196, 200, 0, 'ON the line', ['rear mark exactly above front mark', 'hold this course'], true);
+    inner += win(222, 40, 196, 200, -30, 'You are LEFT of the line', ['rear mark appears LEFT of front', '→ steer RIGHT'], false);
+    inner += win(428, 40, 196, 200, 30, 'You are RIGHT of the line', ['rear mark appears RIGHT of front', '→ steer LEFT'], false);
     /* plan view */
-    const py = 245; inner += `<rect x="330" y="${py}" width="294" height="${Ht - py - 12}" rx="6" fill="${SHALLOW}"/>`;
+    const py = 258; inner += `<rect x="330" y="${py}" width="294" height="${Ht - py - 12}" rx="6" fill="${SHALLOW}"/>`;
     inner += `<path d="M420,${py} H624 V${py + 130} Q560,${py + 120} 520,${py + 95} Q470,${py + 70} 440,${py + 60} Q400,${py + 40} 420,${py} Z" fill="${PAPER2}" stroke="${LINE}" stroke-width="1.2"/>`;
     const brg = 25.5, F = [482, py + 72], Rm = [F[0] + 50 * Math.sin(deg(brg)), F[1] - 50 * Math.cos(deg(brg))];
     const seaEnd = [F[0] - 215 * Math.sin(deg(brg)), F[1] + 215 * Math.cos(deg(brg))];
@@ -459,7 +459,7 @@
   const plusSym = (x, y, s, w) => `<g stroke="${INK}" stroke-width="${w || 2}" stroke-linecap="round"><line x1="${x - s}" y1="${y}" x2="${x + s}" y2="${y}"/><line x1="${x}" y1="${y - s}" x2="${x}" y2="${y + s}"/></g>`;
   const dotCircle = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${INK}" stroke-width="1.6" stroke-dasharray="2.5 3"/>`;
   const flare = (x, y, a) => `<g transform="translate(${x},${y}) rotate(${a == null ? 35 : a})"><path d="M0,-3 Q10,-14 20,-6 Q10,2 0,-3 Z" fill="${MAGENTA}"/></g>`;
-  const wreckSym = (x, y) => `<g stroke="${INK}" stroke-width="2" stroke-linecap="round"><line x1="${x - 14}" y1="${y}" x2="${x + 14}" y2="${y}"/><line x1="${x - 7}" y1="${y - 7}" x2="${x - 7}" y2="${y + 7}"/><line x1="${x}" y1="${y - 10}" x2="${x}" y2="${y + 10}"/><line x1="${x + 7}" y1="${y - 7}" x2="${x + 7}" y2="${y + 7}"/></g>`;
+  const wreckSym = (x, y, k) => { k = k || 1; return `<g stroke="${INK}" stroke-width="2" stroke-linecap="round"><line x1="${x - 14 * k}" y1="${y}" x2="${x + 14 * k}" y2="${y}"/><line x1="${x - 7 * k}" y1="${y - 7 * k}" x2="${x - 7 * k}" y2="${y + 7 * k}"/><line x1="${x}" y1="${y - 10 * k}" x2="${x}" y2="${y + 10 * k}"/><line x1="${x + 7 * k}" y1="${y - 7 * k}" x2="${x + 7 * k}" y2="${y + 7 * k}"/></g>`; };
   const anchorSym = (x, y, col) => `<g stroke="${col || INK}" stroke-width="2.2" fill="none" stroke-linecap="round"><circle cx="${x}" cy="${y - 16}" r="4"/><line x1="${x}" y1="${y - 12}" x2="${x}" y2="${y + 14}"/><line x1="${x - 9}" y1="${y - 4}" x2="${x + 9}" y2="${y - 4}"/><path d="M${x - 14},${y + 4} Q${x},${y + 20} ${x + 14},${y + 4}"/></g>`;
   function wavy(x1, y, x2, col, amp) { amp = amp || 3; let d = `M${x1},${y}`; for (let x = x1; x < x2; x += 10) d += ` q2.5,${-amp} 5,0 t5,0`; return `<path d="${d}" fill="none" stroke="${col || MAGENTA}" stroke-width="1.6"/>`; }
   function beaconSym(x, y, kind) {
@@ -505,20 +505,20 @@
 
   /* chartExcerpt() — a small invented chart excerpt with a legend. Clearly marked as an example. */
   function chartExcerpt() {
-    const Wd = 640, Ht = 500, mx = 16, my = 16, mw = 420, mh = 400;
+    const Wd = 640, Ht = 500, mx = 16, my = 16, mw = 400, mh = 400;
     let inner = `<rect x="${mx}" y="${my}" width="${mw}" height="${mh}" fill="${PAPER}" stroke="${INK2}" stroke-width="1.5"/>`;
     /* shallow tint and contours */
     inner += `<path d="M${mx},${my + 60} Q120,110 150,170 Q180,230 130,300 Q90,360 ${mx},${my + mh}" fill="${SHALLOW}" stroke="${C.blue}" stroke-width="1.2"/>`;
     inner += `<path d="M${mx},${my + 110} Q100,150 115,190 Q130,230 95,300 Q70,350 ${mx},${my + mh}" fill="none" stroke="${C.blue}" stroke-width="1"/>`;
-    inner += `<path d="M${mx + mw},${my + 40} Q380,120 400,200 Q420,280 360,340 Q330,380 ${mx + mw},${my + mh - 40}" fill="${SHALLOW}" stroke="${C.blue}" stroke-width="1.2"/>`;
-    inner += T(140, 150, '10', { size: 10, fill: C.blue }) + T(100, 150, '5', { size: 10, fill: C.blue });
+    inner += `<path d="M${mx + mw},${my + 40} Q370,120 385,200 Q400,280 350,340 Q325,380 ${mx + mw},${my + mh - 40}" fill="${SHALLOW}" stroke="${C.blue}" stroke-width="1.2"/>`;
+    inner += T(146, 215, '10', { size: 10, fill: C.blue }) + T(108, 215, '5', { size: 10, fill: C.blue });
     /* land */
     inner += `<path d="M${mx},${my} H150 Q130,40 100,70 Q60,110 ${mx},${my + 60} Z" fill="${PAPER2}" stroke="${INK}" stroke-width="1.5"/>`;
-    inner += `<path d="M${mx + mw},${my} H300 Q320,30 360,50 Q410,70 ${mx + mw},${my + 40} Z" fill="${PAPER2}" stroke="${INK}" stroke-width="1.5"/>`;
+    inner += `<path d="M${mx + mw},${my} H300 Q320,30 350,50 Q390,70 ${mx + mw},${my + 40} Z" fill="${PAPER2}" stroke="${INK}" stroke-width="1.5"/>`;
     inner += `<path d="M${mx},${my + mh} V330 Q50,345 70,380 Q85,405 100,${my + mh} Z" fill="${PAPER2}" stroke="${INK}" stroke-width="1.5"/>`;
-    inner += T(60, 40, 'LAND', { size: 12, weight: 700, fill: INK2 }) + T(390, 32, 'LAND', { size: 12, weight: 700, fill: INK2 });
+    inner += T(60, 40, 'LAND', { size: 12, weight: 700, fill: INK2 }) + T(380, 32, 'LAND', { size: 12, weight: 700, fill: INK2 });
     /* soundings: italic = ordinary depths; upright = shoals */
-    [[230, 90, '32'], [300, 160, '27'], [250, 250, '18'], [320, 300, '21'], [200, 340, '14'], [170, 110, '12'], [260, 380, '15'], [370, 390, '7,3']].forEach(([x, y, d]) => { inner += `<text x="${x}" y="${y}" font-size="12" ${ITAL} fill="${INK}" text-anchor="middle">${d}</text>`; });
+    [[225, 95, '32'], [300, 160, '27'], [250, 250, '18'], [340, 330, '21'], [200, 340, '14'], [195, 150, '12'], [260, 380, '15'], [365, 390, '7,3']].forEach(([x, y, d]) => { inner += `<text x="${x}" y="${y}" font-size="12" ${ITAL} fill="${INK}" text-anchor="middle">${d}</text>`; });
     inner += T(236, 190, '4', { size: 12, weight: 700 }) + dotCircle(236, 189, 9);
     /* dangerous underwater rock + rock awash */
     inner += plusSym(150, 260, 8, 2) + plusSym(345, 240, 8, 2) + [[-4, -4], [4, -4], [-4, 4], [4, 4]].map(d => `<circle cx="${345 + d[0]}" cy="${240 + d[1]}" r="1.5" fill="${INK}"/>`).join('');
@@ -527,39 +527,39 @@
     inner += chartBuoy('lateral-starboard', 290, 300, false) + T(308, 296, 'G', { size: 11, weight: 700, anchor: 'start' });
     inner += arrow(248, 360, 248, 300, MAGENTA, { width: 2, head: 11, open: true }) + `<circle cx="244" cy="364" r="2.5" fill="${MAGENTA}"/><circle cx="252" cy="364" r="2.5" fill="${MAGENTA}"/>`;
     /* sector light on the left shore with its sectors (white drawn yellow) */
-    const lx = 112, ly = 92;
-    [[60, 95, G], [95, 125, Y], [125, 170, R]].forEach(([a, b, c]) => { const p = a2 => [lx + 60 * Math.sin(deg(a2)), ly - 60 * Math.cos(deg(a2))]; const [x1, y1] = p(a), [x2, y2] = p(b); inner += `<path d="M${fx(x1)},${fx(y1)} A60,60 0 0,1 ${fx(x2)},${fx(y2)}" fill="none" stroke="${c}" stroke-width="${c === Y ? 3 : 5}"/>`; });
-    [60, 95, 125, 170].forEach(a => { inner += `<line x1="${lx}" y1="${ly}" x2="${fx(lx + 66 * Math.sin(deg(a)))}" y2="${fx(ly - 66 * Math.cos(deg(a)))}" stroke="${INK2}" stroke-width=".8" stroke-dasharray="2 2"/>`; });
-    inner += `<circle cx="${lx}" cy="${ly}" r="3.5" fill="${INK}"/>` + flare(lx, ly, -60) + T(lx + 2, ly + 78, 'Oc WRG 6s 12m 9-6M', { size: 11, anchor: 'start', weight: 600 });
+    const lx = 108, ly = 86;
+    [[60, 95, G], [95, 125, Y], [125, 170, R]].forEach(([a, b, c]) => { const p = a2 => [lx + 52 * Math.sin(deg(a2)), ly - 52 * Math.cos(deg(a2))]; const [x1, y1] = p(a), [x2, y2] = p(b); inner += `<path d="M${fx(x1)},${fx(y1)} A52,52 0 0,1 ${fx(x2)},${fx(y2)}" fill="none" stroke="${c}" stroke-width="${c === Y ? 3 : 5}"/>`; });
+    [60, 95, 125, 170].forEach(a => { inner += `<line x1="${lx}" y1="${ly}" x2="${fx(lx + 58 * Math.sin(deg(a)))}" y2="${fx(ly - 58 * Math.cos(deg(a)))}" stroke="${INK2}" stroke-width=".8" stroke-dasharray="2 2"/>`; });
+    inner += `<circle cx="${lx}" cy="${ly}" r="3.5" fill="${INK}"/>` + flare(lx, ly, -60) + T(lx - 60, ly + 76, 'Oc WRG 6s 12m 9-6M', { size: 11, anchor: 'start', weight: 600 });
     /* leading line into the harbour at the top */
     inner += `<line x1="248" y1="300" x2="248" y2="60" stroke="${INK}" stroke-width="1.6"/><line x1="248" y1="60" x2="248" y2="${my + 6}" stroke="${INK}" stroke-width="1.2" stroke-dasharray="5 4"/>`;
     inner += `<circle cx="248" cy="60" r="3" fill="${INK}"/><circle cx="248" cy="36" r="3" fill="${INK}"/>` + flare(248, 60, -20) + flare(248, 36, -20);
     inner += `<text x="256" y="130" font-size="11" font-weight="700" fill="${INK}" transform="rotate(-90 256 130)" text-anchor="middle">Ldg Lts 000°</text>`;
     /* obstruction + wreck */
-    inner += dotCircle(380, 120, 13) + T(380, 121, 'Obstn', { size: 8.5 });
+    inner += dotCircle(372, 120, 16) + T(372, 121, 'Obstn', { size: 9.5 });
     inner += wreckSym(200, 60) + dotCircle(200, 60, 15);
     inner += `<rect x="${mx}" y="${my + mh - 24}" width="${mw}" height="24" fill="${PAPER}" opacity=".92"/>` + T(mx + mw / 2, my + mh - 12, 'EXAMPLE ONLY — invented chart excerpt, not for navigation', { size: 12.5, weight: 800, fill: C.red });
     /* legend */
-    const Lx = 452, Ly = 24;
-    inner += `<rect x="${Lx - 6}" y="${Ly - 10}" width="${Wd - Lx - 10}" height="${Ht - Ly - 6}" rx="6" fill="${PAPER2}" stroke="${LINE}"/>` + T(Lx + 86, Ly + 6, 'Legend', { size: 14, weight: 700 });
+    const Lx = 432, Ly = 24, step = 31;
+    inner += `<rect x="${Lx - 6}" y="${Ly - 10}" width="${Wd - Lx - 6}" height="${Ht - Ly - 6}" rx="6" fill="${PAPER2}" stroke="${LINE}"/>` + T(Lx + 98, Ly + 6, 'Legend', { size: 14, weight: 700 });
     const rows = [
-      [`<text x="${Lx + 12}" y="${Ly + 42}" font-size="12" ${ITAL} fill="${INK}" text-anchor="middle">18</text>`, 'sounding (m), italic'],
-      [T(Lx + 12, Ly + 70, '4', { size: 12, weight: 700 }) + dotCircle(Lx + 12, Ly + 69, 9), 'shoal, upright + danger circle'],
-      [plusSym(Lx + 12, Ly + 98, 7, 2), 'underwater rock, depth unknown'],
-      [plusSym(Lx + 12, Ly + 126, 7, 2) + [[-4, -4], [4, -4], [-4, 4], [4, 4]].map(d => `<circle cx="${Lx + 12 + d[0]}" cy="${Ly + 126 + d[1]}" r="1.5" fill="${INK}"/>`).join(''), 'rock awash at chart datum'],
-      [`<line x1="${Lx + 2}" y1="${Ly + 154}" x2="${Lx + 22}" y2="${Ly + 154}" stroke="${C.blue}" stroke-width="1.2"/>`, 'depth contour (blue); tint < 10 m'],
-      [chartBuoy('lateral-port', Lx + 8, Ly + 192, false), 'red port-hand buoy'],
-      [chartBuoy('lateral-starboard', Lx + 8, Ly + 224, false), 'green starboard-hand buoy'],
-      [arrow(Lx + 2, Ly + 252, Lx + 24, Ly + 238, MAGENTA, { width: 1.8, head: 9, open: true }), 'direction of buoyage'],
-      [`<circle cx="${Lx + 12}" cy="${Ly + 274}" r="3" fill="${INK}"/>` + flare(Lx + 12, Ly + 274), 'light (magenta flare)'],
-      [`<path d="M${Lx + 2},${Ly + 306} A14,14 0 0,1 ${Lx + 12},${Ly + 292}" fill="none" stroke="${G}" stroke-width="4"/><path d="M${Lx + 12},${Ly + 292} A14,14 0 0,1 ${Lx + 22},${Ly + 306}" fill="none" stroke="${Y}" stroke-width="3"/>`, 'light sectors; white drawn yellow'],
-      [`<line x1="${Lx + 2}" y1="${Ly + 334}" x2="${Lx + 14}" y2="${Ly + 334}" stroke="${INK}" stroke-width="1.6"/><line x1="${Lx + 14}" y1="${Ly + 334}" x2="${Lx + 24}" y2="${Ly + 334}" stroke="${INK}" stroke-width="1.2" stroke-dasharray="3 3"/>`, 'leading line (solid = track)'],
-      [wreckSym(Lx + 12, Ly + 362).replace(/14/g, '9').replace(/x1="(\d+)"/g, 'x1="$1"'), 'wreck; dotted circle = dangerous'],
-      [dotCircle(Lx + 12, Ly + 392, 9), 'danger circle'],
+      [y => `<text x="${Lx + 12}" y="${y + 4}" font-size="12" ${ITAL} fill="${INK}" text-anchor="middle">18</text>`, 'sounding in metres (italic)'],
+      [y => T(Lx + 12, y + 1, '4', { size: 12, weight: 700 }) + dotCircle(Lx + 12, y, 9), 'shoal: upright + danger circle'],
+      [y => plusSym(Lx + 12, y, 7, 2), 'underwater rock, depth unknown'],
+      [y => plusSym(Lx + 12, y, 7, 2) + [[-4, -4], [4, -4], [-4, 4], [4, 4]].map(d => `<circle cx="${Lx + 12 + d[0]}" cy="${y + d[1]}" r="1.5" fill="${INK}"/>`).join(''), 'rock awash at chart datum'],
+      [y => `<line x1="${Lx + 2}" y1="${y}" x2="${Lx + 22}" y2="${y}" stroke="${C.blue}" stroke-width="1.2"/>`, 'depth contour (blue); tint <10 m'],
+      [y => chartBuoy('lateral-port', Lx + 8, y + 14, false), 'red port-hand buoy (R)'],
+      [y => chartBuoy('lateral-starboard', Lx + 8, y + 14, false), 'green starboard-hand buoy (G)'],
+      [y => arrow(Lx + 2, y + 8, Lx + 24, y - 8, MAGENTA, { width: 1.8, head: 9, open: true }), 'direction of buoyage'],
+      [y => `<circle cx="${Lx + 12}" cy="${y}" r="3" fill="${INK}"/>` + flare(Lx + 12, y), 'light (magenta flare)'],
+      [y => `<path d="M${Lx + 2},${y + 7} A14,14 0 0,1 ${Lx + 12},${y - 7}" fill="none" stroke="${G}" stroke-width="4"/><path d="M${Lx + 12},${y - 7} A14,14 0 0,1 ${Lx + 22},${y + 7}" fill="none" stroke="${Y}" stroke-width="3"/>`, 'light sectors (white = yellow)'],
+      [y => `<line x1="${Lx + 2}" y1="${y}" x2="${Lx + 14}" y2="${y}" stroke="${INK}" stroke-width="1.6"/><line x1="${Lx + 14}" y1="${y}" x2="${Lx + 24}" y2="${y}" stroke="${INK}" stroke-width="1.2" stroke-dasharray="3 3"/>`, 'leading line (solid = track)'],
+      [y => wreckSym(Lx + 12, y, .65) + dotCircle(Lx + 12, y, 11), 'wreck (circle = dangerous)'],
+      [y => dotCircle(Lx + 12, y, 9) + T(Lx + 12, y + 1, 'Obstn', { size: 6 }), 'obstruction / danger circle'],
     ];
-    rows.forEach(([sym, label], i) => { inner += sym + T(Lx + 32, Ly + 42 + i * 32 - (i === 0 ? 4 : 0), label, { size: 11, anchor: 'start' }); });
-    inner += note(Lx + 86, Ht - 22, 'Depths in metres below chart datum (LAT).', { size: 10.5, fill: MUTED });
-    return S.svg(Wd, Ht, inner, { label: 'Invented example chart excerpt (not for navigation): land, blue depth contours and tint, italic soundings, an upright shoal depth in a danger circle, underwater rock and rock awash symbols, a red port-hand and green starboard-hand buoy with the magenta direction-of-buoyage arrow, a sector light with green, white (yellow) and red arcs, a leading line and a legend.' });
+    rows.forEach(([sym, label], i) => { const y = Ly + 36 + i * step; inner += sym(y) + T(Lx + 32, y + 1, label, { size: 10.5, anchor: 'start' }); });
+    inner += note(Lx + 98, Ht - 22, 'Depths in metres below chart datum (LAT)', { size: 10.5, fill: MUTED });
+    return S.svg(Wd, Ht, inner, { label: 'Invented example chart excerpt (not for navigation): land, blue depth contours and tint, italic soundings, an upright shoal depth in a danger circle, underwater rock and rock awash symbols, a red port-hand and green starboard-hand buoy with the magenta direction-of-buoyage arrow, a sector light with green, white (yellow) and red arcs, a leading line, a wreck, an obstruction and a legend.' });
   }
 
   /* ---------- extra helpers from the fact sheet (IL-11, IL-12, IL-15) ---------- */

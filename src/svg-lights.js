@@ -145,7 +145,7 @@
     'power<12': { name: 'Power-driven vessel under 12 m', rule: 'Rule 23(c)/(d)(i): one all-round white light + sidelights', lights: [L('ar', 'white', 0, 2.6), ...sidesL(.5, 1)] },
     'power<7': { name: 'Power-driven vessel under 7 m, max 7 knots', rule: 'Rule 23(c)/(d)(ii): all-round white light only (sidelights if practicable)', lights: [L('ar', 'white', -.1, 2)] },
     'sail': { name: 'Sailing vessel under sail', rule: 'Rule 25(a): sidelights + sternlight, NO white light above them', lights: [...sidesL(.6, .8), sternL(.7)] },
-    'sail-tricolour': { name: 'Sailing vessel under 20 m with tricolour lantern', rule: 'Rule 25(b): one masthead lantern combines red, green and white', lights: [L('sp', 'red', .1, 5, -.17), L('ss', 'green', .1, 5, .17), L('st', 'white', .1, 5)] },
+    'sail-tricolour': { name: 'Sailing vessel under 20 m with tricolour lantern', rule: 'Rule 25(b): one masthead lantern combines red, green and white', lights: [L('sp', 'red', .1, 5, -.32), L('ss', 'green', .1, 5, .32), L('st', 'white', .1, 5)] },
     'sail-redgreen': { name: 'Sailing vessel with red over green masthead lights', rule: 'Rule 25(c): sidelights + sternlight + all-round RED over GREEN (never with a tricolour)', lights: [L('ar', 'red', .1, 5), L('ar', 'green', .1, 4), ...sidesL(.6, .8), sternL(.7)] },
     'anchored': { name: 'Vessel at anchor, under 50 m', rule: 'Rule 30(b): one all-round white light where best seen', lights: [L('ar', 'white', .6, 2.8)] },
     'anchored>=50': { name: 'Vessel at anchor, 50 m or more', rule: 'Rule 30(a): all-round white forward and a second, LOWER one aft', lights: [L('ar', 'white', .7, 4.4), L('ar', 'white', -.6, 2.4)] },
@@ -195,7 +195,10 @@
     });
     const title = def.name + (making ? '' : ', stopped');
     g += txt(cx, 20, title, { size: title.length > 36 ? 12 : 13, weight: 700, fill: NIGHT_INK });
-    g += caption(cx, H - 58, 'Seen from ' + view.toUpperCase() + ': ' + VIEW_HINT[view], 62, { size: 11, fill: NIGHT_INK, lh: 13 });
+    // the "red on your right" hint only makes sense when sidelights are actually visible
+    const sides = lights.some(l => l.arc === 'sp' || l.arc === 'ss');
+    const hint = view === 'ahead' && !sides ? 'her bow points at YOU — no sidelights visible (not making way, or none carried)' : VIEW_HINT[view];
+    g += caption(cx, H - 58, 'Seen from ' + view.toUpperCase() + ': ' + hint, 62, { size: 11, fill: NIGHT_INK, lh: 13 });
     g += caption(cx, H - 27, def.rule, 70, { size: 10, fill: NIGHT_MUTED, lh: 12 });
     return S.svg(W, H, g, { bg: C.night, label: `Night view of a ${def.name} seen from ${view}: ${lights.map(l => l.color).join(', ') || 'no lights'}` });
   }
@@ -226,11 +229,12 @@
       g += lp(93, 168, 'white') + note(26, 138, 'Sternlight (white), 135°', { anchor: 'start' }) + leader(93, 163, 72, 146);
       g += dash(250, 104, 330, 104, mut, 1) + dash(388, 165, 330, 165, mut, 1) + dim(330, 104, 165, '≥ 1 m');
       cap = 'Under 12 m the masthead light + sternlight may be replaced by ONE all-round white light (Rule 23(c)/(d)). Sidelights are still required unless the boat is under 7 m AND cannot exceed 7 knots. The red sidelight is on the port side (hidden here).';
-      if (day) cap = 'A motorboat underway shows no day shape. ' + cap;
+      if (day) cap = 'A motorboat underway shows no day shape. Under 12 m the masthead light + sternlight may be replaced by ONE all-round white light (Rule 23(c)/(d)); sidelights are still required unless under 7 m AND max 7 knots.';
       label = 'Side view of an 8 m motorboat with masthead light, green starboard sidelight and sternlight';
     } else if (type === 'sailboat') {
       g += `<polygon points="110,${wl} 116,175 372,175 392,190 384,${wl}" fill="${hull}"/>` + mast(250, 175, 48) + `<polygon points="253,58 253,168 150,168" fill="${day ? '#fff' : '#d8dde3'}" stroke="${mut}" stroke-width="1"/><polygon points="247,62 247,160 365,170" fill="${day ? '#fff' : '#c9d0d8'}" stroke="${mut}" stroke-width="1"/>`;
-      g += `<circle cx="250" cy="40" r="7" fill="none" stroke="${mut}" stroke-width="1.5" stroke-dasharray="3 2"/>` + line(245, 35, 255, 45, C.red, 2) + line(245, 45, 255, 35, C.red, 2) + note(264, 40, 'NO white masthead light under sail (Rule 25)', { anchor: 'start' });
+      if (day) g += `<circle cx="250" cy="40" r="7" fill="none" stroke="${mut}" stroke-width="1.5" stroke-dasharray="3 2"/>` + note(264, 40, 'motoring at night: white masthead light here', { anchor: 'start' });
+      else g += `<circle cx="250" cy="40" r="7" fill="none" stroke="${mut}" stroke-width="1.5" stroke-dasharray="3 2"/>` + line(245, 35, 255, 45, C.red, 2) + line(245, 45, 255, 35, C.red, 2) + note(264, 40, 'NO white masthead light under sail (Rule 25)', { anchor: 'start' });
       g += lp(376, 170, 'green') + note(548, 140, 'Starboard sidelight (green)', { anchor: 'end' }) + leader(376, 165, 404, 147);
       g += lp(113, 171, 'white') + note(26, 140, 'Sternlight (white)', { anchor: 'start' }) + leader(113, 166, 92, 147);
       if (day) g += shape('cone-down', 304, 92) + leader(318, 104, 362, 104) + notes(440, 92, ['Cone, apex DOWN (black):', 'sails up + engine running', '= power-driven (Rule 25(e))']);
@@ -269,11 +273,12 @@
         g += lp(482, 152, 'green') + note(495, 128, 'green sidelight', { anchor: 'start' }) + leader(482, 147, 495, 134);
         g += lp(196, 174, 'green') + note(150, 152, 'tow: green sidelight') + leader(196, 169, 175, 158) + lp(43, 174, 'white') + note(90, 128, 'tow: sternlight (white)') + leader(43, 169, 60, 136);
       }
-      g += line(40, 236, 304, 236, ink, 1) + arrowHead(40, 236, 270, ink, 7) + arrowHead(304, 236, 90, ink, 7) + notes(172, 250, ['tow length (tug’s stern to end of tow):', '> 200 m → 3 masthead lights + diamond'], { size: 10, weight: 500, lh: 12 });
+      g += line(40, 236, 304, 236, ink, 1) + arrowHead(40, 236, 270, ink, 7) + arrowHead(304, 236, 90, ink, 7) + notes(172, 250, ['tow length (tug’s stern to end of tow):', '> 200 m → 3 masthead lights + diamond'], { size: 10, weight: 500, lh: 12, halo: day ? DAY_SEA : NIGHT_SEA });
       cap = 'Tug towing astern (Rule 24): two masthead lights in a vertical line (three if the tow exceeds 200 m), sidelights, sternlight and a YELLOW towing light directly above the sternlight. The towed vessel shows sidelights and a sternlight only.';
       label = 'Side view of a tug towing a barge at night with two masthead lights, yellow towing light above the white sternlight, and the barge showing sidelight and sternlight';
     }
-    g += caption(W / 2, H - (type === 'tug' ? 40 : 32), cap, W > 600 ? 108 : 94, { size: 11, fill: ink, lh: 13 });
+    const capLines = wrap(cap, W > 600 ? 108 : 94);   // caption band grows upward so the last line never clips
+    g += lines(W / 2, H - 14 - (capLines.length - 1) * 13, capLines, { size: 11, fill: ink, lh: 13 });
     return S.svg(W, H, g, { label: label + (day ? ' (day)' : '') });
   }
 
@@ -450,10 +455,14 @@
     if (!/^[.\- ]+$/.test(pattern) || !/[.-]/.test(pattern)) throw new Error(`soundSignal: pattern "${pattern}" must contain only "." (short), "-" (prolonged) and spaces (extra gap)`);
     const compact = pattern.replace(/ /g, '');
     const doubt = compact === '.....';
+    // Gaps inside one signal are 1 unit (fact sheet convention; ILLUSTRATIONS.md's "spaces as gaps" is read as: a single
+    // space only separates blasts, each EXTRA consecutive space adds 1 s). Rule 35(b)'s two prolonged blasts are ≈2 s apart.
     const gap = doubt ? .5 : 1, blasts = [];
-    let t = 0;
+    let t = 0, spaces = 0;
     for (const ch of pattern) {
-      if (ch === ' ') { t += 1; continue; }
+      if (ch === ' ') { if (++spaces > 1) t += 1; continue; }
+      spaces = 0;
+      if (blasts.length && compact === '--') t += 1;
       const d = ch === '.' ? 1 : 5;
       blasts.push({ s: t, d });
       t += d + gap;
@@ -462,9 +471,11 @@
     const U = 22, x0 = 24, top = 52, hgt = 34, W = Math.max(400, Math.min(640, x0 * 2 + total * U + 20)), H = 176;
     const col = doubt ? 'var(--warn)' : 'var(--sea)';
     let g = `<rect width="${W}" height="${H}" rx="8" fill="var(--paper-2)"/>`;
-    blasts.forEach(b => {
+    blasts.forEach((b, i) => {
       g += `<rect x="${fmt(x0 + b.s * U)}" y="${top}" width="${fmt(b.d * U - 2)}" height="${hgt}" rx="3" fill="${col}"/>`;
       g += txt(x0 + (b.s + b.d / 2) * U - 1, top - 10, b.d === 1 ? '≈1 s' : '4–6 s', { size: 11, fill: 'var(--ink-2)' });
+      const prev = blasts[i - 1], gapLen = prev ? b.s - prev.s - prev.d : 0;   // label a widened gap (e.g. "≈2 s" between the two prolonged blasts of Rule 35(b))
+      if (gapLen >= 2) g += txt(x0 + (prev.s + prev.d + gapLen / 2) * U - 1, top + hgt / 2, `≈${gapLen} s`, { size: 10, fill: 'var(--muted)' });
     });
     if (doubt) g += txt(x0 + (t - gap) * U + 14, top + hgt / 2, '…', { size: 20, fill: col, weight: 700 });
     // seconds ruler

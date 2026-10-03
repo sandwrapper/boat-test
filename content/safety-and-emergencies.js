@@ -367,3 +367,250 @@
     if (kind === 'flags') s += rect(60, 30, 100, 36, C.white, INK, { rx: 0, sw: 1 }) + `<rect x="60" y="30" width="25" height="18" fill="${C.blue}"/><rect x="85" y="30" width="25" height="18" fill="${C.white}"/><rect x="110" y="30" width="25" height="18" fill="${C.blue}"/><rect x="135" y="30" width="25" height="18" fill="${C.white}"/><rect x="60" y="48" width="25" height="18" fill="${C.white}"/><rect x="85" y="48" width="25" height="18" fill="${C.blue}"/><rect x="110" y="48" width="25" height="18" fill="${C.white}"/><rect x="135" y="48" width="25" height="18" fill="${C.blue}"/>` + `<rect x="60" y="74" width="100" height="36" fill="${C.blue}" stroke="${INK}"/><rect x="60" y="83" width="100" height="18" fill="${C.white}"/><rect x="60" y="88" width="100" height="8" fill="${C.red}"/>` + T(110, 128, 'N over C', { size: 10, weight: 700, fill: INK2 });
     return S.svg(W, H, s, { label: 'Signal: ' + kind });
   }
+
+  // ---------- ILL-4 man overboard: actions and the Williamson turn (F84, F85, F93) ----------
+  function trackPoints(x0, y0, h0, R1, R2) {
+    // heading h in degrees, 0 = up, clockwise. Start at the MOB point heading h0; starboard turn 60 deg (radius R1),
+    // then port turn 240 deg (radius R2, tighter: hard over) to the reciprocal heading. F85: 60 deg, then hard over the other way.
+    const pts = []; let x = x0, y = y0, h = h0;
+    const step = (dh, R, n) => { const ds = Math.abs(S.deg(dh)) * R / n; for (let i = 0; i < n; i++) { h += dh / n; x += Math.sin(S.deg(h)) * ds; y -= Math.cos(S.deg(h)) * ds; pts.push([x, y]); } };
+    pts.push([x, y]);
+    const mark = { x: 0, y: 0, h: 0 };
+    step(60, R1, 30); mark.x = x; mark.y = y; mark.h = h;
+    step(-240, R2, 90);
+    const endH = h; for (let i = 0; i < 40; i++) { x += Math.sin(S.deg(endH)) * 4; y -= Math.cos(S.deg(endH)) * 4; pts.push([x, y]); }
+    return { pts, mark, endH };
+  }
+  function mobTurn(o) {
+    o = o || {};
+    const W = 640, H = 420;
+    let s = '';
+    if (!o.quiz) {
+      s += T(W / 2, 18, 'Man overboard: act first, then turn', { size: 15, weight: 700 });
+      // Panel A: four actions
+      const acts = [['Shout', '"MAN OVERBOARD"'], ['Throw the lifebuoy', 'with light and line'], ['Press MOB', 'on the plotter'], ['One person points', 'and never looks away']];
+      acts.forEach((a, i) => {
+        const x = 20 + i * 152;
+        s += rect(x, 32, 144, 86, PAPER, LINE);
+        if (i === 0) s += `<path d="M${x + 22},${56} L${x + 46},${48} L${x + 46},${80} L${x + 22},${72} Z" fill="${INK2}"/>` + rect(x + 14, 58, 10, 12, INK2, 'none', { rx: 2 }) + line(x + 52, 58, x + 60, 54, INK2) + line(x + 52, 64, x + 62, 64, INK2) + line(x + 52, 70, x + 60, 74, INK2);
+        if (i === 1) s += circ(x + 38, 64, 16, C.orange, INK, 1.2) + circ(x + 38, 64, 8, PAPER, 'none') + circ(x + 38, 50, 3, C.white, INK, 0.6) + `<path d="M${x + 54},${66} q10,8 4,20 q-6,10 6,16" fill="none" stroke="${INK2}" stroke-width="1.5"/>`;
+        if (i === 2) s += rect(x + 16, 46, 48, 34, INK2, 'none', { rx: 4 }) + rect(x + 20, 50, 40, 20, '#1e2a16', 'none', { rx: 2 }) + rect(x + 32, 84, 16, 10, C.red, INK, { rx: 2, sw: 0.8 }) + T(x + 40, 89, 'MOB', { size: 6.5, weight: 800, fill: '#fff' });
+        if (i === 3) s += person(x + 30, 50, { jacket: true, noLegs: true }) + line(x + 38, 64, x + 66, 56, SKIN, { sw: 3.5 }) + circ(x + 70, 55, 2.5, SKIN);
+        s += lines(x + 100, 56, a, { size: 9.8, lh: 12, fill: INK, weight: 600 });
+      });
+    }
+    // Panel B: track diagram, north up. Original course 045 from bottom-left.
+    const bx = 20, by = o.quiz ? 20 : 130, bw = 400, bh = o.quiz ? 380 : 270;
+    s += rect(bx, by, bw, bh, SHALLOW, LINE);
+    const ox = bx + 60, oy = by + bh - 40, mx = bx + 150, my = by + bh - 130; // original track: 045
+    s += line(ox, oy, mx + 230, my - 230, INK2, { sw: 1.5, dash: '6 5' });
+    s += T(ox + 14, oy - 2, 'original course 045', { size: 9.5, fill: INK2, anchor: 'start' });
+    const tr = trackPoints(mx, my, 45, 70, 36);
+    s += `<polyline points="${tr.pts.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${C.blue}" stroke-width="2.6" stroke-linejoin="round"/>`;
+    const last = tr.pts[tr.pts.length - 1], prev = tr.pts[tr.pts.length - 2];
+    s += head(last[0], last[1], Math.atan2(last[1] - prev[1], last[0] - prev[0]), C.blue, 12);
+    // MOB point
+    s += circ(mx, my, 7, C.red) + circ(mx, my, 3, SKIN) + T(mx - 12, my + 14, 'MOB', { size: 9.5, weight: 800, fill: C.red, anchor: 'end' });
+    // 60 degree angle marker at the point where the helm is reversed
+    const m = tr.mark;
+    s += line(m.x, m.y, m.x + Math.sin(S.deg(45)) * 40, m.y - Math.cos(S.deg(45)) * 40, INK2, { sw: 1, dash: '3 3' });
+    s += line(m.x, m.y, m.x + Math.sin(S.deg(m.h)) * 40, m.y - Math.cos(S.deg(m.h)) * 40, INK2, { sw: 1, dash: '3 3' });
+    s += `<path d="M${(m.x + Math.sin(S.deg(45)) * 28).toFixed(1)},${(m.y - Math.cos(S.deg(45)) * 28).toFixed(1)} A28,28 0 0,1 ${(m.x + Math.sin(S.deg(m.h)) * 28).toFixed(1)},${(m.y - Math.cos(S.deg(m.h)) * 28).toFixed(1)}" fill="none" stroke="${BAD}" stroke-width="1.6"/>`;
+    s += T(m.x + 46, m.y - 22, o.quiz ? '?' : '60 deg', { size: 11, weight: 800, fill: BAD });
+    // boat at start
+    s += boatPlan(ox + 30, oy - 30, 30, 12, C.hullLight, 45);
+    // labels
+    s += rect(bx + 8, by + 8, 220, 62, PAPER, LINE, { rx: 6, opacity: 0.95 });
+    s += lines(bx + 16, by + 20, ['1. Hard over to one side until', '    ' + (o.quiz ? '?' : '60') + ' degrees off the course', '2. Hard over the other way until', '    on the opposite course', '3. The casualty appears ahead'], { size: 9.5, lh: 11.5, anchor: 'start', fill: INK });
+    if (!o.quiz) {
+      // Panel C: approach and recovery
+      const cx = 436, cy = 130;
+      s += rect(cx, cy, 184, 270, PAPER, LINE);
+      s += T(cx + 92, cy + 16, 'Approach and recover', { size: 11.5, weight: 700 });
+      s += wind(cx + 92, cy + 36, Math.PI / 2, 'wind');
+      s += boatPlan(cx + 70, cy + 110, 70, 26, C.hullLight, 0);
+      s += circ(cx + 112, cy + 112, 6, C.orange, INK, 1) + circ(cx + 112, cy + 112, 2.5, SKIN) + T(cx + 112, cy + 130, 'lee side', { size: 8.5, fill: INK2 });
+      s += circ(cx + 70, cy + 150, 7, PAPER, INK, 1) + line(cx + 64, cy + 144, cx + 76, cy + 156, C.red, { sw: 2 }) + line(cx + 76, cy + 144, cx + 64, cy + 156, C.red, { sw: 2 }) + T(cx + 70, cy + 166, 'engine in neutral', { size: 8.5, weight: 700, fill: BAD });
+      s += lines(cx + 92, cy + 190, ['Head into the wind so you', 'stop with the casualty alongside.', 'Use the ladder or a line: a wet,', 'limp adult is too heavy to lift.', 'Keep a cold person horizontal.', 'Not found quickly? MAYDAY.'], { size: 9.3, lh: 12, fill: INK2 });
+    }
+    return S.svg(W, H, s, { label: 'Man overboard: shout, throw, mark, point; Williamson turn 60 degrees to one side then hard over to the reciprocal course; approach into the wind with the engine in neutral' });
+  }
+
+  // ---------- ILL-5 HELP position, huddle, 1-10-1 (F67-F69, F72) ----------
+  function helpPosition() {
+    const W = 640, H = 340;
+    let s = T(W / 2, 18, 'In cold water: breathe, then save heat', { size: 15, weight: 700 });
+    // left: HELP side view
+    s += rect(20, 34, 300, 196, PAPER, LINE) + T(170, 50, 'HELP position (alone)', { size: 12, weight: 700 });
+    s += water(22, 120, 296, 108);
+    // person: head out, collar, torso tilted back, knees up, arms folded
+    const hx = 150, hy = 100;
+    s += `<path d="M${hx - 16},${hy + 12} Q${hx - 18},${hy - 8} ${hx},${hy - 10} Q${hx + 18},${hy - 8} ${hx + 16},${hy + 12} Z" fill="${C.orange}" stroke="${INK}" stroke-width="0.8"/>`;
+    s += circ(hx, hy, 9, SKIN, INK, 0.8);
+    s += `<path d="M${hx - 14},${hy + 10} L${hx - 22},${hy + 44} L${hx + 14},${hy + 50} L${hx + 16},${hy + 10} Z" fill="${C.orange}" stroke="${INK}" stroke-width="0.8"/>`;
+    s += `<path d="M${hx - 16},${hy + 20} q10,10 26,8" fill="none" stroke="${SKIN}" stroke-width="5" stroke-linecap="round"/>`;
+    s += `<path d="M${hx - 4},${hy + 48} q24,-20 30,-2 q-6,18 -22,22" fill="none" stroke="${INK2}" stroke-width="7" stroke-linecap="round"/>`;
+    s += arrow([[60, 86], [hx - 24, hy + 24]], INK2) + lines(58, 70, ['arms clamp', 'the armpits'], { size: 9.5, lh: 11, fill: INK2 });
+    s += arrow([[260, 160], [hx + 30, hy + 52]], INK2) + lines(272, 150, ['knees up', 'protect the groin'], { size: 9.5, lh: 11, fill: INK2 });
+    s += arrow([[250, 70], [hx + 18, hy - 4]], INK2) + lines(262, 60, ['head out,', 'collar supports'], { size: 9.5, lh: 11, fill: INK2 });
+    s += lines(170, 196, ['Cuts heat loss by about one third.', 'Only works with a life jacket on.'], { size: 10, lh: 12.5, fill: INK, weight: 600 });
+    // right: huddle top view
+    s += rect(336, 34, 284, 196, PAPER, LINE) + T(478, 50, 'Huddle (several people)', { size: 12, weight: 700 });
+    s += circ(478, 130, 60, SHALLOW, 'none');
+    [0, 120, 240].forEach(a => {
+      const px = 478 + Math.sin(S.deg(a)) * 30, py = 130 - Math.cos(S.deg(a)) * 30;
+      s += circ(px, py, 13, C.orange, INK, 1) + circ(px, py, 7, SKIN, INK, 0.8);
+      const nx = 478 + Math.sin(S.deg(a + 120)) * 30, ny = 130 - Math.cos(S.deg(a + 120)) * 30;
+      s += line(px, py, nx, ny, SKIN, { sw: 4 });
+    });
+    s += circ(478, 130, 7, SKIN, INK, 0.8);
+    s += lines(478, 196, ['Chest to chest, arms over shoulders;', 'weakest or children in the middle;', 'a bigger target for rescuers.'], { size: 10, lh: 12.5, fill: INK, weight: 600 });
+    // bottom timeline 1-10-1
+    const segs = [[BADBG, BAD, '1 minute', 'cold shock: float on your back, control your breathing'], [WARNBG, WARN, '10 minutes', 'useful movement: get to the boat or ladder, signal'], [SHALLOW, SEA, '1 hour', 'hypothermia: HELP or huddle, stay still, stay with the boat']];
+    segs.forEach((g, i) => {
+      const x = 20 + i * 200;
+      s += rect(x, 244, 196, 62, g[0], g[1]) + T(x + 98, 260, g[2], { size: 13, weight: 800, fill: g[1] }) + lines(x + 98, 278, g[3].split(': ').map((t, k) => k === 0 ? t + ':' : t), { size: 9.5, lh: 12, fill: INK });
+    });
+    s += T(W / 2, 326, 'Norwegian sea water is about 6-10 C. Do not swim for shore unless it is very close.', { size: 10.5, fill: MUTED });
+    return S.svg(W, H, s, { label: 'HELP position with knees up and arms clamped, a huddle of three, and the 1-10-1 cold-water timeline' });
+  }
+
+  BOAT.register({
+    id: 'safety-and-emergencies',
+    title: 'Safety equipment and emergencies',
+    order: 8,
+    examShare: 5,
+    examWeight: 'about 5 of 50 questions, two of them in part 4',
+    summary: 'What a recreational boat must and should carry, the law on wearing a life jacket, how to prevent and fight fire, how to call for help (VHF channel 16, DSC, the coast radio number 120, 112), the official distress signals, and what to do when someone falls overboard, the boat takes on water, or a casualty has been in cold water. Two items here are "particularly important topics": the flotation-device rules (1.4.5) and 120 / channel 16 (1.4.6).',
+    sections: [
+      // 1 ------------------------------------------------------------
+      {
+        id: 'overview',
+        title: 'What this topic is and how the exam tests it',
+        html: `<p>Most boating deaths in Norway do not happen in storms far out at sea. They happen to older men in small open motorboats, in sheltered water, often while fishing or stepping between the quay and the boat, usually without a life jacket and often after drinking. In 2025 the Norwegian Maritime Authority recorded 18 deaths; 11 of them wore no flotation device. This topic is the knowledge that would have saved most of them.</p>
+<p>On the official syllabus the material sits in <strong>part 1, seamanship</strong>: safety equipment and its correct use, fire hazards and fire fighting, VHF and mobile phone at sea, precautions and emergencies, the rescue service, and first aid. Two pieces are lifted into <strong>part 4, the "particularly important topics"</strong>, where you may make at most two mistakes in the whole exam:</p>
+<ul>
+<li><strong>1.4.5</strong> &mdash; the rules on the use of flotation devices (who must wear one, when, and who is responsible).</li>
+<li><strong>1.4.6</strong> &mdash; emergencies: the coast radio station's telephone number <strong>120</strong> and <strong>VHF channel 16</strong>.</li>
+</ul>
+<p>Expect roughly five questions from this topic in a 50-question exam. The style is simple: direct recall ("which number reaches the coast radio from a mobile phone?"), rule application ("a 7.5 m boat is under way; who must wear a life jacket?") and short scenarios ("your engine fails 200 m upwind of rocks; what do you do first?"). The distress signals of Annex IV to the Rules of the Road also belong to this topic (they are formally part 2).</p>
+<div class="callout tip"><p>Learn five numbers cold: <strong>8 m</strong> (wear a life jacket below this length), <strong>15 years</strong> (skipper responsible for younger children), <strong>120</strong> (coast radio from a mobile), <strong>16</strong> (VHF distress channel) and <strong>112</strong> (emergency). Two of them are part-4 material.</p></div>`,
+        keyFacts: ['Part 1 seamanship, plus part-4 items 1.4.5 (flotation rules) and 1.4.6 (120 and channel 16)', 'Typical victim: older man, open motorboat, sheltered water, no life jacket, often alcohol', '2025: 18 deaths, 11 without a flotation device; 2024: 40 deaths, 30 without', 'About 5 questions out of 50 come from this topic'],
+        check: { q: 'Which two items from this topic belong to part 4 of the exam, where more than two errors fail you?', options: ['Fire classes and extinguisher sizes', 'The flotation-device rules and the numbers 120 / channel 16', 'CPR ratios and hypothermia stages', 'The Williamson turn and the HELP position'], answer: 1, explanation: 'Part 4 item 1.4.5 covers the rules on using flotation devices and 1.4.6 covers the coast radio number 120 and VHF channel 16. Everything else here is part 1 seamanship.' },
+      },
+      // 2 ------------------------------------------------------------
+      {
+        id: 'flotation-law',
+        title: 'The life-jacket law: carry for all, wear under 8 m',
+        html: `<p>A life jacket only helps if it is on your body when you hit the water, and a fall overboard is usually sudden. That is why the law has two layers: every boat must <em>carry</em> flotation for everyone, and on small boats everyone must <em>wear</em> it while moving. This is part-4 material (1.4.5).</p>
+<div class="callout rule"><p><strong>Carry:</strong> every recreational boat under way must have suitable rescue and flotation equipment for <strong>everyone on board</strong>, whatever the boat's length (Small Craft Act, Section 23).<br><strong>Wear:</strong> in a recreational boat <strong>shorter than 8 metres</strong>, everyone must <strong>wear</strong> suitable flotation equipment when they are <strong>outdoors</strong> on the boat while it is <strong>under way</strong> (Section 23a, in force 1 May 2015).</p></div>
+<p>Three words carry the rule. <strong>Shorter than 8 m</strong>: an 8.0 m boat is not covered, a 7.9 m boat is. <strong>Under way</strong> means propelled by engine, sail or oars; a boat lying at anchor with the engine off, or tied up at the quay, is not under way, so sunbathers on an anchored 6 m boat are not breaking the law (wearing is still recommended). <strong>Outdoors</strong>: someone inside the cabin of a small boat need not wear it at that moment.</p>
+<p>Who answers for it? <strong>Each person is responsible for themself</strong>, except that the <strong>skipper is responsible for everyone under 15 years</strong>. A 14-year-old without a jacket is the skipper's offence; a 15-year-old's is their own. "Suitable" means a life jacket, buoyancy aid, flotation clothing or inflatable vest that is <strong>CE- or wheel-marked</strong> as flotation equipment, in the right size. The 1995 Flotation Equipment Regulation also requires the gear to be approved to the recognised standards, durably marked, and stored easily accessible.</p>
+<p>There are only two exemptions: pedal boats and rowing boats hired from a <em>staffed</em> rental business on a small lake or within a marked area close to shore, and organised sport under the Norwegian sports federation where the device would hinder the activity. The police issue on-the-spot fines for a missing or unworn jacket (currently NOK 900 per person).</p>
+<div class="callout warn"><p>Trap: "everyone must wear a life jacket on all boats" is wrong. Wearing is compulsory only under 8 m, under way, outdoors. Carrying one for every person is compulsory on <em>every</em> boat.</p></div>`,
+        illustration: () => vestScene({ len: '7.5', underway: true, jackets: true, child: true, childAge: 12 }),
+        caption: 'A 7.5 m boat under way: everyone outdoors must wear flotation. The 12-year-old in the cabin is indoors, but the skipper remains responsible for the under-15.',
+        keyFacts: ['Every recreational boat must CARRY suitable flotation for everyone on board', 'Shorter than 8 m + under way + outdoors = everyone must WEAR it (Section 23a, since 1 May 2015)', 'Each person is responsible for themself; the skipper is responsible for persons under 15', 'Under way = propelled by engine, sail or oars; anchored or moored is not under way', 'Equipment must be CE- or wheel-marked and stored easily accessible'],
+        check: { q: 'A 6 m open motorboat lies at anchor with the engine off while three adults swim and sunbathe. Must they wear flotation equipment on board?', options: ['Yes, the boat is under 8 m', 'Yes, whenever the boat is afloat', 'No, the boat is not under way, although wearing is recommended', 'No, the wearing rule applies only to boats over 8 m'], answer: 2, explanation: 'The wearing duty applies when the boat is under way, that is propelled by engine, sail or oars. An anchored boat is not under way. Suitable devices must still be on board for all three.' },
+      },
+      // 3 ------------------------------------------------------------
+      {
+        id: 'flotation-types',
+        title: 'Choosing the device: 50, 100, 150 and 275 newtons',
+        html: `<p>Not every orange vest keeps an unconscious person's face out of the water. The European standard EN ISO 12402 sorts flotation devices into four buoyancy levels, measured in newtons (N) for an average adult, and the level decides what the device can do for you.</p>
+<div class="table-wrap"><table><thead><tr><th>Level</th><th>What it is</th><th>Who and where</th><th>Unconscious wearer</th></tr></thead><tbody>
+<tr><td><strong>50 N</strong></td><td>Buoyancy aid (not a life jacket); slim vest without collar</td><td>Competent swimmers over 30 kg, close to help, e.g. the sheltered archipelago</td><td>Not turned face-up; floats vertically</td></tr>
+<tr><td><strong>100 N</strong></td><td>Classic life jacket with collar, belt, crotch straps and reflectors (whistle recommended)</td><td>Swimmers and non-swimmers in sheltered or coastal waters; the right choice for children and non-swimmers</td><td>Supports the head; face-up position not guaranteed</td></tr>
+<tr><td><strong>150 N</strong></td><td>Usually an inflatable vest (automatic or manual CO2)</td><td>Adults, all waters and all weather; not recommended for children</td><td>Turns you face-up unless heavy or waterproof clothing is worn</td></tr>
+<tr><td><strong>275 N</strong></td><td>Bulky inflatable</td><td>Offshore and extreme conditions, heavy waterproof clothing</td><td>Turns you face-up even in heavy clothing</td></tr>
+</tbody></table></div>
+<p>Two exam favourites follow from the table. A <strong>child or non-swimmer gets a 100 N jacket</strong> with a collar and a fastened crotch strap; the Norwegian Maritime Authority explicitly does <em>not</em> recommend inflatables for children. A <strong>50 N buoyancy aid is for swimmers over 30 kg near help</strong>; it is comfortable for paddling and dinghy sailing but will not save someone who is knocked out.</p>
+<p>Inflatable vests come in two kinds: <strong>automatic</strong>, where a water-soluble element fires the CO2 cylinder on immersion, and <strong>manual</strong>, fired by pulling a toggle. Both also have a mouth tube for topping up. Whatever the type, it must fit your body weight, the <strong>crotch strap must be fastened</strong> (accident reports describe jackets riding up over the head), and it should be stored dry and out of direct sunlight.</p>`,
+        illustration: () => buoyancyClasses(),
+        caption: 'The four buoyancy levels of EN ISO 12402. More newtons means more support for an unconscious wearer in rougher water, at the cost of bulk.',
+        keyFacts: ['50 N = buoyancy aid for swimmers over 30 kg close to help; does not turn you face-up', '100 N = life jacket with collar and crotch strap; best for children and non-swimmers', '150 N = inflatable for adults in all weather; not recommended for children', '275 N = offshore, turns you face-up even in heavy waterproof clothing', 'Inflatables: automatic (fires on immersion) or manual (pull toggle); mouth tube as backup'],
+        check: { q: 'Which flotation device should a non-swimming 7-year-old wear on a fjord trip?', options: ['A 50 N buoyancy aid, because it gives freedom of movement', 'A 100 N life jacket with collar and crotch strap', 'A 150 N automatic inflatable vest', 'A 275 N offshore jacket'], answer: 1, explanation: 'The Norwegian Maritime Authority recommends 100 N with collar and crotch strap for children and non-swimmers. 50 N is only for swimmers over 30 kg, and inflatables are not recommended for children.' },
+      },
+      // 4 ------------------------------------------------------------
+      {
+        id: 'vest-check',
+        title: 'Keeping the inflatable vest alive',
+        html: `<p>An inflatable vest is a small machine, and machines fail when nobody looks at them. The Norwegian Maritime Authority's 2025 accident report includes a death where the vest was worn but "did not inflate on contact with water". A yearly check takes ten minutes.</p>
+<ol>
+<li><strong>Gas cylinder.</strong> Unscrew the CO2 cylinder and weigh it on a kitchen scale. The weight must match the value printed on it; a lighter cylinder has leaked and must be replaced.</li>
+<li><strong>Firing element.</strong> Look at the water-soluble tablet or cartridge in the inflator. It must not be expired, damp or broken. Replace it by the date printed on the unit (the Authority's pages mention yearly and two-yearly intervals; the manufacturer's date wins).</li>
+<li><strong>Air test.</strong> Inflate the bladder with the mouth tube or a bicycle pump and leave it. It must still be firm after <strong>24 hours</strong>.</li>
+</ol>
+<p>Then check the things the water will test: seams and fabric intact, the vest rated for your weight, crotch straps present and fastened, reflectors and whistle in place. For a non-inflatable child's jacket, make sure it has a collar that turns the child face-up and that it fits snugly.</p>
+<p>Store all flotation gear dry and out of the sun, and read the instructions: the Authority warns that "improper use may cause it not to work as expected". Many people have drowned wearing a vest that was the wrong size, unfastened between the legs, or simply never serviced.</p>
+<div class="callout tip"><p>Exam wording to recognise: "weigh the cylinder", "check the firing element is not expired or damp", "inflate and leave for 24 hours". Anything about washing machines or oiling the mechanism is a distractor.</p></div>`,
+        illustration: () => vestCheck(),
+        caption: 'The three-step annual check: weigh the CO2 cylinder, inspect the firing element, and confirm the bladder holds air for 24 hours.',
+        keyFacts: ['Weigh the CO2 cylinder: it must match the printed weight', 'Firing element: not expired, not damp, not broken; replace by the printed date', 'Inflate and confirm the bladder is still firm after 24 hours', 'Crotch strap fastened, correct size for your weight, stored dry and out of the sun'],
+        check: { q: 'How do you confirm that the bladder of an inflatable life jacket is sound?', options: ['Fire the CO2 cylinder once a year', 'Inflate it and check that it is still firm after 24 hours', 'Squeeze it hard for one minute', 'Submerge it in salt water for an hour'], answer: 1, explanation: 'The Norwegian Maritime Authority’s check: inflate by mouth or pump and confirm the bladder holds air for 24 hours. Firing the cylinder wastes it; the other options test nothing.' },
+      },
+      // 5 ------------------------------------------------------------
+      {
+        id: 'equipment',
+        title: 'What else to carry, and why',
+        html: `<p>Only two things are legally compulsory on a private recreational boat: <strong>flotation equipment for everyone</strong> and <strong>navigation lights</strong> when you are out at night or in poor visibility. Everything else on the Norwegian Maritime Authority's list is a recommendation, but the exam expects you to know what each item is for.</p>
+<ul>
+<li><strong>Kill switch (kill cord).</strong> A lanyard from your wrist or jacket to the engine's emergency stop. If you fall overboard the engine stops, so the boat does not circle back into you or drive off without you. There is no general legal duty to use it (a proposal from 2020 has not been adopted), but the Authority calls it "important to use".</li>
+<li><strong>Boarding ladder</strong> reachable from the water. "A lifeless person in wet clothes is usually far too heavy to haul aboard alone." Practise climbing it.</li>
+<li><strong>Anchor and drift anchor (drogue).</strong> After engine failure, anchoring stops you drifting onto a lee shore; a drogue from the bow slows the drift and holds the bow to the seas. A bucket on a long line from the bow is an acceptable improvisation.</li>
+<li><strong>Lifebuoy with a light and a throwing line.</strong> If someone falls in, always throw it: it supports the person and marks the spot.</li>
+<li><strong>Alerting:</strong> VHF, mobile phone, and ideally an EPIRB (boat) or PLB (personal) satellite beacon. The Authority recommends a PLB if you go out alone.</li>
+<li><strong>Fire extinguisher</strong> (2 kg ABC powder minimum) and a smoke detector if you sleep aboard; <strong>first-aid kit</strong>; sound-signal device; oars, ropes, boat hook and fenders; spare fuel, tools and spares; paper chart and compass as backup to the plotter.</li>
+</ul>
+<p>Pyrotechnic distress signals (red hand flares, red parachute rockets, orange smoke) are strongly advised but not legally required for recreational boats; recommended quantities vary by course provider, so the exam does not ask for a fixed number. Whatever you carry, check the <strong>expiry date</strong> on flares and return expired ones to a dealer or collection point; they are explosive waste, never household rubbish.</p>
+<div class="callout rule"><p>Legally required on a private recreational boat: flotation equipment for all on board, and navigation lights at night or in poor visibility. The rest is recommended equipment.</p></div>`,
+        keyFacts: ['Only flotation for all and navigation lights are legally required; the rest is recommended', 'Kill cord stops the engine if the helmsman falls out; recommended, not a legal duty', 'Boarding ladder: a wet, lifeless adult is too heavy to lift aboard alone', 'Anchor or drogue stops the drift after engine failure; a bucket on a bow line works as a drogue', 'Lifebuoy with light and line: always throw it, it supports the person and marks the spot', 'PLB recommended when boating alone; flares not legally required but advised'],
+        check: { q: 'Why does the Norwegian Maritime Authority say the kill cord is important?', options: ['It is compulsory above 15 knots', 'It stops the engine if the helmsman falls overboard, so the boat does not continue or circle back', 'It cuts the fuel supply in a fire', 'It triggers the DSC distress alert automatically'], answer: 1, explanation: 'The kill switch stops the engine when the lanyard is pulled, which happens when the helmsman leaves the helm. There is no general legal duty to use it; the 2020 proposal was not adopted.' },
+      },
+      // 6 ------------------------------------------------------------
+      {
+        id: 'fire',
+        title: 'Fire: prevent it, then fight it from upwind',
+        html: `<p>A boat fire is worse than a house fire: you cannot step outside, the hull is full of fuel and plastic, and the way out is cold water. Most boat fires start in the <strong>fuel system</strong> or the <strong>electrical system</strong>, so prevention is about vapour, gas and wiring.</p>
+<p><strong>Petrol vapour is about 2.8 times heavier than air.</strong> It does not blow away; it pours into the bilge under the engine and waits for a spark. Therefore: run the blower and ventilate the engine compartment <strong>before</strong> starting a petrol inboard, stop the engine and put out all flames before refuelling, refuel outboard or over the deck rather than into the bilge area, close hatches so vapour cannot enter the cabin, wipe up spills, fill portable tanks ashore, stop immediately if you notice a leak, and shut all fuel and gas valves after the trip. <strong>LPG</strong> (propane/butane) also sinks, so a gas detector goes <strong>as low as possible</strong>; gas installations should be fitted and inspected by professionals. <strong>Carbon monoxide</strong> from engines, heaters and grills under a canopy is colourless and odourless and causes headache, dizziness, nausea, then confusion and unconsciousness; a CO alarm goes <strong>high</strong>, above 1.5 m, near the heater. Get a victim into fresh air and call 113 if serious.</p>
+<div class="callout rule"><p>Norwegian Maritime Authority: at least one <strong>2 kg ABC powder</strong> hand extinguisher, easily accessible, in a fixed bracket; the Society for Sea Rescue recommends a rating of at least 13A 89B C. Boats with inboard <strong>petrol</strong> engines should always have a fixed engine-room system; above <strong>120 kW</strong> it is required. Check the gauge is in the green and turn the unit over now and then so the powder does not compact.</p></div>
+<p>Fire classes: <strong>A</strong> solids, <strong>B</strong> liquids such as petrol and oil, <strong>C</strong> gases, <strong>D</strong> metals, <strong>F</strong> cooking fat. ABC powder covers A, B and C and is safe on live electrics, but not fat (use a fire blanket or lid; never water) or metal. A fire blanket is the right tool for a galley pan.</p>
+<p>When fire breaks out: shout, <strong>stop the engine</strong>, shut off fuel, gas and electricity, <strong>turn the boat so the wind carries flames and smoke away from the people</strong> (fire aft: head into the wind; fire forward: run downwind), everyone into life jackets, then attack from upwind: pull the pin, <strong>aim at the base</strong> of the flames, squeeze, sweep. Keep your escape route behind you. Send <strong>MAYDAY</strong> early and prepare to abandon only if the fire cannot be controlled.</p>`,
+        illustration: () => fireSteps(),
+        caption: 'Six steps when fire breaks out. Note step 3: the people stay upwind of the fire, so a stern fire means heading into the wind.',
+        keyFacts: ['Petrol vapour is about 2.8 times heavier than air: it collects in the bilge; ventilate BEFORE starting', 'Gas detector LOW (LPG sinks); CO alarm HIGH (above 1.5 m) near the heater', 'Minimum 2 kg ABC powder extinguisher, easily accessible; fixed system required above 120 kW', 'ABC powder: solids, liquids, gases and live electrics; NOT fat fires (fire blanket) or metals', 'Fire: stop engine, shut fuel/gas/power, wind carries fire away from people, life jackets, aim at the base, MAYDAY'],
+        check: { q: 'Fire breaks out in the engine compartment at the stern of your motorboat. How should you turn the boat?', options: ['Run downwind at full speed to blow the flames out', 'Head into the wind so the flames and smoke blow aft, away from the people in the bow', 'Turn broadside to the wind and anchor', 'It makes no difference; the extinguisher is what matters'], answer: 1, explanation: 'The wind must carry flames and smoke away from the people. With the fire at the stern, heading into the wind blows them astern; with a fire forward you would run downwind instead.' },
+      },
+      // 7 ------------------------------------------------------------
+      {
+        id: 'alerting',
+        title: 'Calling for help: channel 16, DSC, 120 and 112',
+        html: `<p>Help arrives only if someone hears you, and the first minutes decide whether a problem stays a problem or becomes a funeral. The exam puts two facts from this section into part 4 (1.4.6): the coast radio station's telephone number <strong>120</strong> and <strong>VHF channel 16</strong>.</p>
+<div class="callout rule"><p><strong>VHF channel 16</strong> (156.800 MHz) is the international distress, urgency, safety and calling channel. The Norwegian coast radio stations keep a 24-hour listening watch on channel 16 and on DSC. <strong>Telephone 120</strong> connects a mobile phone to the nearest coast radio station, for boats whose only means of communication is a phone; the official procedure card labels it "report a need for assistance".</p></div>
+<p>Why VHF beats a phone: one call reaches the coast radio <em>and every vessel around you</em> at once, without knowing anyone's number, and a nearby boat is often the fastest rescuer. A mobile reaches one subscriber, and its signal weakens noticeably already in moderate seas. To use a marine VHF you need the <strong>SRC (Short Range Certificate)</strong> and a radio licence, which gives the boat a call sign and an <strong>MMSI</strong> number; since 1 January 2026 the Norwegian Maritime Authority issues both.</p>
+<p><strong>DSC (Digital Selective Calling):</strong> press and hold the red DISTRESS button and the radio sends a pre-formatted alert with your MMSI (and GPS position if connected) to the coast radio and all DSC radios in range. The digital alert travels on <strong>channel 70</strong>; you then speak on channel 16. Procedure: 1) hold the DSC button until the radio confirms; 2) "<strong>MAYDAY MAYDAY MAYDAY</strong>, this is [boat name three times], [call sign], [MMSI]"; 3) "MAYDAY, [name, call sign, MMSI], position, nature of distress, assistance required, number of persons on board, over".</p>
+<p>Use the right word. <strong>MAYDAY</strong> = grave and imminent danger to life or vessel (fire, sinking, person missing in the water). <strong>PAN PAN</strong> = urgency without immediate danger to life (engine failure in calm weather, a non-critical injury). <strong>SECURITE</strong> = a safety message about a navigation hazard or weather. The land numbers also work at sea: <strong>112</strong> police and general emergency (works without a SIM card or your own operator's coverage), <strong>113</strong> medical, <strong>110</strong> fire; at sea they are passed to the Joint Rescue Coordination Centre (Sola for waters south of 65&deg;N, Bod&oslash; north of it). <strong>02016</strong> is the Norwegian Society for Sea Rescue's assistance line for towing and non-urgent help; it is not an emergency number. Their free SafeTrx app files a sail plan, tracks you and alerts your contacts if you are overdue.</p>`,
+        illustration: () => maydayCard(),
+        caption: 'The official distress procedure: DSC button first, then the MAYDAY call and message on channel 16. PAN PAN for urgency, SECURITE for safety messages.',
+        keyFacts: ['VHF channel 16 = distress, urgency, safety and calling; coast radio listens 24 h', 'Telephone 120 = nearest coast radio station from a mobile phone (part 4!)', 'DSC distress alert: hold the red button; the digital alert goes on channel 70, then speak on 16', 'MAYDAY = danger to life or vessel; PAN PAN = urgent, no immediate danger; SECURITE = safety message', '112 emergency (also without SIM), 113 medical, 110 fire; 02016 = Sea Rescue assistance, not emergency', 'VHF needs an SRC certificate, a radio licence, call sign and MMSI'],
+        check: { q: 'You only have a mobile phone on board and need to reach the coast radio station. Which number do you dial?', options: ['110', '113', '120', '02016'], answer: 2, explanation: '120 connects a mobile phone to the nearest coast radio station. 110 is fire, 113 medical, and 02016 is the Society for Sea Rescue’s assistance line.' },
+      },
+      // 8 ------------------------------------------------------------
+      {
+        id: 'distress-signals',
+        title: 'Distress signals: Annex IV and how to fire a flare',
+        html: `<p>Rule 37 of the Rules of the Road says a vessel in distress and requiring assistance shall use or exhibit the signals in <strong>Annex IV</strong>. The list is international, and the exam asks which signals are on it, which are not, and how to use the pyrotechnic ones.</p>
+<ul>
+<li>(a) a gun or explosive signal about every minute; (b) <strong>continuous sounding</strong> of a fog-signal apparatus;</li>
+<li>(c) <strong>red star rockets</strong> fired one at a time; (d) <strong>SOS</strong> by any method (&middot; &middot; &middot; &mdash; &mdash; &mdash; &middot; &middot; &middot;); (e) the spoken word <strong>MAYDAY</strong> on the radio;</li>
+<li>(f) code flags <strong>N over C</strong>; (g) a <strong>square flag with a ball</strong> above or below it; (h) <strong>flames</strong> on the vessel (a burning oil barrel);</li>
+<li>(i) a <strong>red parachute rocket</strong> or <strong>red hand flare</strong>; (j) <strong>orange smoke</strong>; (k) <strong>slowly and repeatedly raising and lowering outstretched arms</strong>;</li>
+<li>(l) a <strong>DSC distress alert</strong> on VHF channel 70; (m) satellite distress alert; (n) <strong>EPIRB</strong>; (o) approved radio signals including SART.</li>
+</ul>
+<p>Paragraph 2 forbids using any of these except to indicate distress, and forbids signals that could be confused with them. White flares and white lights are attention or illumination signals, not distress. Waving your arms is not the signal; <em>slowly</em> raising and lowering them is.</p>
+<p><strong>Red hand flare</strong> (about 60 seconds, seen about 5 nautical miles): pull the handle out until it locks, remove the cap, hold it at arm's length <strong>pointing downward and away</strong> from body and face, on the <strong>lee (downwind) side</strong> so sparks and slag blow clear. Use it to show your exact position when rescuers are near. <strong>Red parachute rocket</strong> (about 300 m high, 40 seconds, 25+ nautical miles): stand with your <strong>back to the wind</strong>, arm fully extended, rocket vertical or tilted up to about <strong>15 degrees downwind</strong>, never into the wind, clear of rigging and canopy; fire two or three but keep some for when a rescue unit approaches. <strong>Orange smoke</strong> (about 3 minutes, <strong>daytime only</strong>): a floating smoke is activated and thrown into the water clear of the boat, never held; it confirms your position and shows the helicopter pilot the wind. Pyrotechnics last typically 3 to 5 years from the production date; check the expiry date and return expired units to a dealer.</p>`,
+        illustration: () => flares(),
+        caption: 'Wind from the left. Hand flare down and away on the lee side; rocket with your back to the wind, vertical or slightly downwind; floating smoke in the water, its plume showing the wind.',
+        keyFacts: ['Annex IV distress: red flares/rockets, orange smoke, SOS, MAYDAY, N over C, square flag + ball, flames, continuous fog signal, arms slowly up and down, DSC, EPIRB', 'Misuse of a distress signal is prohibited; white flares are not distress signals', 'Hand flare: arm out, pointing down and away, lee side; about 60 s, about 5 NM', 'Rocket: back to the wind, vertical or up to 15 degrees downwind, never into the wind; about 300 m, 40 s, 25+ NM', 'Orange smoke: daytime only, about 3 minutes, floating type goes in the water; shows the pilot the wind', 'Shelf life typically 3-5 years from production; return expired flares to a dealer'],
+        check: { q: 'How do you fire a red parachute rocket?', options: ['Into the wind so it climbs higher', 'With your back to the wind, arm extended, vertical or tilted up to about 15 degrees downwind', 'Horizontally toward the rescue vessel', 'Held low over the water on the lee side'], answer: 1, explanation: 'Back to the wind, rocket vertical or tilted slightly downwind (max about 15 degrees), never into the wind, which can bring it back over the boat. Holding low and pointing down describes the hand flare.' },
+      },
