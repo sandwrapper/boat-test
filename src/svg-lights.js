@@ -214,7 +214,7 @@
     const note = (x, y, s, o) => txt(x, y, s, Object.assign({ size: 11, fill: ink, weight: 600, halo: bg }, o || {}));
     const notes = (x, y, arr, o) => lines(x, y, arr, Object.assign({ size: 11, fill: ink, weight: 600, halo: bg, lh: 13 }, o || {}));
     const leader = (x1, y1, x2, y2) => line(x1, y1, x2, y2, mut, 1);
-    const dim = (x, y1, y2, label) => line(x, y1, x, y2, ink, 1.5) + arrowHead(x, y1, 0, ink, 7) + arrowHead(x, y2, 180, ink, 7) + note(x + 8, (y1 + y2) / 2, label, { anchor: 'start', weight: 700 });
+    const dim = (x, y1, y2, label, left) => line(x, y1, x, y2, ink, 1.5) + arrowHead(x, y1, 0, ink, 7) + arrowHead(x, y2, 180, ink, 7) + note(x + (left ? -8 : 8), (y1 + y2) / 2, label, { anchor: left ? 'end' : 'start', weight: 700 });
     const shape = (kind, x, y) => dayShapeGlyph(kind, x, y, .55);
     const mast = (x, y1, y2) => line(x, y1, x, y2, day ? '#555' : NIGHT_MAST, 3);
     const box = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${hull}" stroke="${day ? '#fff' : '#000'}" stroke-width=".5"/>`;
@@ -243,7 +243,7 @@
       g += lp(140, 56, 'white') + note(153, 40, 'After masthead light (white) — HIGHER', { anchor: 'start' });
       g += lp(195, 128, 'green') + note(208, 124, 'Starboard sidelight (green)', { anchor: 'start' }) + note(208, 137, 'lower than ¾ of the forward masthead height', { anchor: 'start', size: 10, weight: 500 });
       g += lp(43, 166, 'white') + note(26, 140, 'Sternlight (white)', { anchor: 'start' }) + leader(43, 161, 50, 148);
-      g += dash(415, 92, 300, 92, mut, 1) + dash(140, 56, 300, 56, mut, 1) + dim(300, 56, 92, '≥ 4.5 m higher');
+      g += dash(415, 92, 300, 92, mut, 1) + dash(140, 56, 300, 56, mut, 1) + dim(300, 56, 92, '≥ 4.5 m higher', true);
       g += line(140, 230, 415, 230, ink, 1) + arrowHead(140, 230, 270, ink, 7) + arrowHead(415, 230, 90, ink, 7) + note(277, 243, 'horizontal distance ≥ half the ship’s length', { size: 10, weight: 500 });
       if (day) g += shape('ball', 520, 116) + line(520, 140, 520, 172, '#555', 2) + notes(548, 152, ['At anchor by day:', 'one black ball forward (Rule 30)'], { anchor: 'end' });
       cap = 'Power-driven vessel of 50 m or more: two masthead lights, the after one at least 4.5 m higher than the forward one. Under 50 m the after masthead light is optional (Rule 23(a)).';

@@ -183,7 +183,7 @@
     // chart annotation as a horizontal callout in the top corner on the magnetic side, outside both rings
     // so no ring numerals are hidden; a thin leader points at the pink wedge between the two norths
     const ann = `${Math.abs(v)}° ${ew(v)} ${year} (${change})`, aw = 16 + ann.length * 7.2, axx = v >= 0 ? W - 10 - aw : 10, ayy = 38;
-    const [wx, wy] = dirv(v / 2), lead = [cx + wx * (R + 8), cy + wy * (R + 8)];
+    const [wx, wy] = dirv(v), lead = [cx + wx * (R + 10), cy + wy * (R + 10)];   // magnetic edge of the wedge, clear of the star
     s += line(v >= 0 ? axx : axx + aw, ayy + 22, lead[0], lead[1], { stroke: MAGENTA, width: 1 });
     s += `<circle cx="${r1(lead[0])}" cy="${r1(lead[1])}" r="2" fill="${MAGENTA}"/>`;
     s += `<rect x="${r1(axx)}" y="${ayy}" width="${r1(aw)}" height="22" rx="4" fill="${PAPER}" stroke="${MAGENTA}"/>`;
