@@ -172,7 +172,7 @@
     }
     for (let a = 10; a < 360; a += 10) {   // numbered every 10° like a printed rose; the inner "0" is replaced by the magnetic north arrow
       const [ux, uy] = dirv(a), rr = Ri - 20, big = a % 30 === 0;
-      inner += `<text x="${r1(cx + ux * rr)}" y="${r1(cy + uy * rr)}" font-size="${big ? 11 : 8}" font-weight="${big ? 700 : 500}" fill="${MAGENTA}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${a} ${r1(cx + ux * rr)} ${r1(cy + uy * rr)})">${a}</text>`;
+      inner += `<text x="${r1(cx + ux * rr)}" y="${r1(cy + uy * rr)}" font-size="${big ? 11 : 10}" font-weight="${big ? 700 : 500}" fill="${MAGENTA}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${a} ${r1(cx + ux * rr)} ${r1(cy + uy * rr)})">${a}</text>`;
     }
     // magnetic north arrow with a half arrowhead, and the chart annotation written along the arrow
     // (rotated with the inner ring, inside the pink wedge) exactly as on the printed rose
@@ -358,7 +358,7 @@
       s += T(g.x0 + g.w / 2, noteY + 6, 'Never measure distance on the longitude scale', { size: 13, weight: 700, fill: C.red });
       s += T(g.x0 + g.w / 2, noteY + 24, 'At 60°N one minute of longitude is only about 0.5 NM (926 m): it shrinks with cos(latitude)', { size: 11, fill: INK2 });
       s += T(W / 2, noteY + 56, 'Latitude scale (side border): 1′ = 1 NM = 1852 m. Set the dividers on the leg, move them', { size: 12, weight: 700 });
-      s += T(W / 2, noteY + 74, 'straight across to the side scale level with the leg and count the minutes (tenths: 0.5′ = 926 m).', { size: 12, weight: 700 });
+      s += T(W / 2, noteY + 74, 'straight across to the side scale level with the leg and count the minutes (each tenth 0.1′ = 185 m; 0.5′ = 926 m).', { size: 12, weight: 700 });
       s += T(W / 2, H - 10, 'Example chart grid near 60°N (not a real chart): 10′ of latitude tall, 20′ of longitude wide', { size: 11, fill: MUTED });
       return S.svg(W, H, s, { label: 'Chart border scales: dividers on a 5-minute leg moved to the left latitude border read 5 nautical miles (1 minute = 1 NM = 1852 m); dividers on the bottom longitude scale are crossed out in red, never measure distance there' });
     }
@@ -459,7 +459,7 @@
     s += `<path d="M${x0},${y0 + h} L${x0},${y0 + h - 30} Q${x0 + 100},${y0 + h - 60} ${x0 + 200},${y0 + h - 30} T${x0 + 340},${y0 + h - 40} Q${x0 + 400},${y0 + h - 50} ${x0 + w},${y0 + h - 20} L${x0 + w},${y0 + h} Z" fill="${LAND}" stroke="${INK2}"/>`;
     // the light stands on the shore: its base sits on the buff land, the "Lt" label beside it
     s += lighthouse(x0 + 230, y0 + h - 12); s += T(x0 + 240, y0 + h - 14, 'Lt', { size: 11, fill: LAND_INK, weight: 700, anchor: 'start' });
-    s += T(x0 + 60, y0 + h - 86, '7,3', { size: 11, fill: INK2, family: 'serif' });
+    s += T(x0 + 60, y0 + h - 86, '7,3', { size: 11, fill: INK2, family: 'serif', italic: true });
     s += T(x0 + 330, y0 + h - 100, '12', { size: 11, fill: INK2, family: 'serif' });
     s += line(x0 + 380, y0 + h - 64, x0 + 380, y0 + h - 50, { stroke: INK2, width: 1.5 }); s += line(x0 + 373, y0 + h - 57, x0 + 387, y0 + h - 57, { stroke: INK2, width: 1.5 });
     s += northArrow(x0 + w - 30, y0 + 46);

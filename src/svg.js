@@ -25,7 +25,7 @@ window.BOAT_SVG = (function () {
   }
   function text(x, y, s, o) {
     o = o || {};
-    return `<text x="${x}" y="${y}" font-size="${o.size || 12}" font-weight="${o.weight || 500}" fill="${o.fill || 'var(--ink)'}" text-anchor="${o.anchor || 'middle'}" dominant-baseline="${o.baseline || 'middle'}" ${o.family ? `font-family="${o.family}"` : ''}>${esc(s)}</text>`;
+    return `<text x="${x}" y="${y}" font-size="${o.size || 12}" font-weight="${o.weight || 500}" fill="${o.fill || 'var(--ink)'}" text-anchor="${o.anchor || 'middle'}" dominant-baseline="${o.baseline || 'middle'}" ${o.family ? `font-family="${o.family}"` : ''}${o.italic ? ' font-style="italic"' : ''}>${esc(s)}</text>`;
   }
   const gallery = [];
   return { COLORS, svg, sector, text, esc, deg, gallery };

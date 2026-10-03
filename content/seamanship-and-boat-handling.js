@@ -458,8 +458,10 @@
     s += box(16, 318, 608, 86, { fill: 'var(--paper-2)' });
     s += label(320, 334, 'Electronic chart / GPS at speed: the position shown lags behind where the boat really is', 11, { weight: 700 });
     s += `<line x1="60" y1="372" x2="580" y2="372" stroke="${MUTED}" stroke-width="1" stroke-dasharray="4 4"/>`;
-    s += boatTop(300, 372, 56, 22, { rot: 270, console: false, motor: false }) + label(300, 396, 'position shown on the screen', 9.5, { fill: MUTED });
-    s += boatTop(470, 372, 56, 22, { rot: 270, console: true, motor: false, fill: '#f6c9a8' }) + label(470, 396, 'where you really are', 9.5, { fill: C.red, weight: 700 });
+    // both boats travel to the RIGHT (bow right): the real boat is AHEAD of the position on the screen
+    s += arrow(80, 372, 120, 372, { width: 1.5, head: 7, color: MUTED }) + label(100, 388, 'direction of travel', 9, { fill: MUTED });
+    s += boatTop(300, 372, 56, 22, { rot: 90, console: false, motor: false }) + label(300, 396, 'position shown on the screen', 9.5, { fill: MUTED });
+    s += boatTop(470, 372, 56, 22, { rot: 90, console: true, motor: false, fill: '#f6c9a8' }) + label(470, 396, 'where you really are (ahead)', 9.5, { fill: C.red, weight: 700 });
     s += arrow(336, 356, 436, 356, { both: true, width: 1.5, head: 7, color: C.red }) + label(386, 347, 'delay x speed = distance', 9.5, { fill: C.red });
     return S.svg(640, 412, s, { label: 'Dangers of high speed: tunnel vision and lag of electronic aids' });
   }

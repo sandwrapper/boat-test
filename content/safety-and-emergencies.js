@@ -115,29 +115,6 @@
     return S.svg(W, H, s, { label: 'The four buoyancy levels: 50 N buoyancy aid, 100 N life jacket, 150 N inflatable, 275 N offshore' });
   }
 
-  // ---------- ILL-2 inflatable vest service check (F14, F15) ----------
-  function vestCheck() {
-    const W = 640, H = 230;
-    let s = T(W / 2, 20, 'Checking an inflatable life jacket (Norwegian Maritime Authority)', { size: 15, weight: 700 });
-    // panel 1: cylinder and scale
-    s += tile(20, 38, 190, 150, 1, 'Gas cylinder');
-    s += rect(50, 78, 18, 44, '#9aa3ab', INK, { rx: 5, sw: 0.9 }) + rect(54, 70, 10, 10, INK2, 'none', { rx: 2 });
-    s += rect(100, 108, 90, 14, INK2, 'none', { rx: 3 }) + rect(110, 94, 70, 16, PAPER, INK, { rx: 2 }) + T(145, 102, '-- g', { size: 10, weight: 700, family: 'var(--font-mono)' });
-    s += lines(115, 140, ['Unscrew and weigh it:', 'weight = value printed', 'on the cylinder?'], { size: 10.5, lh: 13, fill: INK2 });
-    // panel 2: firing element
-    s += tile(225, 38, 190, 150, 2, 'Firing element');
-    s += rect(250, 80, 50, 40, INK2, 'none', { rx: 6 }) + rect(262, 92, 26, 16, PAPER, INK, { rx: 3, sw: 0.8 }) + T(275, 100, 'tablet', { size: 8.5, fill: INK2 });
-    s += lines(320, 86, ['Not expired, not damp,', 'not broken.', 'Replace by the date', 'printed on the unit.'], { size: 10.5, lh: 13, fill: INK2 });
-    // panel 3: air test
-    s += tile(430, 38, 190, 150, 3, 'Air test');
-    s += `<path d="M455,120 L455,90 Q485,66 515,90 L515,120" fill="none" stroke="${C.orange}" stroke-width="12" stroke-linecap="round"/>`;
-    s += rect(528, 84, 10, 40, INK2, 'none', { rx: 2 }) + rect(524, 78, 18, 6, INK2, 'none', { rx: 1 }) + T(533, 134, 'pump', { size: 9, fill: MUTED });
-    s += circ(590, 100, 16, PAPER, INK, 2) + line(590, 100, 590, 89, INK, { sw: 2 }) + line(590, 100, 598, 104, INK, { sw: 2 }) + T(590, 126, '24 h', { size: 11, weight: 800 });
-    s += lines(525, 152, ['Inflate by mouth or pump:', 'still firm after 24 hours'], { size: 10.5, lh: 13, fill: INK2 });
-    s += T(W / 2, 208, 'Also: crotch strap fastened, correct size for your weight, stored dry and out of the sun.', { size: 11, weight: 600, fill: INK2 });
-    return S.svg(W, H, s, { label: 'Three-step check of an inflatable life jacket: weigh the cylinder, inspect the firing element, 24-hour air test' });
-  }
-
   // ---------- picture question: boat with length label and people (F2-F4) ----------
   function vestScene(o) {
     const W = 640, H = 230;
@@ -201,7 +178,7 @@
     x = px(4); y = py(4);
     s += tile(x, y, tw, th, 5, 'Attack the base');
     s += wind(x + 22, y + 60, 0, 'wind');
-    s += person(x + 70, y + 50, {}) + extinguisher(x + 92, y + 80, 0.8);
+    s += person(x + 70, y + 52, { noLegs: true }) + extinguisher(x + 94, y + 84, 0.8);
     s += `<path d="M${x + 100},${y + 84} L${x + 150},${y + 100} L${x + 150},${y + 108} L${x + 100},${y + 90} Z" fill="${SMOKE}" opacity="0.6"/>`;
     s += flames(x + 158, y + 108, 0.9) + line(x + 140, y + 108, x + 176, y + 108, INK, { sw: 1.5 });
     s += T(x + 160, y + 122, 'aim LOW', { size: 9.5, weight: 800, fill: BAD });
@@ -232,10 +209,10 @@
     s += rect(120, 234, 40, 14, C.yellow, INK, { rx: 2, sw: 0.9 }) + T(140, 241, 'GAS', { size: 8, weight: 800, fill: INK }) + lines(140, 270, ['LPG detector: as LOW', 'as possible'], { size: 9.5, lh: 11, fill: INK2 });
     // heater and CO alarm high
     s += rect(100, 100, 30, 44, INK2, 'none', { rx: 3 }) + T(115, 160, 'heater', { size: 9, fill: INK2 });
-    s += circ(170, 88, 11, PAPER, INK, 1.5) + T(170, 89, 'CO', { size: 8, weight: 800 }) + lines(230, 84, ['CO alarm: HIGH, above 1.5 m,', 'near the heater'], { size: 9.5, lh: 11, fill: INK2 });
+    s += circ(170, 88, 11, PAPER, INK, 1.5) + T(170, 89, 'CO', { size: 8, weight: 800 }) + lines(188, 84, ['CO alarm: HIGH, above 1.5 m,', 'near the heater'], { size: 9.5, lh: 11, fill: INK2, anchor: 'start' });
     s += line(60, 110, 580, 110, LINE, { sw: 1, dash: '2 4' }) + T(590, 110, '1.5 m', { size: 9, fill: MUTED, anchor: 'start' });
     // extinguisher at companionway
-    s += extinguisher(360, 128, 0.9) + lines(360, 96, ['2 kg ABC powder, min. 13A 89B C,', 'in a bracket by the exit'], { size: 9.5, lh: 11, fill: INK2 });
+    s += extinguisher(360, 142, 0.9) + lines(360, 92, ['2 kg ABC powder, min. 13A 89B C,', 'in a bracket by the exit'], { size: 9.5, lh: 11, fill: INK2 });
     return S.svg(W, H, s, { label: 'Cross-section of a boat: petrol vapour and LPG collect in the bilge, gas detector low, CO alarm high, extinguisher by the exit' });
   }
 
@@ -287,12 +264,12 @@
   // ---------- ILL-8 emergency numbers wheel (F45, F47-F49) ----------
   function numbersWheel(o) {
     o = o || {};
-    const W = 640, H = 330, cx = 220, cy = 170, R = 130;
+    const W = 640, H = 330, cx = 250, cy = 170, R = 128;
     const segs = [
       { n: '112', lab: 'police / general emergency', col: '#2c5aa0' },
       { n: '113', lab: 'medical emergency', col: '#c0392b' },
       { n: '110', lab: 'fire', col: '#d35400' },
-      { n: '120', lab: 'nearest coast radio', col: '#1f7a5c' },
+      { n: '120', lab: 'coast radio', col: '#1f7a5c' },
       { n: '02016', lab: 'Sea Rescue assistance', col: '#7d6608' },
     ];
     let s = '';
@@ -307,10 +284,10 @@
     for (let i = 0; i < 5; i++) { const a = S.deg(i * 72); s += line(cx, cy, cx + Math.sin(a) * R, cy - Math.cos(a) * R, PAPER, { sw: 2 }); }
     s += circ(cx, cy, 44, PAPER, INK, 1.5) + lines(cx, cy - 8, ['VHF', 'CH 16 / DSC'], { size: 11, weight: 800, lh: 14 });
     if (!o.hide) {
-      s += rect(400, 60, 220, 220, PAPER2, LINE);
-      s += lines(510, 84, ['At sea, 112 / 113 / 110 are', 'passed on to the Joint Rescue', 'Coordination Centre.', '', '120 connects a mobile phone to', 'the nearest coast radio station', '(report a need for assistance).', '', '02016 is the Norwegian Society', 'for Sea Rescue: towing and help,', 'not an emergency number.', '', '112 works without SIM or signal', 'from your own operator.'], { size: 10.5, lh: 13.5, fill: INK });
+      s += rect(440, 50, 190, 236, PAPER2, LINE);
+      s += lines(535, 72, ['At sea, 112 / 113 / 110 are', 'passed on to the Joint Rescue', 'Coordination Centre.', '', '120 connects a mobile phone to', 'the nearest coast radio station', '(report a need for assistance).', '', '02016 is the Norwegian Society', 'for Sea Rescue: towing and help,', 'not an emergency number.', '', '112 works without SIM or signal', 'from your own operator.'], { size: 10.5, lh: 13.5, fill: INK });
     } else {
-      s += T(510, 170, 'Which number is missing?', { size: 13, weight: 700 });
+      s += T(530, 170, 'Which number is missing?', { size: 13, weight: 700 });
     }
     return S.svg(W, H, s, { label: 'Norwegian emergency numbers: 112 police, 113 medical, 110 fire, 120 coast radio, 02016 Sea Rescue; VHF channel 16 in the centre' });
   }
@@ -341,9 +318,9 @@
       if (i === 1) { // back to the wind, rocket nearly vertical tilted slightly right
         s += person(x + 90, 104, { jacket: true, noLegs: true }) + line(x + 98, 118, x + 114, 92, SKIN, { sw: 3.5 });
         s += line(x + 114, 92, x + 120, 68, INK2, { sw: 4 }) + circ(x + 121, 64, 4, C.red);
-        s += line(x + 122, 60, x + 150, -10 + 70, C.red, { sw: 1.2, dash: '3 3' });
-        s += `<path d="M${x + 136},${72} Q${x + 150},${56} ${x + 164},${72}" fill="none" stroke="${INK2}" stroke-width="1.5"/>` + line(x + 136, 72, x + 150, 84, INK2, { sw: 1 }) + line(x + 164, 72, x + 150, 84, INK2, { sw: 1 }) + circ(x + 150, 86, 4, C.red);
-        s += T(x + 170, 100, '15 deg max', { size: 8.5, fill: INK2 });
+        s += line(x + 124, 58, x + 146, 78, C.red, { sw: 1.2, dash: '3 3' });
+        s += `<path d="M${x + 136},${84} Q${x + 150},${68} ${x + 164},${84}" fill="none" stroke="${INK2}" stroke-width="1.5"/>` + line(x + 136, 84, x + 150, 96, INK2, { sw: 1 }) + line(x + 164, 84, x + 150, 96, INK2, { sw: 1 }) + circ(x + 150, 98, 4, C.red);
+        s += T(x + 172, 112, '15 deg max', { size: 8.5, fill: INK2 });
       }
       if (i === 2) { // floating canister in the water, plume with the wind (left to right)
         s += rect(x + 80, 164, 14, 14, C.orange, INK, { rx: 2, sw: 0.9 });
@@ -378,7 +355,7 @@
     const mark = { x: 0, y: 0, h: 0 };
     step(60, R1, 30); mark.x = x; mark.y = y; mark.h = h;
     step(-240, R2, 90);
-    const endH = h; for (let i = 0; i < 40; i++) { x += Math.sin(S.deg(endH)) * 4; y -= Math.cos(S.deg(endH)) * 4; pts.push([x, y]); }
+    const endH = h; for (let i = 0; i < 80; i++) { const along = (x - x0) * Math.sin(S.deg(h0)) - (y - y0) * Math.cos(S.deg(h0)); if (along < -14) break; x += Math.sin(S.deg(endH)) * 4; y -= Math.cos(S.deg(endH)) * 4; pts.push([x, y]); }
     return { pts, mark, endH };
   }
   function mobTurn(o) {
@@ -420,8 +397,8 @@
     // boat at start
     s += boatPlan(ox + 30, oy - 30, 30, 12, C.hullLight, 45);
     // labels
-    s += rect(bx + 8, by + 8, 220, 62, PAPER, LINE, { rx: 6, opacity: 0.95 });
-    s += lines(bx + 16, by + 20, ['1. Hard over to one side until', '    ' + (o.quiz ? '?' : '60') + ' degrees off the course', '2. Hard over the other way until', '    on the opposite course', '3. The casualty appears ahead'], { size: 9.5, lh: 11.5, anchor: 'start', fill: INK });
+    s += rect(bx + bw - 232, by + bh - 74, 224, 66, PAPER, LINE, { rx: 6, opacity: 0.95 });
+    s += lines(bx + bw - 224, by + bh - 60, ['1. Hard over to one side until', '    ' + (o.quiz ? '?' : '60') + ' degrees off the course', '2. Hard over the other way until', '    on the opposite course', '3. The casualty appears ahead'], { size: 9.5, lh: 11.5, anchor: 'start', fill: INK });
     if (!o.quiz) {
       // Panel C: approach and recovery
       const cx = 436, cy = 130;
@@ -516,7 +493,7 @@
       // 3 ------------------------------------------------------------
       {
         id: 'flotation-types',
-        title: 'Choosing the device: 50, 100, 150 and 275 newtons',
+        title: 'Choosing and checking the device: 50 to 275 newtons',
         html: `<p>Not every orange vest keeps an unconscious person's face out of the water. The European standard EN ISO 12402 sorts flotation devices into four buoyancy levels, measured in newtons (N) for an average adult, and the level decides what the device can do for you.</p>
 <div class="table-wrap"><table><thead><tr><th>Level</th><th>What it is</th><th>Who and where</th><th>Unconscious wearer</th></tr></thead><tbody>
 <tr><td><strong>50 N</strong></td><td>Buoyancy aid (not a life jacket); slim vest without collar</td><td>Competent swimmers over 30 kg, close to help, e.g. the sheltered archipelago</td><td>Not turned face-up; floats vertically</td></tr>
@@ -525,29 +502,11 @@
 <tr><td><strong>275 N</strong></td><td>Bulky inflatable</td><td>Offshore and extreme conditions, heavy waterproof clothing</td><td>Turns you face-up even in heavy clothing</td></tr>
 </tbody></table></div>
 <p>Two exam favourites follow from the table. A <strong>child or non-swimmer gets a 100 N jacket</strong> with a collar and a fastened crotch strap; the Norwegian Maritime Authority explicitly does <em>not</em> recommend inflatables for children. A <strong>50 N buoyancy aid is for swimmers over 30 kg near help</strong>; it is comfortable for paddling and dinghy sailing but will not save someone who is knocked out.</p>
-<p>Inflatable vests come in two kinds: <strong>automatic</strong>, where a water-soluble element fires the CO2 cylinder on immersion, and <strong>manual</strong>, fired by pulling a toggle. Both also have a mouth tube for topping up. Whatever the type, it must fit your body weight, the <strong>crotch strap must be fastened</strong> (accident reports describe jackets riding up over the head), and it should be stored dry and out of direct sunlight.</p>`,
+<p>Inflatable vests are <strong>automatic</strong> (a water-soluble element fires the CO2 cylinder on immersion) or <strong>manual</strong> (pull toggle), with a mouth tube as backup. They need a yearly check, because the 2025 accident report includes a vest that "did not inflate on contact with water": <strong>1)</strong> unscrew and <strong>weigh the CO2 cylinder</strong> against the weight printed on it; <strong>2)</strong> check the <strong>firing element</strong> is not expired, damp or broken and replace it by the printed date; <strong>3)</strong> inflate the bladder and confirm it is still firm after <strong>24 hours</strong>. For every device: rated for your weight, <strong>crotch strap fastened</strong> (jackets ride up over the head otherwise), seams intact, stored dry and out of the sun.</p>`,
         illustration: () => buoyancyClasses(),
         caption: 'The four buoyancy levels of EN ISO 12402. More newtons means more support for an unconscious wearer in rougher water, at the cost of bulk.',
-        keyFacts: ['50 N = buoyancy aid for swimmers over 30 kg close to help; does not turn you face-up', '100 N = life jacket with collar and crotch strap; best for children and non-swimmers', '150 N = inflatable for adults in all weather; not recommended for children', '275 N = offshore, turns you face-up even in heavy waterproof clothing', 'Inflatables: automatic (fires on immersion) or manual (pull toggle); mouth tube as backup'],
+        keyFacts: ['50 N = buoyancy aid for swimmers over 30 kg close to help; does not turn you face-up', '100 N = life jacket with collar and crotch strap; best for children and non-swimmers', '150 N = inflatable for adults in all weather; not recommended for children', '275 N = offshore, turns you face-up even in heavy waterproof clothing', 'Inflatables: automatic or manual; yearly check = weigh the cylinder, firing element in date, holds air 24 h; crotch strap fastened'],
         check: { q: 'Which flotation device should a non-swimming 7-year-old wear on a fjord trip?', options: ['A 50 N buoyancy aid, because it gives freedom of movement', 'A 100 N life jacket with collar and crotch strap', 'A 150 N automatic inflatable vest', 'A 275 N offshore jacket'], answer: 1, explanation: 'The Norwegian Maritime Authority recommends 100 N with collar and crotch strap for children and non-swimmers. 50 N is only for swimmers over 30 kg, and inflatables are not recommended for children.' },
-      },
-      // 4 ------------------------------------------------------------
-      {
-        id: 'vest-check',
-        title: 'Keeping the inflatable vest alive',
-        html: `<p>An inflatable vest is a small machine, and machines fail when nobody looks at them. The Norwegian Maritime Authority's 2025 accident report includes a death where the vest was worn but "did not inflate on contact with water". A yearly check takes ten minutes.</p>
-<ol>
-<li><strong>Gas cylinder.</strong> Unscrew the CO2 cylinder and weigh it on a kitchen scale. The weight must match the value printed on it; a lighter cylinder has leaked and must be replaced.</li>
-<li><strong>Firing element.</strong> Look at the water-soluble tablet or cartridge in the inflator. It must not be expired, damp or broken. Replace it by the date printed on the unit (the Authority's pages mention yearly and two-yearly intervals; the manufacturer's date wins).</li>
-<li><strong>Air test.</strong> Inflate the bladder with the mouth tube or a bicycle pump and leave it. It must still be firm after <strong>24 hours</strong>.</li>
-</ol>
-<p>Then check the things the water will test: seams and fabric intact, the vest rated for your weight, crotch straps present and fastened, reflectors and whistle in place. For a non-inflatable child's jacket, make sure it has a collar that turns the child face-up and that it fits snugly.</p>
-<p>Store all flotation gear dry and out of the sun, and read the instructions: the Authority warns that "improper use may cause it not to work as expected". Many people have drowned wearing a vest that was the wrong size, unfastened between the legs, or simply never serviced.</p>
-<div class="callout tip"><p>Exam wording to recognise: "weigh the cylinder", "check the firing element is not expired or damp", "inflate and leave for 24 hours". Anything about washing machines or oiling the mechanism is a distractor.</p></div>`,
-        illustration: () => vestCheck(),
-        caption: 'The three-step annual check: weigh the CO2 cylinder, inspect the firing element, and confirm the bladder holds air for 24 hours.',
-        keyFacts: ['Weigh the CO2 cylinder: it must match the printed weight', 'Firing element: not expired, not damp, not broken; replace by the printed date', 'Inflate and confirm the bladder is still firm after 24 hours', 'Crotch strap fastened, correct size for your weight, stored dry and out of the sun'],
-        check: { q: 'How do you confirm that the bladder of an inflatable life jacket is sound?', options: ['Fire the CO2 cylinder once a year', 'Inflate it and check that it is still firm after 24 hours', 'Squeeze it hard for one minute', 'Submerge it in salt water for an hour'], answer: 1, explanation: 'The Norwegian Maritime Authority’s check: inflate by mouth or pump and confirm the bladder holds air for 24 hours. Firing the cylinder wastes it; the other options test nothing.' },
       },
       // 5 ------------------------------------------------------------
       {
@@ -607,9 +566,9 @@
         title: 'Calling for help: channel 16, DSC, 120 and 112',
         html: `<p>Help arrives only if someone hears you, and the first minutes decide whether a problem stays a problem or becomes a funeral. The exam puts two facts from this section into part 4 (1.4.6): the coast radio station's telephone number <strong>120</strong> and <strong>VHF channel 16</strong>.</p>
 <div class="callout rule"><p><strong>VHF channel 16</strong> (156.800 MHz) is the international distress, urgency, safety and calling channel. The Norwegian coast radio stations keep a 24-hour listening watch on channel 16 and on DSC. <strong>Telephone 120</strong> connects a mobile phone to the nearest coast radio station, for boats whose only means of communication is a phone; the official procedure card labels it "report a need for assistance".</p></div>
-<p>Why VHF beats a phone: one call reaches the coast radio <em>and every vessel around you</em> at once, without knowing anyone's number, and a nearby boat is often the fastest rescuer. A mobile reaches one subscriber, and its signal weakens noticeably already in moderate seas. To use a marine VHF you need the <strong>SRC (Short Range Certificate)</strong> and a radio licence, which gives the boat a call sign and an <strong>MMSI</strong> number; since 1 January 2026 the Norwegian Maritime Authority issues both.</p>
+<p>Why VHF beats a phone: one call reaches the coast radio <em>and every vessel around you</em> at once, without knowing anyone's number, and a nearby boat is often the fastest rescuer. A mobile reaches one subscriber, and its signal weakens noticeably already in moderate seas. A marine VHF requires the <strong>SRC</strong> operator certificate and a radio licence, which gives the boat its call sign and <strong>MMSI</strong>.</p>
 <p><strong>DSC (Digital Selective Calling):</strong> press and hold the red DISTRESS button and the radio sends a pre-formatted alert with your MMSI (and GPS position if connected) to the coast radio and all DSC radios in range. The digital alert travels on <strong>channel 70</strong>; you then speak on channel 16. Procedure: 1) hold the DSC button until the radio confirms; 2) "<strong>MAYDAY MAYDAY MAYDAY</strong>, this is [boat name three times], [call sign], [MMSI]"; 3) "MAYDAY, [name, call sign, MMSI], position, nature of distress, assistance required, number of persons on board, over".</p>
-<p>Use the right word. <strong>MAYDAY</strong> = grave and imminent danger to life or vessel (fire, sinking, person missing in the water). <strong>PAN PAN</strong> = urgency without immediate danger to life (engine failure in calm weather, a non-critical injury). <strong>SECURITE</strong> = a safety message about a navigation hazard or weather. The land numbers also work at sea: <strong>112</strong> police and general emergency (works without a SIM card or your own operator's coverage), <strong>113</strong> medical, <strong>110</strong> fire; at sea they are passed to the Joint Rescue Coordination Centre (Sola for waters south of 65&deg;N, Bod&oslash; north of it). <strong>02016</strong> is the Norwegian Society for Sea Rescue's assistance line for towing and non-urgent help; it is not an emergency number. Their SafeTrx app files a sail plan, tracks you and alerts your contacts if you are overdue.</p>`,
+<p>Use the right word. <strong>MAYDAY</strong> = grave and imminent danger to life or vessel (fire, sinking, person missing in the water). <strong>PAN PAN</strong> = urgency without immediate danger to life (engine failure in calm weather, a non-critical injury). <strong>SECURITE</strong> = a safety message about a navigation hazard or weather. The land numbers also work at sea: <strong>112</strong> police and general emergency (works without a SIM card or your own operator's coverage), <strong>113</strong> medical, <strong>110</strong> fire; at sea they are passed to the Joint Rescue Coordination Centre (Sola for waters south of 65&deg;N, Bod&oslash; north of it). <strong>02016</strong> is the Norwegian Society for Sea Rescue's assistance line for towing and non-urgent help; it is not an emergency number.</p>`,
         illustration: () => maydayCard(),
         caption: 'The official distress procedure: DSC button first, then the MAYDAY call and message on channel 16. PAN PAN for urgency, SECURITE for safety messages.',
         keyFacts: ['VHF channel 16 = distress, urgency, safety and calling; coast radio listens 24 h', 'Telephone 120 = nearest coast radio station from a mobile phone (part 4!)', 'DSC distress alert: hold the red button; the digital alert goes on channel 70, then speak on 16', 'MAYDAY = danger to life or vessel; PAN PAN = urgent, no immediate danger; SECURITE = safety message', '112 emergency (also without SIM), 113 medical, 110 fire; 02016 = Sea Rescue assistance, not emergency', 'VHF needs an SRC certificate, a radio licence, call sign and MMSI'],
@@ -791,3 +750,22 @@
       { id: 'safety-43', q: 'How should you make the final approach to a person in the water?', options: ['At speed, downwind, so the boat stops quickly', 'From astern with the engine in gear to hold position', 'Beam-on to the wind with the engine running', 'Into the wind so the boat stops with the casualty alongside on the lee side, engine in neutral or off'], answer: 3, explanation: 'Approach into the wind so you stop alongside, and take the engine out of gear before anyone is near the propeller (F84, F93).', difficulty: 2, part: 1, tags: ['mob'] },
       { id: 'safety-44', q: 'According to the 1-10-1 principle, how long do you have in cold water before cold incapacitation stops meaningful movement?', options: ['About 1 minute', 'About 10 minutes', 'About 1 hour', 'About 10 hours'], answer: 1, explanation: '1 minute to get breathing under control (cold shock), about 10 minutes of useful movement, about 1 hour before unconsciousness from hypothermia (F69).', difficulty: 2, part: 1, tags: ['cold-water'] },
       { id: 'safety-45', q: 'You fall into 8 degree water. What should you do in the first minute?', options: ['Float on your back, keep nose and mouth clear and get your breathing under control before anything else', 'Swim hard for the shore while you still have strength', 'Take off your heavy clothing', 'Dive to check for underwater hazards'], answer: 0, explanation: 'Cold shock makes you gasp and hyperventilate for about a minute; floating and controlling the breathing prevents inhaling water (F67). Movement comes in the next ten minutes.', difficulty: 2, part: 1, tags: ['cold-water'] },
+      { id: 'safety-46', q: 'Your boat capsizes about 500 m from the shore. What is the best course of action?', options: ['Swim for the shore immediately while you are still warm', 'Dive under the hull to recover the flares', 'Remove heavy clothing and tread water to stay warm', 'Stay with the boat, climb onto the hull if possible, keep everyone together and signal for help'], answer: 3, explanation: 'The Authority’s rule is "stay calm, stay by the boat and call for help": the hull is visible and buoyant, swimming pumps heat away, and a head in the water is almost invisible (F73, F86).', difficulty: 2, part: 1, tags: ['capsize', 'cold-water'] },
+      { id: 'safety-47', q: 'What is the HELP position?', options: ['With a life jacket on: knees drawn up to the chest, arms clamped to the sides or across the chest, head out of the water', 'Lying flat on your back with arms and legs spread wide', 'Swimming slowly in a circle to keep the blood moving', 'Floating face-down with the body relaxed between breaths'], answer: 0, explanation: 'Heat Escape Lessening Posture protects the armpits and groin and cuts heat loss by about one third; it requires a life jacket (F72).', difficulty: 1, part: 1, tags: ['cold-water'] },
+      { id: 'safety-48', q: 'Which action is dangerous when treating a hypothermic person?', options: ['Replacing wet clothes with dry ones', 'Putting insulation under as well as around the person', 'Giving a warm non-alcoholic drink to a conscious person', 'Giving alcohol and rubbing the arms and legs vigorously'], answer: 3, explanation: 'Never give alcohol; warm slowly, insulate, keep horizontal and handle gently. Rubbing and exercise move cold blood to the core and can trigger cardiac arrest (F75, F76).', difficulty: 2, part: 1, tags: ['hypothermia', 'first-aid'] },
+      { id: 'safety-49', q: 'Adult CPR according to the Norwegian Resuscitation Council (2021) is:', options: ['30 compressions then 2 breaths, 100-120 compressions per minute, 5-6 cm deep', '15 compressions then 2 breaths at 60 per minute', '5 compressions then 1 breath', 'Breaths only, every 5 seconds'], answer: 0, explanation: 'Check breathing for up to 10 s; if not breathing normally, 30:2 at 100-120 per minute, 5-6 cm deep, with 113 on speaker (F77).', difficulty: 2, part: 1, tags: ['cpr', 'first-aid'] },
+      { id: 'safety-50', q: 'How does resuscitation of a drowned person differ from ordinary adult CPR?', options: ['Compressions only; no breaths are given', 'It starts with 2 minutes of compressions before any breaths', 'The ratio is changed to 15:2', 'It starts with 5 rescue breaths, then continues 30:2'], answer: 3, explanation: 'Drowning is a hypoxic arrest, so ventilation is essential: 5 initial rescue breaths, then 30:2. Compression-only CPR is not adequate for drowning (F78).', difficulty: 3, part: 1, tags: ['cpr', 'first-aid'] },
+      { id: 'safety-51', q: 'After a collision between two recreational boats, what must each skipper do?', options: ['Leave quickly to avoid liability', 'Only notify the insurance company within 24 hours', 'Wait for the police before doing anything', 'Help the other boat and its people as far as possible without serious danger to their own, and exchange name, home port and ports of departure and destination'], answer: 3, explanation: 'Maritime Code Section 164 imposes the duty to assist and to exchange name, home port and ports; it applies to boats as well as ships (F89).', difficulty: 2, part: 1, tags: ['collision', 'law'] },
+      { id: 'safety-52', q: 'What is the maximum penalty for a skipper who wilfully leaves the scene of a collision without helping the other vessel?', options: ['Imprisonment for up to 3 years (6 if someone dies or is seriously injured)', 'A fixed fine of NOK 900', 'Loss of the boating licence for one month', 'There is no penalty; the duty is only moral'], answer: 0, explanation: 'Maritime Code Section 506: wilful or grossly negligent breach of the duty to assist is punishable by fines or imprisonment up to 3 years, up to 6 years if the failure results in death or significant injury (F90).', difficulty: 3, part: 1, tags: ['collision', 'law'] },
+      { id: 'safety-53', q: 'Your engine fails 200 m upwind of a rocky shore in a fresh breeze. Nobody is hurt. What is the correct order of actions?', options: ['MAYDAY first, then flares, then anchor', 'Anchor or stream a drogue at once, put on life jackets, then call for assistance (120 / 02016 / PAN PAN)', 'Swim ashore with a line to pull the boat in', 'Wait and see whether the wind drops'], answer: 1, explanation: 'Stop the drift first, then life jackets, then a call for assistance. Escalate to MAYDAY only if the anchor fails and you are about to strike the rocks (F87, scenario 3).', difficulty: 3, part: 1, tags: ['engine-failure'] },
+      { id: 'safety-54', q: 'Your engine has failed in calm weather and nobody is in danger. Which priority word do you use on VHF channel 16?', options: ['MAYDAY', 'SECURITE', 'ALL STATIONS', 'PAN PAN'], answer: 3, explanation: 'PAN PAN marks an urgent situation without immediate danger to life; MAYDAY is reserved for grave and imminent danger; SECURITE is for safety messages about hazards or weather (F46).', difficulty: 2, part: 1, tags: ['radio', 'pan-pan'] },
+      { id: 'safety-55', q: 'Which description matches the typical victim in the Norwegian Maritime Authority’s fatality statistics?', options: ['An older man in an open motorboat in sheltered waters, without a life jacket, often under the influence of alcohol', 'A young woman in a sailing boat offshore in a storm', 'A licensed skipper in a large closed motor cruiser', 'A child in a kayak on a lake'], answer: 0, explanation: 'In 2025 all 18 who died were men, average age 65; 11 wore no flotation, open motorboats dominated, and most accidents were in narrow coastal waters, lakes and harbours; about half of the 2024 victims were under the influence (F95-F99).', difficulty: 2, part: 1, tags: ['statistics'] },
+      // ---- Part 2: Annex IV distress signals (F58-F65) ----
+      { id: 'safety-56', q: 'Is the signal in the picture, a burning WHITE hand flare, a distress signal under Annex IV of the Rules of the Road?', illustration: () => flareIcon('white'), options: ['Yes, any hand flare is a distress signal', 'Yes, but only at night', 'No: red flares, red rockets and orange smoke are distress signals; white is an attention or illumination signal', 'No: hand flares are never distress signals, only rockets are'], answer: 2, explanation: 'Annex IV lists red parachute rockets, red hand flares and orange smoke. A white flare is used to attract attention or illuminate and must not be confused with a distress signal (F59, F60, trap 19).', difficulty: 2, part: 2, tags: ['annex-iv', 'picture'] },
+      { id: 'safety-57', q: 'The person in the picture is slowly and repeatedly raising and lowering their outstretched arms. What does this mean?', illustration: () => flareIcon('arms'), options: ['Distress: it is an Annex IV distress signal', 'A request for a tow, not an emergency', 'A greeting between leisure boats', '"I am going to anchor here"'], answer: 0, explanation: 'Annex IV item (k): slowly and repeatedly raising and lowering the arms outstretched to each side is a distress signal (F59). Ordinary waving is not.', difficulty: 1, part: 2, tags: ['annex-iv', 'picture'] },
+      { id: 'safety-58', q: 'How and when is the orange smoke signal in the picture used?', illustration: () => flareIcon('smoke'), options: ['At night, held above the head', 'Fired into the air like a rocket', 'Held at arm’s length on the lee side for about 60 seconds', 'In daylight: a floating smoke is activated and thrown into the water clear of the boat; it burns about 3 minutes and shows the helicopter pilot the wind'], answer: 3, explanation: 'Orange smoke is invisible in the dark and lasts about 3 minutes; a floating smoke goes in the water, never in the hand, and its plume shows the wind to a helicopter pilot (F63).', difficulty: 2, part: 1, tags: ['flares', 'picture'] },
+      { id: 'safety-59', q: 'A vessel flies the two code flags shown in the picture, N over C. What does it mean?', illustration: () => flareIcon('flags'), options: ['"I am engaged in fishing"', 'Distress: N over C is an Annex IV distress signal', '"I have a diver down"', '"Keep clear, I am manoeuvring with difficulty"'], answer: 1, explanation: 'Annex IV item (f): the International Code of Signals group N C means distress. Flag A alone means diver down (F59).', difficulty: 2, part: 2, tags: ['annex-iv', 'picture'] },
+      { id: 'safety-60', q: 'You have a box of expired red flares and want to use a couple for fun at a midsummer party. Is this allowed?', options: ['Yes, if they are expired they no longer count as distress signals', 'Yes, provided you tell the coast radio first', 'No: using a distress signal for any purpose other than distress is prohibited, and expired flares must be returned to a dealer as explosive waste', 'Yes, as long as you are on land'], answer: 2, explanation: 'Annex IV paragraph 2 prohibits using these signals except to indicate distress, or using signals that could be confused with them. Expired pyrotechnics are explosive waste for a dealer or collection point, never household rubbish or fireworks (F60, F64).', difficulty: 2, part: 2, tags: ['annex-iv', 'flares'] },
+    ],
+  });
+})();
