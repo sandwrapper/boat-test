@@ -90,6 +90,7 @@ BOAT_SVG.gallery.push({ name: 'vesselLights power<50 ahead', svg: () => BOAT_SVG
 - `courseTriangle(opts)` — the true / magnetic / compass ladder: boxes T → (±variation) → M → (±deviation) → C with a worked example from `opts` (e.g. `{ true: 90, variation: 3, deviation: -2 }`), arrows showing the direction of each conversion.
 - `bearingFix(opts)` — chart with two or three bearing lines from landmarks crossing at the fix (optionally a small cocked hat).
 - `latitudeScale()` — chart edge showing that 1 minute of latitude = 1 nautical mile, with dividers, and that the longitude scale must not be used.
+- `latitudeScale({ position: true, lat, lon, quiz })` — reading a position off the border scales; `lat` = minutes south of 60°00′N (0–10), `lon` = minutes east of 010°30′E (0–20), `quiz: true` hides the answer so the picture can carry a question.
 - `std(opts)` — speed-time-distance triangle with a worked example (`{ speed: 12, minutes: 40 }` → 8 NM).
 - `plotExample()` — a leg drawn on a chart excerpt with course, distance and time labelled.
 

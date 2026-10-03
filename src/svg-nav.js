@@ -362,24 +362,36 @@
       s += T(W / 2, H - 10, 'Example chart grid near 60°N (not a real chart): 10′ of latitude tall, 20′ of longitude wide', { size: 11, fill: MUTED });
       return S.svg(W, H, s, { label: 'Chart border scales: dividers on a 5-minute leg moved to the left latitude border read 5 nautical miles (1 minute = 1 NM = 1852 m); dividers on the bottom longitude scale are crossed out in red, never measure distance there' });
     }
-    // position mode: 59°54,5'N 010°44,0'E
-    const py = g.y0 + 5.5 * pxLat, pxx = g.x0 + 14 * pxLon;
+    // position mode. Default point 59°54,5'N 010°44,0'E; opts.lat = minutes south of 60°00'N (0–10),
+    // opts.lon = minutes east of 010°30'E (0–20); opts.quiz = draw the point and guide lines but no answer.
+    const latM = opts.lat == null ? 5.5 : opts.lat, lonM = opts.lon == null ? 14 : opts.lon;
+    if (typeof latM !== 'number' || !(latM >= 0 && latM <= 10) || typeof lonM !== 'number' || !(lonM >= 0 && lonM <= 20)) fail('latitudeScale', `opts.lat ${JSON.stringify(opts.lat)} / opts.lon ${JSON.stringify(opts.lon)}`, 'lat 0–10 (minutes south of 60°00′N) and lon 0–20 (minutes east of 010°30′E)');
+    const minStr = m => { const t = Math.round(m * 10); return `${String(Math.floor(t / 10)).padStart(2, '0')},${t % 10}`; };
+    const latStr = latM === 0 ? '60°00,0′N' : `59°${minStr(60 - latM)}′N`, lonStr = `010°${minStr(30 + lonM)}′E`;
+    const py = g.y0 + latM * pxLat, pxx = g.x0 + lonM * pxLon;
     s += line(g.x0 - g.band, py, pxx, py, { stroke: MAGENTA, width: 1.5, dash: '6 4' });
     s += line(pxx, g.y0 - g.band, pxx, py, { stroke: MAGENTA, width: 1.5, dash: '6 4' });
     s += head(g.x0 - g.band + 4, py, 270, 9, MAGENTA);
     s += head(pxx, g.y0 - g.band + 4, 0, 9, MAGENTA);
     s += `<circle cx="${r1(pxx)}" cy="${r1(py)}" r="5" fill="${MAGENTA}"/>`;
     s += T(pxx + 10, py + 14, 'P', { size: 13, weight: 700, fill: MAGENTA, anchor: 'start' });
+    if (opts.quiz) {
+      s += T(W / 2, noteY + 6, 'Read the position of P from the border scales', { size: 14, weight: 700 });
+      s += T(W / 2, noteY + 28, 'Labels every 5′; each dark or light band is 1′; the small ticks inside a band are tenths of a minute (the longer one is 0.5′).', { size: 11, fill: INK2 });
+      s += T(W / 2, noteY + 48, 'Follow the dashed line straight across to the side scale for latitude and straight up to the top scale for longitude.', { size: 11, fill: INK2 });
+      s += T(W / 2, H - 10, 'Example chart grid near 60°N (not a real chart): 10′ of latitude tall, 20′ of longitude wide', { size: 11, fill: MUTED });
+      return S.svg(W, H, s, { label: 'A chart grid between 59°50′N and 60°00′N and between 010°30′E and 010°50′E with a point P and dashed guide lines to the latitude scale on the left and the longitude scale at the top; read its position from the scales' });
+    }
     s += `<rect x="${g.x0 + 24}" y="${r1(py - 32)}" width="86" height="22" rx="4" fill="${PAPER}" stroke="${MAGENTA}"/>`;
-    s += T(g.x0 + 67, py - 21, "1: 59°54,5′N", { size: 12, weight: 700, fill: MAGENTA });
+    s += T(g.x0 + 67, py - 21, `1: ${latStr}`, { size: 12, weight: 700, fill: MAGENTA });
     s += `<rect x="${r1(pxx + 8)}" y="${g.y0 + 24}" width="96" height="22" rx="4" fill="${PAPER}" stroke="${MAGENTA}"/>`;
-    s += T(pxx + 56, g.y0 + 35, "2: 010°44,0′E", { size: 12, weight: 700, fill: MAGENTA });
-    s += T(W / 2, noteY + 6, 'P = 59°54,5′N 010°44,0′E', { size: 15, weight: 700, fill: MAGENTA });
+    s += T(pxx + 56, g.y0 + 35, `2: ${lonStr}`, { size: 12, weight: 700, fill: MAGENTA });
+    s += T(W / 2, noteY + 6, `P = ${latStr} ${lonStr}`, { size: 15, weight: 700, fill: MAGENTA });
     s += T(W / 2, noteY + 28, 'Latitude first, then longitude; degrees, minutes and decimal minutes', { size: 12, weight: 700 });
-    s += T(W / 2, noteY + 48, '1: straight across to the side scale: 54′ + 5 tenths.  2: straight up to the top scale: 44′ + 0 tenths.', { size: 11, fill: INK2 });
+    s += T(W / 2, noteY + 48, `1: straight across to the side scale: ${latStr.slice(3, 5)}′ + ${latStr.slice(6, 7)} tenths.  2: straight up to the top scale: ${lonStr.slice(4, 6)}′ + ${lonStr.slice(7, 8)} tenths.`, { size: 11, fill: INK2 });
     s += T(W / 2, noteY + 66, 'Keep the leading zero in 010°. Norway is always N and E.', { size: 11, fill: INK2 });
     s += T(W / 2, H - 10, 'Example chart grid near 60°N (not a real chart): 10′ of latitude tall, 20′ of longitude wide', { size: 11, fill: MUTED });
-    return S.svg(W, H, s, { label: 'Reading a position from the chart grid: dashed line left to the latitude scale reads 59°54,5′N, dashed line up to the longitude scale reads 010°44,0′E; latitude first, then longitude' });
+    return S.svg(W, H, s, { label: `Reading a position from the chart grid: dashed line left to the latitude scale reads ${latStr}, dashed line up to the longitude scale reads ${lonStr}; latitude first, then longitude` });
   }
 
   /* ---------- 5. Speed – time – distance (Spec 16, F70–F71) ---------- */
@@ -513,6 +525,7 @@
   G.push({ name: 'bearingFix two', svg: () => bearingFix({ bearings: [40, 130] }) });
   G.push({ name: 'latitudeScale distance', svg: () => latitudeScale() });
   G.push({ name: 'latitudeScale position', svg: () => latitudeScale({ position: true }) });
+  G.push({ name: 'latitudeScale position quiz 59-56.8N 010-37.5E', svg: () => latitudeScale({ position: true, quiz: true, lat: 3.2, lon: 7.5 }) });
   G.push({ name: 'std 12kn 40min', svg: () => std({ speed: 12, minutes: 40 }) });
   G.push({ name: 'std 15NM 10kn', svg: () => std({ distance: 15, speed: 10 }) });
   G.push({ name: 'std 4.5NM 27min', svg: () => std({ distance: 4.5, minutes: 27 }) });

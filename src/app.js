@@ -165,20 +165,26 @@ window.BOAT = (function () {
   }
 
   // ---------- Views: Home ----------
+  // Two-day plan. Day 1 covers the rules part of the curriculum and five of the seven "particularly
+  // important" items (1.4.1 to 1.4.6); day 2 covers navigation and seamanship and ends with exam rehearsal.
+  // Reading time per lesson is about 30-45 minutes; a mock exam with review takes about 90 minutes.
   const PLAN = [
-    { day: 'Day 1 — learn the rules', items: [
-      { id: 'd1-1', text: 'Read "The exam and the law" and "Rules of the road" (about 90 min)' },
-      { id: 'd1-2', text: 'Read "Navigation lights and day shapes" and run the Lights trainer until you score 10 in a row' },
-      { id: 'd1-3', text: 'Read "Sound and distress signals" and "Sea marks"; run the Buoy trainer' },
-      { id: 'd1-4', text: 'Practice quiz: 20 questions from each topic you read today' },
-      { id: 'd1-5', text: 'Flashcards for the whole of day 1 before sleeping' },
+    { day: 'Day 1 — the rules and the part-4 items', items: [
+      { id: 'd1-1', text: 'Read "The exam, the licence and the law" (about 40 min), then its 20-question quiz. Alcohol limit and flotation rules are part-4 items.' },
+      { id: 'd1-2', text: 'Read "Rules of the road: who gives way" (about 45 min) and run the "Who gives way?" trainer until you get 10 in a row.' },
+      { id: 'd1-3', text: 'Read "Navigation lights and day shapes" and run the "Lights at night" trainer until you get 10 in a row.' },
+      { id: 'd1-4', text: 'Read "Sound signals, radio and distress" (120 and channel 16 are part-4 facts) and run the "Sound signals" trainer.' },
+      { id: 'd1-5', text: 'Read "Sea marks, lights and sector lights" and run the "Sea marks and lights" trainer until you get 10 in a row.' },
+      { id: 'd1-6', text: 'Mock exam 1 (50 questions, 60 minutes) as a diagnostic; the navigation questions will be hard today. Review every wrong answer.' },
+      { id: 'd1-7', text: 'Flashcards for the five topics of day 1 before sleeping.' },
     ]},
     { day: 'Day 2 — navigate, stay safe, rehearse', items: [
-      { id: 'd2-1', text: 'Read "Charts and navigation"; do the course and speed–time–distance exercises in the Navigation trainer' },
-      { id: 'd2-2', text: 'Read "Seamanship", "Safety and emergencies", "Weather" and "Engine and environment"' },
-      { id: 'd2-3', text: 'Mock exam 1 (50 questions, 60 minutes). Review every wrong answer.' },
-      { id: 'd2-4', text: 'Re-read the weakest two topics shown on the Review page' },
-      { id: 'd2-5', text: 'Mock exam 2. Pass mark is 40 of 50; aim for 45 or more.' },
+      { id: 'd2-1', text: 'Read "Charts, compass and navigation" (about 60 min) and do the course-conversion and speed, time and distance drills in the Navigation trainer; then its 20-question quiz (positions, bearings, distances).' },
+      { id: 'd2-2', text: 'Read "Seamanship and boat handling" and "Safety equipment and emergencies" (about 35 min each). High speed and flotation are part-4 items.' },
+      { id: 'd2-3', text: 'Read "Weather, wind, waves and tide" and "Engine, fuel and the environment" (about 25 min each; fewer exam questions).' },
+      { id: 'd2-4', text: 'Practice quiz "Only questions I got wrong", then re-read the two weakest topics shown on the Review page.' },
+      { id: 'd2-5', text: 'Mock exam 2. Pass is 40 of 50 with at most 2 wrong in part 4; aim for 45 or more and no more than 1 wrong in part 4.' },
+      { id: 'd2-6', text: 'If you had 2 or more part-4 mistakes: run all five trainers once more, then mock exam 3 before the real exam.' },
     ]},
   ];
 

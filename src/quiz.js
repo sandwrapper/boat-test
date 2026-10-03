@@ -126,14 +126,46 @@
     const recent = new Set((B.progress.exams()[0] || { ids: [] }).ids || []);
     const byPart = { 1: [], 2: [], 3: [], 4: [] };
     B.allQuestions().forEach(q => byPart[partOf(q)].push(q));
+    // shuffled, with questions from the previous exam moved to the back
+    const order = g => { const sh = B.shuffle(g); return sh.filter(q => !recent.has(q.id)).concat(sh.filter(q => recent.has(q.id))); };
+    const groupBy = (list, key) => { const g = {}; list.forEach(q => { (g[key(q)] = g[key(q)] || []).push(q); }); return g; };
     const picked = [];
-    [1, 2, 3, 4].forEach(part => {
-      const groups = {};
-      byPart[part].forEach(q => { (groups[q.topic] = groups[q.topic] || []).push(q); });
-      const lists = Object.values(groups).map(g => { const sh = B.shuffle(g); return sh.filter(q => !recent.has(q.id)).concat(sh.filter(q => recent.has(q.id))); });
-      let got = 0, k = 0;
-      while (got < counts[part] && lists.some(l => l.length)) { const l = lists[k % lists.length]; if (l.length) { picked.push(l.shift()); got++; } k++; }
+    // Parts 1-3: each topic gets a share of the part's slots proportional to its examShare and to the
+    // fraction of its questions that sit in that part, so a topic with a handful of part-3 questions
+    // (tides in the weather topic) does not take a quarter of the navigation block.
+    [1, 2, 3].forEach(part => {
+      const groups = groupBy(byPart[part], q => q.topic);
+      const ids = Object.keys(groups);
+      if (!ids.length) return;
+      const lists = ids.map(id => order(groups[id]));
+      const weights = ids.map(id => { const t = B.topic(id); const n = t ? t.questions.length : groups[id].length; return ((t && t.examShare) || 1) * groups[id].length / Math.max(1, n); });
+      const sum = weights.reduce((a, b) => a + b, 0) || 1;
+      const target = weights.map(w => counts[part] * w / sum);
+      const take = target.map((t, i) => Math.min(Math.floor(t), lists[i].length));
+      let left = counts[part] - take.reduce((a, b) => a + b, 0);
+      // hand out the remaining slots with probability proportional to the fractional remainders
+      while (left > 0) {
+        const cand = ids.map((id, i) => ({ i, w: Math.max(0.05, target[i] - take[i]) })).filter(c => lists[c.i].length > take[c.i]);
+        if (!cand.length) break;
+        let r = Math.random() * cand.reduce((a, c) => a + c.w, 0), chosen = cand[cand.length - 1];
+        for (const c of cand) { r -= c.w; if (r <= 0) { chosen = c; break; } }
+        take[chosen.i]++; left--;
+      }
+      ids.forEach((id, i) => picked.push(...lists[i].slice(0, take[i])));
     });
+    // Part 4: round-robin over the seven "particularly important" items (1.4.1 ... 1.4.7) so every item is
+    // represented, and within an item over the topics that contribute to it.
+    {
+      const items = groupBy(byPart[4], q => q.p4 || 'other');
+      const lists = B.shuffle(Object.keys(items)).map(k => {
+        const tl = Object.values(groupBy(items[k], q => q.topic)).map(order);
+        const out = []; let i = 0;
+        while (tl.some(l => l.length)) { const l = tl[i % tl.length]; if (l.length) out.push(l.shift()); i++; }
+        return out;
+      });
+      let got = 0, k = 0;
+      while (got < counts[4] && lists.some(l => l.length)) { const l = lists[k % lists.length]; if (l.length) { picked.push(l.shift()); got++; } k++; }
+    }
     if (picked.length < total) {
       const have = new Set(picked.map(q => q.id));
       picked.push(...B.shuffle(B.allQuestions().filter(q => !have.has(q.id))).slice(0, total - picked.length));
