@@ -86,11 +86,10 @@
     return s;
   }
   function xmark(x, y, color) { const c = color || 'var(--bad)'; return line(x - 7, y - 7, x + 7, y + 7, c, 3) + line(x - 7, y + 7, x + 7, y - 7, c, 3); }
-  function windArrow(x1, y1, x2, y2, label) {
+  function windArrow(x1, y1, x2, y2, lx, ly) {
     const a = angOf(x1, y1, x2, y2);
-    const fx = x1 - (x2 - x1) * .25, fy = y1 - (y2 - y1) * .25;
     return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${WIND}" stroke-width="3" stroke-dasharray="8 5" stroke-linecap="round"/>` + arrowHead(x2, y2, a, WIND, 12) +
-      `<path d="M${x1},${y1} L${fx},${fy}" stroke="${WIND}" stroke-width="3" stroke-linecap="round" opacity=".5"/>` + txt((x1 + fx) / 2 + 22, (y1 + fy) / 2, label || 'WIND', { fill: WIND, weight: 700, size: 13, anchor: 'start', halo: 'var(--shallow)' });
+      `<path d="M${x1 - 7},${y1} l7,-9 l7,9" fill="none" stroke="${WIND}" stroke-width="3" stroke-linecap="round" opacity=".6" transform="rotate(${fmt(a)} ${x1} ${y1})"/>` + txt(lx, ly, 'WIND', { fill: WIND, weight: 700, size: 13, halo: 'var(--shallow)' });
   }
   function compass(x, y, boatUp) {
     return `<circle cx="${x}" cy="${y}" r="17" fill="var(--paper)" stroke="var(--line)"/>` + (boatUp ? txt(x, y, 'bow up', { size: 9, fill: 'var(--muted)' }) : `<polygon points="${x},${y - 13} ${x - 5},${y + 4} ${x + 5},${y + 4}" fill="var(--ink)"/>` + txt(x, y + 10, 'N', { size: 10, weight: 700 }));
@@ -305,18 +304,21 @@
   }
   function dayShape(kind) {
     const def = SHAPES[kind]; if (!def) fail('dayShape kind', kind, Object.keys(SHAPES));
-    const W = 320, H = 320, cx = 130, gap = def.gap == null ? 16 : def.gap;
-    const total = def.parts.reduce((a, p) => a + GLYPH_H[p], 0) + gap * (def.parts.length - 1);
-    let y = 150 - total / 2 - 10;
-    let g = `<rect width="${W}" height="${H}" rx="8" fill="${DAY_SKY}"/><rect x="0" y="236" width="${W}" height="${H - 236}" fill="${DAY_SEA}"/>` + line(cx, 236, cx, y - 14, '#555', 3) + `<polygon points="${cx - 60},236 ${cx - 50},222 ${cx + 60},222 ${cx + 70},236" fill="${HULL_GREY}"/>`;
+    const W = 380, H = 320, cx = 100, deck = 238, gap0 = def.gap == null ? 16 : def.gap;
+    const total0 = def.parts.reduce((a, p) => a + GLYPH_H[p], 0) + gap0 * (def.parts.length - 1);
+    const k = total0 > 160 ? 160 / total0 : 1, gap = gap0 * k, total = total0 * k;   // tall stacks are scaled to fit
+    let y = 140 - total / 2;
+    let g = `<rect width="${W}" height="${H}" rx="8" fill="${DAY_SKY}"/><rect x="0" y="${deck}" width="${W}" height="${H - deck}" fill="${DAY_SEA}"/>` + line(cx, deck, cx, y - 14, '#555', 3) + `<polygon points="${cx - 60},${deck} ${cx - 50},${deck - 14} ${cx + 60},${deck - 14} ${cx + 70},${deck}" fill="${HULL_GREY}"/>`;
     def.parts.forEach((p, i) => {
-      g += dayShapeGlyph(p, cx, y);
-      if (i < def.parts.length - 1 && gap > 0) { g += line(cx + 42, y + GLYPH_H[p], cx + 42, y + GLYPH_H[p] + gap, DAY_MUTED, 1) + txt(cx + 48, y + GLYPH_H[p] + gap / 2, '≥ 1.5 m', { size: 10, fill: DAY_MUTED, anchor: 'start' }); }
-      y += GLYPH_H[p] + gap;
+      g += dayShapeGlyph(p, cx, y, k);
+      const h = GLYPH_H[p] * k;
+      if (i < def.parts.length - 1 && gap > 0) g += line(cx - 36, y + h, cx - 36, y + h + gap, DAY_MUTED, 1) + txt(cx - 42, y + h + gap / 2, '≥ 1.5 m', { size: 10, fill: DAY_MUTED, anchor: 'end' });
+      y += h + gap;
     });
-    g += txt(cx + 100, 60, def.title, { size: 14, weight: 700, fill: DAY_INK, anchor: 'middle' });
-    g += caption(cx + 100, 90, def.meaning, 24, { size: 11, fill: DAY_INK, lh: 14 });
-    g += txt(W / 2, H - 20, 'Day shapes are always BLACK (Annex I).', { size: 11, fill: DAY_INK, italic: true });
+    const title = wrap(def.title, 20);
+    g += lines(262, 56, title, { size: 14, weight: 700, fill: DAY_INK, lh: 17 });
+    g += caption(262, 56 + title.length * 17 + 6, def.meaning, 28, { size: 11, fill: DAY_INK, lh: 14 });
+    g += txt(W / 2, H - 18, 'Day shapes are always BLACK (Annex I).', { size: 11, fill: DAY_INK, italic: true });
     return S.svg(W, H, g, { label: `Day shape: ${def.title} — ${def.meaning}` });
   }
 
@@ -335,19 +337,19 @@
       g += course(340, 150, 270, 56, 40, 170, 150, 'var(--ink-2)') + course(170, 310, 0, 56, 40, 170, 150, 'var(--ink-2)');
       g += planBoat(340, 150, 270, 56, STAND, Object.assign({ lights: true }, otherOpts)) + planBoat(170, 310, 0, 56, GIVE, Object.assign({ lights: true }, ownOpts));
       g += xmark(170, 165) + tag(110, 165, 'do not cross ahead', 'var(--bad)', { size: 11 });
-      g += curve([170, 282], [170, 225], [300, 235], [395, 185], 'var(--bad)') + lines(305, 268, ['turns to STARBOARD,', 'passes ASTERN of her'], { size: 11, weight: 600, halo: 'var(--shallow)' });
-      g += roleTag(170, 352, 'GIVE-WAY', ownLabel) + roleTag(340, 196, 'STAND-ON', otherLabel);
+      g += curve([170, 282], [170, 228], [300, 250], [405, 215], 'var(--bad)') + lines(310, 290, ['turns to STARBOARD,', 'passes ASTERN of her'], { size: 11, weight: 600, halo: 'var(--shallow)' });
+      g += roleTag(170, 352, 'GIVE-WAY', ownLabel) + roleTag(340, 102, 'STAND-ON', otherLabel);
     };
     if (name === 'crossing-starboard') {
       standardCrossing({ power: true }, { power: true }, 'you: other vessel on your STARBOARD side', 'keeps course and speed');
-      g += tag(372, 128, 'you see her RED light', C.red, { size: 11 });
+      g += tag(340, 196, 'you see her RED light', C.red, { size: 11 });
       cap = 'Two power-driven vessels crossing: the vessel which has the other on her own STARBOARD side keeps out of the way (Rule 15) — early and substantially (Rule 16), by turning to starboard to pass astern, or slowing down. Never cross ahead.';
       label = 'Crossing situation: the other power-driven vessel is on our starboard bow, so we give way by turning to starboard and passing astern';
     } else if (name === 'crossing-port') {
       g += course(140, 150, 90, 56, 40, 310, 150, 'var(--ink-2)') + course(310, 310, 0, 56, 40, 310, 150, 'var(--ink-2)');
       g += planBoat(140, 150, 90, 56, GIVE, { power: true, lights: true }) + planBoat(310, 310, 0, 56, STAND, { power: true, lights: true });
-      g += curve([168, 150], [250, 160], [250, 330], [340, 372], 'var(--bad)') + lines(150, 250, ['turns to STARBOARD,', 'passes ASTERN of you'], { size: 11, weight: 600, halo: 'var(--shallow)' });
-      g += roleTag(140, 196, 'GIVE-WAY', 'she has you on her starboard side') + roleTag(310, 352, 'STAND-ON', 'you: keep course and speed — watch her');
+      g += curve([168, 150], [240, 160], [240, 300], [300, 372], 'var(--bad)') + lines(150, 250, ['turns to STARBOARD,', 'passes ASTERN of you'], { size: 11, weight: 600, halo: 'var(--shallow)' });
+      g += roleTag(140, 196, 'GIVE-WAY', 'she has you on her starboard side') + roleTag(405, 282, 'STAND-ON', 'you: keep course and speed, watch her');
       g += tag(108, 128, 'you see her GREEN light', C.green, { size: 11 });
       cap = 'The other power-driven vessel is on your PORT side: she gives way and you STAND ON — keep course and speed (Rule 17). If she clearly does nothing, you must act: slow down or turn to starboard, never to port towards her (Rule 17(c)); sound 5 short blasts if in doubt.';
       label = 'Crossing situation: the other power-driven vessel is on our port bow, so she gives way and we stand on';
@@ -356,7 +358,7 @@
       g += planBoat(240, 320, 0, 56, GIVE, { power: true, lights: true }) + planBoat(240, 110, 180, 56, GIVE, { power: true, lights: true });
       g += curve([240, 292], [240, 245], [280, 235], [305, 185], 'var(--bad)') + curve([240, 138], [240, 185], [200, 195], [175, 245], 'var(--bad)');
       g += lines(360, 228, ['alters to', 'STARBOARD'], { size: 11, weight: 600, halo: 'var(--shallow)' }) + lines(120, 200, ['alters to', 'STARBOARD'], { size: 11, weight: 600, halo: 'var(--shallow)' });
-      g += tag(240, 215, 'pass port to port — red to red', C.red, { size: 11 });
+      g += lines(345, 300, ['pass port to port', '(red to red)'], { size: 11, weight: 700, fill: C.red, halo: 'var(--shallow)' });
       g += roleTag(240, 362, 'GIVE-WAY', 'both vessels') + roleTag(240, 70, 'GIVE-WAY', 'both vessels');
       cap = 'Two power-driven vessels meeting head-on (you see both her sidelights and her masthead lights in line): BOTH alter course to STARBOARD and pass port-to-port (Rule 14). If in doubt whether it is head-on, assume it is.';
       label = 'Head-on situation between two power-driven vessels: both alter course to starboard and pass port to port';
@@ -368,37 +370,37 @@
       g += course(240, 150, 0, 56, 40, null, null, 'var(--ink-2)') + planBoat(240, 150, 0, 56, STAND, { power: true, lights: true });
       g += curve([300, 272], [300, 230], [322, 200], [322, 90], 'var(--bad)') + curve([300, 272], [300, 250], [160, 230], [160, 90], 'var(--bad)', { dashed: true });
       g += planBoat(300, 300, 0, 56, GIVE, sail ? { sail: -1, lights: true } : { power: true, lights: true });
-      if (sail) g += windArrow(440, 60, 385, 60);
+      if (sail) g += windArrow(450, 70, 395, 70, 422, 52);
       g += roleTag(240, 102, 'STAND-ON', 'keeps course and speed') + roleTag(300, 345, 'GIVE-WAY', 'keeps clear until finally past and clear — on either side');
       g += lines(240, 222, ['overtaking sector 135°', 'more than 22.5° abaft her beam:', 'you see only her sternlight'], { size: 11, weight: 600, halo: 'var(--shallow)', lh: 13 });
       cap = sail ? 'A sailing boat coming up from more than 22.5° abaft a motorboat’s beam is OVERTAKING and keeps clear (Rule 13) — Rule 13 overrides the sail-over-power rule of Rule 18. She stays give-way until finally past and clear.' : 'Coming up from more than 22.5° abaft her beam (where at night you see only her sternlight) is OVERTAKING: the overtaking vessel keeps out of the way, on either side, until finally past and clear (Rule 13). If in doubt, assume you are overtaking.';
       label = 'Overtaking: the ' + (sail ? 'sailing boat' : 'motorboat') + ' coming up inside the 135 degree stern sector of a motorboat keeps clear and may pass on either side';
     } else if (name === 'sail-opposite-tacks') {
-      g += windArrow(240, 22, 240, 78);
-      g += course(130, 320, 45, 56, 40, 240, 210, 'var(--ink-2)') + course(350, 320, 315, 56, 40, 240, 210, 'var(--ink-2)');
-      g += curve([150, 300], [185, 250], [275, 275], [318, 345], 'var(--bad)') + lines(300, 272, ['bears away (turns to', 'STARBOARD), passes astern'], { size: 11, weight: 600, halo: 'var(--shallow)' });
-      g += planBoat(130, 320, 45, 56, GIVE, { sail: 1, lights: true }) + planBoat(350, 320, 315, 56, STAND, { sail: -1, lights: true });
-      g += roleTag(110, 372, 'GIVE-WAY', 'PORT TACK: wind on her port side, boom out to starboard') + roleTag(370, 372, 'STAND-ON', 'STARBOARD TACK: wind on her starboard side, boom out to port');
+      g += windArrow(240, 22, 240, 78, 240, 94);
+      g += course(130, 290, 45, 56, 40, 240, 180, 'var(--ink-2)') + course(350, 290, 315, 56, 40, 240, 180, 'var(--ink-2)');
+      g += curve([150, 270], [185, 220], [270, 240], [318, 315], 'var(--bad)') + lines(240, 318, ['bears away (turns to', 'STARBOARD), passes astern'], { size: 11, weight: 600, halo: 'var(--shallow)' });
+      g += planBoat(130, 290, 45, 56, GIVE, { sail: 1, lights: true }) + planBoat(350, 290, 315, 56, STAND, { sail: -1, lights: true });
+      g += roleTag(110, 342, 'GIVE-WAY', 'PORT TACK: wind on her port side, boom out to starboard') + roleTag(370, 342, 'STAND-ON', 'STARBOARD TACK: wind on her starboard side, boom out to port');
       cap = 'Two sailing vessels with the wind on different sides: the boat with the wind on her PORT side keeps out of the way (Rule 12(a)(i)). Read the tack from the boom: boom out to starboard = wind from port = port tack.';
       label = 'Two sailing boats on opposite tacks with wind from the north: the port-tack boat gives way to the starboard-tack boat';
     } else if (name === 'sail-same-tack') {
-      g += windArrow(240, 22, 240, 78);
-      g += course(190, 330, 45, 56, 40, 300, 220, 'var(--ink-2)') + course(300, 240, 45, 56, 40, null, null, 'var(--ink-2)');
-      g += curve([320, 220], [345, 190], [405, 205], [425, 265], 'var(--bad)') + lines(405, 290, ['bears away to', 'STARBOARD, keeps clear'], { size: 11, weight: 600, halo: 'var(--shallow)' });
-      g += planBoat(190, 330, 45, 56, STAND, { sail: 1, lights: true }) + planBoat(300, 240, 45, 56, GIVE, { sail: 1, lights: true });
-      g += roleTag(140, 372, 'STAND-ON', 'LEEWARD boat (further from the wind)') + roleTag(300, 160, 'GIVE-WAY', 'WINDWARD boat (nearer the wind)');
+      g += windArrow(240, 22, 240, 78, 240, 94);
+      g += course(190, 300, 45, 56, 40, 300, 190, 'var(--ink-2)') + course(300, 210, 45, 56, 40, null, null, 'var(--ink-2)');
+      g += curve([320, 190], [345, 160], [405, 175], [425, 235], 'var(--bad)') + lines(405, 262, ['bears away to', 'STARBOARD, keeps clear'], { size: 11, weight: 600, halo: 'var(--shallow)' });
+      g += planBoat(190, 300, 45, 56, STAND, { sail: 1, lights: true }) + planBoat(300, 210, 45, 56, GIVE, { sail: 1, lights: true });
+      g += roleTag(140, 345, 'STAND-ON', 'LEEWARD boat (further from the wind)') + roleTag(300, 130, 'GIVE-WAY', 'WINDWARD boat (nearer the wind)');
       g += tag(100, 110, 'both on PORT tack (booms to starboard)', 'var(--ink-2)', { size: 11, weight: 600, anchor: 'start' });
       cap = 'Two sailing vessels with the wind on the SAME side: the WINDWARD boat — the one nearer to where the wind comes from — keeps out of the way of the leeward boat (Rule 12(a)(ii)).';
       label = 'Two sailing boats on the same tack with wind from the north: the windward boat gives way to the leeward boat';
     } else if (name === 'power-vs-sail') {
-      g += windArrow(60, 22, 60, 78);
+      g += windArrow(60, 22, 60, 78, 60, 94);
       standardCrossing({ sail: -1 }, { power: true }, 'POWER-DRIVEN vessel', 'SAILING vessel: keeps course and speed');
       g += planBoat(430, 300, 0, 40, 'var(--paper)', { sail: -1, cone: true }) + lines(430, 340, ['sails up + engine on', '= POWER-DRIVEN:', 'motorboat rules apply'], { size: 10, halo: 'var(--shallow)', lh: 12 });
       cap = 'A power-driven vessel keeps out of the way of a sailing vessel whichever side she is on (Rule 18(a)(iv)) — except when overtaking (Rule 13), in a narrow channel the ship can only use (Rule 9(b)), and in Norwegian confined waters against large vessels and ferries (Rule 44).';
       label = 'Power-driven vessel gives way to a sailing vessel under sail; inset shows a sailing boat with engine running and cone apex down, which counts as power-driven';
     } else if (name === 'sail-vs-fishing') {
-      g += windArrow(22, 240, 78, 240);
-      g += `<path d="M368,150 C400,140 430,165 470,150" fill="none" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="3 4"/>` + tag(420, 128, 'nets / lines astern', 'var(--ink-2)', { size: 10, weight: 500 });
+      g += windArrow(22, 240, 78, 240, 50, 222);
+      g += `<path d="M368,150 C400,140 430,165 470,150" fill="none" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="3 4"/>` + tag(420, 176, 'nets / lines astern', 'var(--ink-2)', { size: 10, weight: 500 });
       standardCrossing({ cones: true, power: true }, { sail: 1 }, 'SAILING vessel', 'ENGAGED IN FISHING: two cones apexes together');
       cap = 'A vessel ENGAGED IN FISHING (two cones apexes together by day; red over white — or green over white when trawling — at night) has priority over sailing AND power-driven vessels (Rule 18(a)(iii), (b)(iii)). Keep clear of her and of her gear.';
       label = 'A sailing boat gives way to a vessel engaged in fishing showing two cones apexes together';
@@ -409,8 +411,8 @@
       g += planBoat(280, 250, 0, 40, GIVE, { sail: 1, lights: true }) + curve([280, 230], [280, 215], [292, 208], [300, 190], 'var(--bad)') + planBoat(290, 340, 0, 40, GIVE, { power: true, lights: true }) + curve([290, 320], [290, 305], [302, 298], [310, 282], 'var(--bad)');
       g += lines(395, 240, ['KEEP CLEAR', '(Norwegian Rule 44)', 'slow down, keep right'], { size: 11, weight: 700, fill: 'var(--bad)', halo: 'var(--shallow)', lh: 13 });
       g += planBoat(330, 300, 10, 26, 'var(--paper)', { kayak: true, beam: .32 }) + lines(405, 330, ['kayak / rowing boat:', 'Rule 43 — caution, slow,', 'keep WELL out of the way'], { size: 10, weight: 600, halo: 'var(--shallow)', lh: 12 });
-      g += `<rect x="150" y="12" width="180" height="26" rx="13" fill="var(--paper)" stroke="var(--line)"/><rect x="160" y="21" width="24" height="8" fill="var(--sea)"/>` + txt(190, 25, '1 long blast ≥ 10 s from ~0.5 NM (NO Rule 41)', { size: 9, anchor: 'start' });
-      cap = 'Keep to the starboard (right-hand) side of a narrow channel (Rule 9(a)). Vessels under 20 m and sailing vessels must not impede a vessel that can only navigate inside the channel (Rule 9(b)). In Norwegian narrow waters, busy fairways and harbours, pleasure craft — under oars, sail or engine — keep out of the way of larger vessels, ferries and commercial traffic (Rule 44).';
+      g += `<rect x="12" y="48" width="222" height="26" rx="13" fill="var(--paper)" stroke="var(--line)"/><rect x="22" y="57" width="24" height="8" fill="var(--sea)"/>` + txt(52, 61, '1 long blast ≥ 10 s from ~0.5 NM (NO Rule 41)', { size: 9, anchor: 'start' });
+      cap = 'Keep to the starboard side of a narrow channel (Rule 9(a)). Boats under 20 m and sailing vessels must not impede a vessel that can only navigate inside the channel (Rule 9(b)). In Norwegian narrow waters, busy fairways and harbours, pleasure craft keep out of the way of larger vessels, ferries and commercial traffic (Rule 44).';
       label = 'Narrow channel: a ferry keeps to its starboard side while a small motorboat, a sailing boat and a kayak keep clear on their own starboard side';
     } else { // power-vs-rowing
       g += course(340, 150, 270, 40, 30, 170, 150, 'var(--ink-2)') + course(170, 310, 0, 56, 25, 170, 150, 'var(--ink-2)');
@@ -421,7 +423,7 @@
       cap = 'A rowing boat or kayak is a vessel, but COLREG gives it no place in the Rule 18 pecking order. In Norway, Rule 43 (vessels under oars) and Rule 44 (open boats in confined waters) require the small craft to keep WELL clear — while the motorboat must still avoid collision: look-out, safe speed, pass clear and mind your wash.';
       label = 'Motorboat meeting a rowing boat: the rowing boat keeps well clear under Norwegian Rules 43 and 44, and the motorboat slows down and passes clear';
     }
-    g += `<rect x="0" y="${H - 62}" width="${W}" height="62" fill="var(--paper)" opacity=".92"/>` + caption(W / 2, H - 48, cap, 86, { size: 11, lh: 13 });
+    g += `<rect x="0" y="${H - 74}" width="${W}" height="74" fill="var(--paper)" opacity=".92"/>` + caption(W / 2, H - 58, cap, 86, { size: 11, lh: 13 });
     g += compass(30, 30, opts.boatUp) + (name === 'power-vs-rowing' ? '' : legend(290, 22));
     return S.svg(W, H, g, { label });
   }
