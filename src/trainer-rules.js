@@ -369,22 +369,23 @@
     { k: 'stbd-astern', t: 'Alter course to starboard early and substantially and pass astern of her; do not cross ahead' },
     { k: 'r18', t: 'Keep out of her way whichever side she is on: alter early, pass well clear, preferably astern' },
     { k: 'overtake', t: 'Keep clear of her until you are finally past and clear; pass on either side at a safe distance' },
-    { k: 'sail-give', t: 'Keep clear: bear away or tack early to pass astern of the other boat' },
-    { k: 'narrow', t: 'Slow down early, keep to the starboard side of the channel, pass astern of her or wait; never cross close ahead' },
-    { k: 'narrow-headon', t: 'Keep well over to the starboard side of the channel, slow down and let her pass; do not get in her way' },
-    { k: 'impede', t: 'Alter course early, give her the deep water and do not cross ahead of her' },
+    { k: 'sail-give', t: 'Keep clear: bear away or tack early to pass astern of the other boat', when: sc => V[sc.own.kind].draw.sail },
+    { k: 'narrow', t: 'Slow down early, keep to the starboard side of the channel, pass astern of her or wait; never cross close ahead', when: sc => sc.narrow },
+    { k: 'narrow-headon', t: 'Keep well over to the starboard side of the channel, slow down and let her pass; do not get in her way', when: sc => sc.narrow },
+    { k: 'impede', t: 'Alter course early, give her the deep water and do not cross ahead of her', when: sc => ['cbd', 'cargo', 'ferry'].includes(sc.other.kind) },
     { k: 'kayak-own', t: 'Slow down, stop if necessary, and keep well out of her way' },
     { k: 'both-stbd', t: 'Both alter course to starboard and pass port to port (red to red)' },
     { k: 'standon', t: 'Keep course and speed and watch her; if she clearly does nothing, act yourself, but not by turning to port' },
     { k: 'standon-ot', t: 'Keep course and speed; she must keep clear of you until she is finally past and clear' },
-    { k: 'sail-stand', t: 'Stand on: keep course and speed, but watch her and be ready to act if she does nothing' },
-    { k: 'rowing', t: 'Slow down, keep a sharp look-out and pass well clear with little wash while the rowing boat keeps out of your way' },
-    { k: 'port-ahead', t: 'Alter course to port and cross ahead of her', wrong: true },
-    { k: 'speed-up', t: 'Increase speed to get past before she arrives', wrong: true },
-    { k: 'five-hold', t: 'Sound five short blasts and hold your course until she moves', wrong: true },
-    { k: 'one-port', t: 'You alter to port and she alters to starboard, so you pass starboard to starboard', wrong: true },
-    { k: 'port-turn', t: 'Alter course to port to open the distance', wrong: true },
+    { k: 'sail-stand', t: 'Stand on: keep course and speed, but watch her and be ready to act if she does nothing', when: sc => V[sc.own.kind].draw.sail },
+    { k: 'rowing', t: 'Slow down, keep a sharp look-out and pass well clear with little wash while the rowing boat keeps out of your way', when: sc => V[sc.other.kind].cat === 'oars' },
+    { k: 'port-ahead', t: 'Alter course to port and cross ahead of her' },
+    { k: 'speed-up', t: 'Increase speed to get past before she arrives' },
+    { k: 'five-hold', t: 'Sound five short blasts and hold your course until she moves' },
+    { k: 'one-port', t: 'You alter to port and she alters to starboard, so you pass starboard to starboard' },
+    { k: 'port-turn', t: 'Alter course to port to open the distance' },
   ];
+  // Options that say the same thing as the correct one in other words are never offered as distractors.
   const KEEPCLEAR = ['stbd-astern', 'r18', 'overtake', 'sail-give', 'narrow', 'narrow-headon', 'impede', 'kayak-own'];
   const STAND = ['standon', 'standon-ot', 'sail-stand'];
   function whoChoices(sc) {
@@ -401,11 +402,10 @@
   function actChoices(sc) {
     const d = sc.d;
     const correct = ACT.find(o => o.k === d.action);
-    const group = KEEPCLEAR.includes(d.action) ? KEEPCLEAR : STAND.includes(d.action) ? STAND : d.action === 'rowing' ? KEEPCLEAR.concat(['rowing']) : [];
-    const pool = ACT.filter(o => o !== correct && !group.includes(o.k) && o.k !== (d.who === 'both' ? '' : 'both-stbd') || (o.k === 'both-stbd' && d.who !== 'both' && o !== correct));
-    const cands = pool.filter(o => o !== correct && !group.includes(o.k));
-    // one option from the opposite camp (stand on vs keep clear), then two more
-    const camp = cands.filter(o => (KEEPCLEAR.includes(d.action) || d.action === 'rowing' ? STAND.includes(o.k) : KEEPCLEAR.includes(o.k)));
+    const group = KEEPCLEAR.includes(d.action) || d.action === 'rowing' ? KEEPCLEAR : STAND.includes(d.action) ? STAND : [];
+    const cands = ACT.filter(o => o !== correct && !group.includes(o.k) && (!o.when || o.when(sc)));
+    // one option from the opposite camp (stand on vs keep clear) first, then two more
+    const camp = cands.filter(o => (group === KEEPCLEAR ? STAND.includes(o.k) : KEEPCLEAR.includes(o.k)));
     const first = camp.length ? K.pick(camp) : K.pick(cands);
     const rest = B.shuffle(cands.filter(o => o !== first)).slice(0, 2);
     const choices = B.shuffle([correct, first].concat(rest));
