@@ -467,12 +467,13 @@
   const G = (name, fn) => S.gallery.push({ name, svg: fn });
   G('lightArcs all', () => lightArcs());
   G('lightArcs masthead+stern', () => lightArcs({ only: ['masthead', 'stern'] }));
-  ['power<50', 'power>=50', 'power<12', 'sail', 'sail-tricolour'].forEach(t => VIEWS.forEach(v => G(`vesselLights ${t} ${v}`, () => vesselLights(t, v))));
-  G('vesselLights power<7 ahead', () => vesselLights('power<7', 'ahead'));
+  const safe = t => t.replace('<', ' under ').replace('>=', ' over ');
+  ['power<50', 'power>=50', 'power<12', 'sail', 'sail-tricolour'].forEach(t => VIEWS.forEach(v => G(`vesselLights ${safe(t)} ${v}`, () => vesselLights(t, v))));
+  G('vesselLights power under 7 ahead', () => vesselLights('power<7', 'ahead'));
   G('vesselLights sail-redgreen port', () => vesselLights('sail-redgreen', 'port'));
   G('vesselLights sail-redgreen ahead', () => vesselLights('sail-redgreen', 'ahead'));
   G('vesselLights anchored port', () => vesselLights('anchored', 'port'));
-  G('vesselLights anchored>=50 port', () => vesselLights('anchored>=50', 'port'));
+  G('vesselLights anchored over 50 port', () => vesselLights('anchored>=50', 'port'));
   G('vesselLights aground port', () => vesselLights('aground', 'port'));
   G('vesselLights fishing port', () => vesselLights('fishing', 'port'));
   G('vesselLights fishing ahead stopped', () => vesselLights('fishing', 'ahead', { making: false }));
