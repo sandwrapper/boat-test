@@ -68,8 +68,10 @@
     if (o.ferry) extra += `<rect x="${-hb * .7}" y="${-len * .12}" width="${hb * 1.4}" height="${len * .5}" rx="3" fill="#f4f4f4" stroke="var(--ink-2)"/>`;
     if (o.oars) extra += `<line x1="${-hb}" y1="0" x2="${-hb - 14}" y2="-7" stroke="var(--ink)" stroke-width="2"/><line x1="${hb}" y1="0" x2="${hb + 14}" y2="-7" stroke="var(--ink)" stroke-width="2"/>`;
     if (o.sail) {
-      const s = o.sail;
-      extra += `<polygon points="0,${-len * .1} ${s * b * 1.05},${len * .3} 0,${len * .3}" fill="var(--paper)" stroke="var(--ink-2)" stroke-width="1.3"/><line x1="0" y1="${-len * .1}" x2="${s * b * 1.05}" y2="${len * .3}" stroke="var(--ink)" stroke-width="2"/><circle cx="0" cy="${-len * .1}" r="2.2" fill="var(--ink)"/>`;
+      // Boom swung clearly out (≈55° off the centreline) to the labelled side so the tack can be read at a glance
+      // (Rule 12(b): the mainsail is carried on the side opposite the wind).
+      const s = o.sail, my = -len * .1, bl = len * .5, bx = s * bl * Math.sin(rad(55)), by = my + bl * Math.cos(rad(55));
+      extra += `<polygon points="0,${fmt(my)} ${fmt(bx)},${fmt(by)} 0,${fmt(len * .3)}" fill="var(--paper)" stroke="var(--ink-2)" stroke-width="1.3"/><line x1="0" y1="${fmt(my)}" x2="${fmt(bx)}" y2="${fmt(by)}" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"/><circle cx="0" cy="${fmt(my)}" r="2.2" fill="var(--ink)"/>`;
     }
     if (o.power) extra += `<path d="M${-hb * .5},${len / 2 - 1} l-2,9 M0,${len / 2 - 1} l0,10 M${hb * .5},${len / 2 - 1} l2,9" stroke="var(--muted)" stroke-width="1.5" fill="none"/>`;
     if (o.cone) extra += `<polygon points="-6,${-len * .3} 6,${-len * .3} 0,${-len * .3 + 11}" fill="${C.black}" stroke="var(--paper)" stroke-width=".8"/>`;
@@ -153,7 +155,8 @@
     'fishing': { name: 'Vessel engaged in fishing (not trawling)', rule: 'Rule 26(c): all-round RED over WHITE; sidelights + sternlight only when making way', lights: [L('ar', 'red', .1, 4), L('ar', 'white', .1, 3), ...sidesL(.4, 1, true), sternL(.8, true)] },
     'trawling': { name: 'Vessel engaged in trawling', rule: 'Rule 26(b): all-round GREEN over WHITE; masthead light abaft and higher if 50 m or more; sidelights + sternlight when making way', lights: o => [L('ar', 'green', .1, 4), L('ar', 'white', .1, 3), ...(o.large ? [L('mh', 'white', -.45, 5)] : []), ...sidesL(.4, 1, true), sternL(.8, true)] },
     'nuc': { name: 'Vessel not under command', rule: 'Rule 27(a): two all-round RED lights; sidelights + sternlight when making way, no masthead light', lights: [L('ar', 'red', 0, 4), L('ar', 'red', 0, 3), ...sidesL(.4, 1, true), sternL(.8, true)] },
-    'ram': { name: 'Vessel restricted in her ability to manoeuvre', rule: 'Rule 27(b): all-round RED–WHITE–RED; + masthead light, sidelights, sternlight when making way', lights: [L('ar', 'red', -.1, 5), L('ar', 'white', -.1, 4), L('ar', 'red', -.1, 3), L('mh', 'white', .55, 2.6, 0, true), ...sidesL(.3, 1, true), sternL(.8, true)] },
+    // Annex I §2(f): the red-white-red stack is carried BELOW the masthead light, so the masthead light sits highest, forward.
+    'ram': { name: 'Vessel restricted in her ability to manoeuvre', rule: 'Rule 27(b): all-round RED–WHITE–RED (below the masthead light); + masthead light, sidelights, sternlight when making way', lights: [L('mh', 'white', .55, 5.2, 0, true), L('ar', 'red', -.1, 4), L('ar', 'white', -.1, 3), L('ar', 'red', -.1, 2), ...sidesL(.3, 1, true), sternL(.8, true)] },
     'cbd': { name: 'Vessel constrained by her draught', rule: 'Rule 28: three all-round RED lights in a vertical line + normal power-driven lights', lights: [L('ar', 'red', .1, 5.6), L('ar', 'red', .1, 4.6), L('ar', 'red', .1, 3.6), L('mh', 'white', .6, 2.8), L('mh', 'white', -.45, 4.2), ...sidesL(.3, 1.4), sternL(.8)] },
     'pilot': { name: 'Pilot vessel on duty', rule: 'Rule 29: all-round WHITE over RED at the masthead; + sidelights and sternlight when underway', lights: [L('ar', 'white', .1, 4), L('ar', 'red', .1, 3), ...sidesL(.4, 1, true), sternL(.8, true)] },
     'towing': { name: 'Power-driven vessel towing astern', rule: 'Rule 24(a): two masthead lights in a vertical line (three if tow > 200 m), sidelights, sternlight, YELLOW towing light above the sternlight', lights: o => [...Array.from({ length: o.long ? 3 : 2 }, (_, i) => L('mh', 'white', .4, 2.8 + i)), ...sidesL(.5, 1), sternL(.8), L('tw', 'yellow', -1, 1.6)] },
@@ -178,10 +181,19 @@
     const px = l => side ? cx + dir * l.lon * 105 : cx + (view === 'ahead' ? -l.lat : l.lat) * 46;
     const py = l => base - 16 - l.h * 24;
     let g = `<rect x="0" y="${base}" width="${W}" height="${H - base}" fill="${NIGHT_SEA}"/><rect x="0" y="${H - 70}" width="${W}" height="70" fill="${C.night}"/>`;
-    // faint silhouette
+    // faint silhouette: a yacht (hull + mast + sail outline) for the sailing types, a motorboat with a deckhouse otherwise,
+    // so a sailing panel is not read as "a motorboat with a light missing".
+    const yacht = type.startsWith('sail'), SAIL = '#16293a';
     if (side) {
-      const x0 = cx - dir * 105, x1 = cx + dir * 105;
-      g += `<polygon points="${x0},${base} ${x0},${base - 16} ${fmt(x1 - dir * 22)},${base - 16} ${x1},${base - 9} ${fmt(x1 - dir * 6)},${base}" fill="${NIGHT_HULL}"/><rect x="${fmt(Math.min(cx - dir * 42, cx + dir * 22))}" y="${base - 34}" width="64" height="18" rx="2" fill="${NIGHT_HULL}"/>`;
+      const x0 = cx - dir * 105, x1 = cx + dir * 105;   // x1 = bow
+      if (yacht) {
+        const mx = fmt(cx + dir * .1 * 105), top = base - 16 - 5.6 * 24;   // mast at the tricolour's position, as tall as the highest light
+        g += `<polygon points="${x0},${base} ${fmt(x0 + dir * 4)},${base - 12} ${fmt(x1 - dir * 26)},${base - 12} ${x1},${base - 7} ${fmt(x1 - dir * 5)},${base}" fill="${NIGHT_HULL}"/><rect x="${fmt(Math.min(cx - dir * 30, cx + dir * 30))}" y="${base - 20}" width="60" height="8" rx="2" fill="${NIGHT_HULL}"/>`;
+        g += `<polygon points="${mx},${fmt(top + 6)} ${fmt(mx - dir * 72)},${base - 24} ${mx},${base - 24}" fill="${SAIL}" stroke="${NIGHT_MAST}" stroke-width="1"/><polygon points="${mx},${fmt(top + 22)} ${fmt(mx + dir * 78)},${base - 22} ${mx},${base - 22}" fill="${SAIL}" stroke="${NIGHT_MAST}" stroke-width="1"/>` + line(mx, base - 20, mx, top, NIGHT_MAST, 2.5);
+      } else g += `<polygon points="${x0},${base} ${x0},${base - 16} ${fmt(x1 - dir * 22)},${base - 16} ${x1},${base - 9} ${fmt(x1 - dir * 6)},${base}" fill="${NIGHT_HULL}"/><rect x="${fmt(Math.min(cx - dir * 42, cx + dir * 22))}" y="${base - 34}" width="64" height="18" rx="2" fill="${NIGHT_HULL}"/>`;
+    } else if (yacht) {
+      const top = base - 16 - 5.6 * 24;
+      g += `<polygon points="${cx - 34},${base} ${cx + 34},${base} ${cx + 26},${base - 18} ${cx - 26},${base - 18}" fill="${NIGHT_HULL}"/><polygon points="${cx},${fmt(top + 6)} ${cx + 14},${base - 22} ${cx - 4},${base - 22}" fill="${SAIL}" stroke="${NIGHT_MAST}" stroke-width="1"/>` + line(cx, base - 18, cx, top, NIGHT_MAST, 2.5);
     } else g += `<polygon points="${cx - 40},${base} ${cx + 40},${base} ${cx + 30},${base - 22} ${cx - 30},${base - 22}" fill="${NIGHT_HULL}"/><rect x="${cx - 18}" y="${base - 42}" width="36" height="20" rx="2" fill="${NIGHT_HULL}"/>`;
     // masts under stacked / high lights, then lamps (dedupe lights that coincide on screen)
     const masts = new Set(), seen = new Set();
@@ -197,7 +209,11 @@
     g += txt(cx, 20, title, { size: title.length > 36 ? 12 : 13, weight: 700, fill: NIGHT_INK });
     // the "red on your right" hint only makes sense when sidelights are actually visible
     const sides = lights.some(l => l.arc === 'sp' || l.arc === 'ss');
-    const hint = view === 'ahead' && !sides ? 'her bow points at YOU — no sidelights visible (not making way, or none carried)' : VIEW_HINT[view];
+    // Why no sidelights: a stopped fishing/NUC/RAM/pilot vessel is "not making way"; a boat under 7 m / 7 kn may
+    // carry none (Rule 23(c)/(d)(ii)) — a power-driven vessel's sidelights never depend on making way.
+    let why = 'not making way';
+    if (making) why = type === 'power<7' ? 'under 7 m and max 7 kn she may show only an all-round white light' : 'she is not underway';
+    const hint = view === 'ahead' && !sides ? `her bow points at YOU — no sidelights: ${why}` : VIEW_HINT[view];
     g += caption(cx, H - 58, 'Seen from ' + view.toUpperCase() + ': ' + hint, 62, { size: 11, fill: NIGHT_INK, lh: 13 });
     g += caption(cx, H - 27, def.rule, 70, { size: 10, fill: NIGHT_MUTED, lh: 12 });
     return S.svg(W, H, g, { bg: C.night, label: `Night view of a ${def.name} seen from ${view}: ${lights.map(l => l.color).join(', ') || 'no lights'}` });
@@ -242,13 +258,14 @@
       label = 'Side view of a sailing yacht with sidelights and sternlight and no masthead light' + (day ? ', with the motoring cone apex down' : '');
     } else if (type === 'ship') {
       g += `<polygon points="40,${wl} 46,170 520,170 544,186 536,${wl}" fill="${hull}"/>` + box(90, 118, 100, 52) + `<rect x="110" y="98" width="24" height="20" fill="${hull}"/>` + mast(415, 170, 96) + mast(140, 118, 60);
-      g += lp(415, 92, 'white') + note(360, 72, 'Forward masthead light (white)', { anchor: 'start' }) + note(430, 110, '≤ ¼ of the length from the bow', { size: 10, weight: 500 });
+      g += lp(415, 92, 'white') + note(360, 72, 'Forward masthead light (white)', { anchor: 'start' }) + note(340, 110, '≤ ¼ of the length from the bow', { size: 10, weight: 500 });
       g += lp(140, 56, 'white') + note(153, 40, 'After masthead light (white) — HIGHER', { anchor: 'start' });
       g += lp(195, 128, 'green') + note(208, 124, 'Starboard sidelight (green)', { anchor: 'start' }) + note(208, 137, 'lower than ¾ of the forward masthead height', { anchor: 'start', size: 10, weight: 500 });
       g += lp(43, 166, 'white') + note(26, 140, 'Sternlight (white)', { anchor: 'start' }) + leader(43, 161, 50, 148);
       g += dash(415, 92, 300, 92, mut, 1) + dash(140, 56, 300, 56, mut, 1) + dim(300, 56, 92, '≥ 4.5 m higher', true);
       g += line(140, 230, 415, 230, ink, 1) + arrowHead(140, 230, 270, ink, 7) + arrowHead(415, 230, 90, ink, 7) + note(277, 243, 'horizontal distance ≥ half the ship’s length', { size: 10, weight: 500 });
-      if (day) g += shape('ball', 520, 116) + line(520, 140, 520, 172, '#555', 2) + notes(548, 152, ['At anchor by day:', 'one black ball forward (Rule 30)'], { anchor: 'end' });
+      // Anchor ball hung from the forestay, forward; a vessel at anchor shows no masthead, side or stern lights, so say so.
+      if (day) g += line(415, 96, 538, 171, '#555', 1.5) + line(470, 130, 470, 137, '#555', 1.5) + shape('ball', 470, 137) + leader(478, 160, 500, 206) + notes(548, 212, ['At anchor by day: one black ball', 'forward (Rule 30) — only when', 'anchored; then NO masthead,', 'side or stern lights are shown'], { anchor: 'end' });
       cap = 'Power-driven vessel of 50 m or more: two masthead lights, the after one at least 4.5 m higher than the forward one. Under 50 m the after masthead light is optional (Rule 23(a)).';
       label = 'Side view of a ship over 50 m with forward and higher after masthead lights, green sidelight and sternlight';
     } else if (type === 'fishing') {
@@ -389,11 +406,14 @@
       cap = 'Two sailing vessels with the wind on different sides: the boat with the wind on her PORT side keeps out of the way (Rule 12(a)(i)). Read the tack from the boom: boom out to starboard = wind from port = port tack.';
       label = 'Two sailing boats on opposite tacks with wind from the north: the port-tack boat gives way to the starboard-tack boat';
     } else if (name === 'sail-same-tack') {
+      // Windward boat (orange) up-left of the leeward boat, ~12° abaft her port beam — i.e. NOT inside the 135° stern
+      // sector, so Rule 13 (overtaking) does not apply. Both close-hauled on port tack; the windward boat on a slightly
+      // more bore-away course (075° vs 045°) so the courses converge ahead of both. Wind from the top.
       g += windArrow(240, 22, 240, 78, 240, 94);
-      g += course(190, 300, 45, 56, 40, 300, 190, 'var(--ink-2)') + course(300, 210, 45, 56, 40, null, null, 'var(--ink-2)');
-      g += curve([320, 190], [345, 160], [405, 175], [425, 235], 'var(--bad)') + lines(405, 262, ['bears away to', 'STARBOARD, keeps clear'], { size: 11, weight: 600, halo: 'var(--shallow)' });
-      g += planBoat(190, 300, 45, 56, STAND, { sail: 1, lights: true }) + planBoat(300, 210, 45, 56, GIVE, { sail: 1, lights: true });
-      g += roleTag(140, 345, 'STAND-ON', 'LEEWARD boat (further from the wind)') + roleTag(300, 130, 'GIVE-WAY', 'WINDWARD boat (nearer the wind)');
+      g += course(275, 290, 45, 56, 40, 412, 153, 'var(--ink-2)') + course(166, 219, 75, 56, 40, 412, 153, 'var(--ink-2)');
+      g += curve([193, 212], [225, 215], [230, 355], [340, 365], 'var(--bad)') + lines(400, 318, ['bears away to STARBOARD,', 'passes astern of her'], { size: 11, weight: 600, halo: 'var(--shallow)' });
+      g += planBoat(275, 290, 45, 56, STAND, { sail: 1, lights: true }) + planBoat(166, 219, 75, 56, GIVE, { sail: 1, lights: true });
+      g += roleTag(400, 240, 'STAND-ON', 'LEEWARD boat (further from the wind)') + roleTag(100, 150, 'GIVE-WAY', 'WINDWARD boat (nearer the wind)');
       g += tag(100, 110, 'both on PORT tack (booms to starboard)', 'var(--ink-2)', { size: 11, weight: 600, anchor: 'start' });
       cap = 'Two sailing vessels with the wind on the SAME side: the WINDWARD boat — the one nearer to where the wind comes from — keeps out of the way of the leeward boat (Rule 12(a)(ii)).';
       label = 'Two sailing boats on the same tack with wind from the north: the windward boat gives way to the leeward boat';
@@ -406,7 +426,9 @@
     } else if (name === 'sail-vs-fishing') {
       g += windArrow(22, 240, 78, 240, 50, 222);
       g += `<path d="M368,150 C400,140 430,165 470,150" fill="none" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="3 4"/>` + tag(420, 176, 'nets / lines astern', 'var(--ink-2)', { size: 10, weight: 500 });
-      standardCrossing({ cones: true, power: true }, { sail: 1 }, 'SAILING vessel', 'ENGAGED IN FISHING: two cones apexes together');
+      standardCrossing({ power: true }, { sail: 1 }, 'SAILING vessel', 'ENGAGED IN FISHING: two cones apexes together');
+      // The day shape as it really hangs: two cones apexes together in a VERTICAL line, drawn as an icon beside the vessel.
+      g += line(438, 136, 438, 146, 'var(--ink-2)', 2) + dayShapeGlyph('two-cones', 438, 99, .4) + line(400, 124, 426, 124, 'var(--ink-2)', 1);
       cap = 'A vessel ENGAGED IN FISHING (two cones apexes together by day; red over white — or green over white when trawling — at night) has priority over sailing AND power-driven vessels (Rule 18(a)(iii), (b)(iii)). Keep clear of her and of her gear.';
       label = 'A sailing boat gives way to a vessel engaged in fishing showing two cones apexes together';
     } else if (name === 'narrow-channel') {
@@ -423,13 +445,13 @@
       g += course(340, 150, 270, 40, 30, 170, 150, 'var(--ink-2)') + course(170, 310, 0, 56, 25, 170, 150, 'var(--ink-2)');
       g += planBoat(340, 150, 270, 40, GIVE, { oars: true, beam: .45 }) + planBoat(170, 310, 0, 56, 'var(--paper)', { power: true, lights: true });
       g += curve([320, 150], [290, 150], [300, 115], [330, 100], 'var(--bad)') + lines(390, 95, ['turns away / stops,', 'keeps WELL clear'], { size: 11, weight: 600, halo: 'var(--shallow)' });
-      g += roleTag(340, 190, 'GIVE-WAY', 'ROWING BOAT or KAYAK: Norwegian Rules 43–44') + lines(170, 352, ['MOTORBOAT — no formal priority', '(Rule 18 is silent): slow down, keep a', 'look-out, pass well clear (Rules 2, 5, 6, 8)'], { size: 11, weight: 600, halo: 'var(--shallow)', lh: 13 });
+      g += tag(340, 190, 'keeps WELL clear', 'var(--bad)') + lines(340, 205, ['ROWING BOAT or KAYAK', '(Norwegian Rule 43)'], { size: 11, halo: 'var(--shallow)' }) + lines(170, 352, ['MOTORBOAT — no formal priority', '(Rule 18 is silent): slow down, keep a', 'look-out, pass well clear (Rules 2, 5, 6, 8)'], { size: 11, weight: 600, halo: 'var(--shallow)', lh: 13 });
       g += tag(100, 268, 'slows down', 'var(--ink-2)', { size: 11 }) + line(140, 268, 162, 268, 'var(--ink-2)', 1);
-      cap = 'A rowing boat or kayak is a vessel, but COLREG gives it no place in the Rule 18 pecking order. In Norway, Rule 43 (vessels under oars) and Rule 44 (open boats in confined waters) require the small craft to keep WELL clear — while the motorboat must still avoid collision: look-out, safe speed, pass clear and mind your wash.';
+      cap = 'A rowing boat or kayak is a vessel, but Rule 18 gives it no rung. Norwegian Rule 43: a vessel under oars manoeuvres with caution, slows down and keeps WELL out of the way of other vessels (in narrow waters and harbours Rule 44 adds: keep clear of larger vessels and ferries). The motorboat must still avoid collision: look-out, safe speed, pass well clear, mind your wash.';
       label = 'Motorboat meeting a rowing boat: the rowing boat keeps well clear under Norwegian Rules 43 and 44, and the motorboat slows down and passes clear';
     }
     g += `<rect x="0" y="${H - 74}" width="${W}" height="74" fill="var(--paper)" opacity=".92"/>` + caption(W / 2, H - 58, cap, 86, { size: 11, lh: 13 });
-    g += compass(30, 30, opts.boatUp) + (name === 'power-vs-rowing' ? '' : legend(290, 22));
+    g += compass(30, 30, opts.boatUp) + legend(290, 22);
     return S.svg(W, H, g, { label });
   }
 

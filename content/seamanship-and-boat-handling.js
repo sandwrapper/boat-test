@@ -336,8 +336,8 @@
     s += anchorIcon(74, 270, 5, 1.1);
     s += label(135, 292, '5–8 m chain next to the anchor', 10, { fill: '#fff3e0', weight: 700 });
     s += label(330, 292, 'pull on the anchor stays nearly horizontal, so it digs in', 10, { fill: '#fff3e0' });
-    s += label(200, 160, 'RODE LENGTH ~ 5 x D (drawn to scale)', 13, { weight: 800, fill: C.orange });
-    s += label(200, 178, '(3 x for all-chain in calm weather;', 10, { fill: INK }) + label(200, 191, '7–10 x in strong wind or poor holding)', 10, { fill: INK });
+    s += label(170, 170, 'RODE LENGTH ~ 5 x D (drawn to scale)', 13, { weight: 800, fill: C.orange });
+    s += label(170, 187, '(3 x for all-chain in calm weather;', 10, { fill: INK }) + label(170, 200, '7–10 x in strong wind or poor holding)', 10, { fill: INK });
     // depth arrow
     s += arrow(392, surf + 2, 392, bed - 2, { both: true, width: 1.5, head: 8 });
     s += lines(400, 224, ['DEPTH D: from bow roller to seabed', '(charted depth + freeboard + rise of tide)'], 10, { anchor: 'start', weight: 600 }, 13);
@@ -798,7 +798,7 @@
       { front: 'High-speed certificate: when needed?', back: 'Since 1 June 2023 for motorised craft and personal watercraft that can reach 50 knots or more.' },
     ],
     questions: [
-      /* ---- part 4, item 1.4.7: dangers of high speed (F69, syllabus 1.1 p) ---- */
+      /* ---- part 4, item 1.4.7: dangers of high speed (F69, syllabus 1.1 p); seamanship-08 (kill cord) and -11 (Rule 6) are part 1 / part 2 ---- */
       { id: 'seamanship-01', q: 'What happens to the skipper\'s field of vision as boat speed increases?', options: ['It narrows to a tunnel straight ahead, so hazards to the side are missed', 'It widens because the horizon moves faster', 'It is unchanged; speed affects only hearing', 'It improves because the bow lifts'], answer: 0, explanation: 'Tunnel vision is the first danger of high speed in the curriculum: the eyes lock on to a narrow cone ahead and peripheral vision shrinks (F69).', difficulty: 1, part: 4, p4: '1.4.7', tags: ['high-speed', 'tunnel-vision'] },
       { id: 'seamanship-02', q: 'You are running at 30 knots using the chart plotter. Where is the position shown on the screen in relation to the boat?', options: ['Slightly ahead of the boat, because the plotter predicts movement', 'Exactly where the boat is; GPS has no delay', 'Behind the boat, because the display updates with a delay', 'To one side of the boat, depending on the current'], answer: 2, explanation: 'Electronic aids update with a delay, so at high speed the displayed position lags behind the real position. Navigate by eye and use the plotter as a check (F69).', difficulty: 3, part: 4, p4: '1.4.7', tags: ['high-speed', 'gps-lag'] },
       { id: 'seamanship-03', q: 'Why should you keep a good distance from the shore when driving fast?', options: ['Because the water is colder close to the shore', 'Because there is little time and distance to react to rocks, swimmers and other boats', 'Because the GPS signal is weaker near land', 'Because the engine overheats in shallow water'], answer: 1, explanation: 'At speed distances shrink fast and a turn or stop needs room; a proper distance from shore gives you time to react (F69).', difficulty: 1, part: 4, p4: '1.4.7', tags: ['high-speed', 'distance'] },

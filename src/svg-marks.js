@@ -191,10 +191,10 @@
     const sc = Math.min(1.3, 262 / (-m.top + 8)); /* fill the space above the waterline */
     let inner = water(0, wl, Wd, 42);
     /* isolated danger: the danger lies directly beneath the mark (IL-7) */
-    if (kind === 'isolated-danger' && form !== 'perch') inner += `<g opacity=".75">${rockBlob(cx, wl + 36, 30, MUTED)}</g>` + T(cx, wl + 30, 'rock', { size: 11, weight: 700, fill: PAPER });
+    if (kind === 'isolated-danger' && form !== 'perch') inner += `<g opacity=".7">${rockBlob(cx, wl + 26, 24, MUTED)}</g>` + T(cx, wl + 22, 'rock', { size: 11, weight: 700, fill: PAPER });
     inner += `<g transform="translate(${cx},${wl}) scale(${fx(sc)})">${m.svg}</g>`;
     inner += title(Wd, 26, k.name, 18);
-    const sub = form === 'spar' ? (k.spar ? `Norwegian spar buoy: ${k.spar} top, no topmark, reflective band${k.reflex.length > 1 ? 's' : ''}` : `Spar form: no topmark — identify it by its colours${k.reflex.length ? ' and reflective bands' : ''}`) :
+    const sub = form === 'spar' ? (k.spar ? `Norwegian spar buoy: ${k.spar} top, no topmark, reflective band${k.reflex.length > 1 ? 's' : ''}` : `Spar form: no topmark — read the colours${k.reflex.length ? ' and reflex bands' : ''}`) :
       form === 'perch' ? 'Norwegian fixed perch on a rock — the topmark gives the meaning' : '';
     if (sub) inner += note(cx, 48, sub, { size: 12, fill: MUTED });
     inner += note(cx, wl + 62, 'Light: ' + k.charText, { size: 12.5, weight: 600, fill: INK });
@@ -611,7 +611,9 @@
     const Wd = 480, Ht = 360, wl = 250, cx = 240;
     let inner = title(Wd, 22, 'Pole with pointer (stang med viser)', 16) + water(0, wl, Wd, 40) + rockBlob(cx, wl + 4, 50, MUTED);
     inner += `<line x1="${cx}" y1="${wl}" x2="${cx}" y2="80" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>`;
-    const arm = (dir) => { const x2 = cx + dir * 70; return `<line x1="${cx}" y1="100" x2="${x2}" y2="100" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>` + `<rect x="${dir > 0 ? x2 - 14 : x2}" y="94" width="14" height="12" fill="${variant === 'both' ? W : dir < 0 ? R : G}" stroke="${INK}" stroke-width="1"/>`; };
+    /* Reflector colour follows the direction of buoyage (F51). The boats below head AWAY from the viewer, so a boat passing
+       on the LEFT of the pole keeps the pole on its STARBOARD side (green reflector); passing on the RIGHT keeps it to PORT (red). */
+    const arm = (dir) => { const x2 = cx + dir * 70; return `<line x1="${cx}" y1="100" x2="${x2}" y2="100" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>` + `<rect x="${dir > 0 ? x2 - 14 : x2}" y="94" width="14" height="12" fill="${variant === 'both' ? W : dir < 0 ? G : R}" stroke="${INK}" stroke-width="1"/>`; };
     if (variant !== 'right') inner += arm(-1);
     if (variant !== 'left') inner += arm(1);
     const boat = (x, label) => boatPlan(x, wl + 20, 0, 34) + T(x, wl + 56, label, { size: 11.5, weight: 700 });
@@ -619,6 +621,7 @@
     if (variant === 'right') inner += boat(370, 'pass HERE (deep water)') + T(110, wl + 56, 'shallow — do not pass', { size: 11.5, fill: MUTED }) + `<text x="110" y="${wl + 20}" font-size="22" fill="${C.red}" text-anchor="middle">✕</text>`;
     if (variant === 'both') inner += boat(110, 'either side') + boat(370, 'either side');
     inner += note(cx, 60, variant === 'both' ? 'Two arms + white reflector: the mark can be passed on both sides' : 'The arm points TOWARDS navigable water — never towards the rock', { size: 12.5, weight: 600 });
+    if (variant !== 'both') inner += note(cx, Ht - 32, `Reflector ${variant === 'left' ? 'GREEN: the pole stays on your STARBOARD side' : 'RED: the pole stays on your PORT side'} (direction of buoyage: away from you).`, { size: 11 });
     inner += note(cx, Ht - 16, variant === 'both' ? 'Reflector: red = leave to port, green = leave to starboard, white = either side.' : 'Pointers can be bent by ice and collisions: always check the chart (Den norske los).', { size: 11 });
     return S.svg(Wd, Ht, inner, { label: `Norwegian iron pole on a rock with ${variant === 'both' ? 'two pointer arms and a white reflector: pass on either side' : 'a pointer arm pointing ' + variant + ': the arm points towards navigable water, pass on the ' + variant}.` });
   }
