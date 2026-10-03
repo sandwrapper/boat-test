@@ -63,10 +63,13 @@
   function signalArt(pattern, caption) {
     let svg = S.soundSignal(pattern, { meaning: caption || ' ' });
     svg = svg.replace(/<rect x="([\d.]+)" y="52" width="([\d.]+)" height="34" rx="3"/g, '<rect class="blast" x="$1" y="52" width="$2" height="34" rx="3"');
-    return addPlayhead(svg);
+    // The library centres its timeline, so t = 0 is the x of the first blast bar (the first blast always starts at 0 s).
+    const m = svg.match(/<rect class="blast" x="([\d.]+)"/);
+    return addPlayhead(svg, m ? parseFloat(m[1]) : X0);
   }
-  function addPlayhead(svg) {
-    return svg.replace(/<\/svg>\s*$/, `<g class="playhead" style="display:none"><line x1="${X0}" x2="${X0}" y1="${TOP - 10}" y2="${TOP + HGT + 10}" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/></g></svg>`);
+  function addPlayhead(svg, x0) {
+    const x = x0 == null ? X0 : x0;
+    return svg.replace(/<\/svg>\s*$/, `<g class="playhead" style="display:none"><line x1="${x}" x2="${x}" y1="${TOP - 10}" y2="${TOP + HGT + 10}" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/></g></svg>`);
   }
 
   /* Custom timeline for signals the library does not draw: the ≥10 s Norwegian long blast, the anchor / aground
