@@ -1355,7 +1355,7 @@ window.BOAT_SVG = (function () {
     P.rocks.forEach(([a, r]) => { const [x, y] = pt(a, r); inner += rockBlob(x, y, 12, MUTED) + `<g stroke="${INK}" stroke-width="2"><line x1="${fx(x - 5)}" y1="${fx(y)}" x2="${fx(x + 5)}" y2="${fx(y)}"/><line x1="${fx(x)}" y1="${fx(y - 5)}" x2="${fx(x)}" y2="${fx(y + 5)}"/></g>`; });
     /* land and the light */
     inner += `<path d="M0,0 H${Wd} V70 Q560,95 480,100 Q400,105 360,122 Q320,140 280,122 Q240,105 160,100 Q80,95 0,70 Z" fill="${PAPER2}" stroke="${LINE}" stroke-width="1.5"/>`;
-    inner += `<circle cx="${lx}" cy="${ly}" r="5" fill="${INK}"/>` + lighthouse(lx, ly - 24, 1.1) + T(lx, 36, 'sector light (fyrlykt)', { size: 13, weight: 700 });
+    inner += `<circle cx="${lx}" cy="${ly}" r="5" fill="${INK}"/>` + lighthouse(lx, ly - 24, 1.1) + T(lx, 36, 'sector light', { size: 13, weight: 700 });
     inner += T(lx, 54, 'Fl WRG 4s 21m 18-12M', { size: 12, fill: INK2 });
     /* boats */
     P.boats.forEach(b => { const [x, y] = pt(b.a, b.r); inner += boatPlan(x, y, (b.a + 180) % 360, 40); inner += T(x, y + 36, b.label[0], { size: 11.5, weight: 700 }) + T(x, y + 50, b.label[1], { size: 11 }); });
@@ -1370,7 +1370,7 @@ window.BOAT_SVG = (function () {
   /* leadingLine() — two leading marks in transit, with a boat on and off the line. */
   function leadingLine() {
     const Wd = 640, Ht = 540;
-    let inner = title(Wd, 22, 'Leading line (overett): two marks in line = you are on the track', 16);
+    let inner = title(Wd, 22, 'Leading line: two marks in line = you are on the track', 16);
     const win = (x, y, w, h, offset, cap1, cap2, good) => {
       let s = `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${PAPER}" stroke="${good ? C.green : LINE}" stroke-width="${good ? 2.5 : 1.2}"/>`;
       const hz = y + h - 56, cx = x + w / 2;
@@ -1551,7 +1551,7 @@ window.BOAT_SVG = (function () {
     variant = variant || 'left';
     const V = ['left', 'right', 'both']; if (!V.includes(variant)) throw bad('pointerPole variant', variant, V);
     const Wd = 480, Ht = 360, wl = 250, cx = 240;
-    let inner = title(Wd, 22, 'Pole with pointer (stang med viser)', 16) + water(0, wl, Wd, 40) + rockBlob(cx, wl + 4, 50, MUTED);
+    let inner = title(Wd, 22, 'Pole with pointer (Norwegian perch)', 16) + water(0, wl, Wd, 40) + rockBlob(cx, wl + 4, 50, MUTED);
     inner += `<line x1="${cx}" y1="${wl}" x2="${cx}" y2="80" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>`;
     /* Reflector colour follows the direction of buoyage (F51). The boats below head AWAY from the viewer, so a boat passing
        on the LEFT of the pole keeps the pole on its STARBOARD side (green reflector); passing on the RIGHT keeps it to PORT (red). */
@@ -1564,7 +1564,7 @@ window.BOAT_SVG = (function () {
     if (variant === 'both') inner += boat(110, 'either side') + boat(370, 'either side');
     inner += note(cx, 60, variant === 'both' ? 'Two arms + white reflector: the mark can be passed on both sides' : 'The arm points TOWARDS navigable water — never towards the rock', { size: 12.5, weight: 600 });
     if (variant !== 'both') inner += note(cx, Ht - 32, `Reflector ${variant === 'left' ? 'GREEN: the pole stays on your STARBOARD side' : 'RED: the pole stays on your PORT side'} (direction of buoyage: away from you).`, { size: 11 });
-    inner += note(cx, Ht - 16, variant === 'both' ? 'Reflector: red = leave to port, green = leave to starboard, white = either side.' : 'Pointers can be bent by ice and collisions: always check the chart (Den norske los).', { size: 11 });
+    inner += note(cx, Ht - 16, variant === 'both' ? 'Reflector: red = leave to port, green = leave to starboard, white = either side.' : 'Pointers can be bent by ice and collisions: always check the chart and the Norwegian sailing directions.', { size: 11 });
     return S.svg(Wd, Ht, inner, { label: `Norwegian iron pole on a rock with ${variant === 'both' ? 'two pointer arms and a white reflector: pass on either side' : 'a pointer arm pointing ' + variant + ' with a ' + (variant === 'left' ? 'green' : 'red') + ' reflector: the arm points towards navigable water, pass on the ' + variant + ' (heading away from the viewer, the pole stays to ' + (variant === 'left' ? 'starboard' : 'port') + ')'}.` });
   }
   /* lightDecoder() — full light description decoded: Fl(3) WRG 15s 21m 15-11M */
@@ -3170,7 +3170,540 @@ window.BOAT = (function () {
 
 </script>
 
+<script>
+/* Skipper Prep — "Who gives way?" trainer.
+   Multiple-choice drill built on BOAT.trainerKit.drill. Every round is a freshly generated plan-view
+   encounter: your own vessel bow-up, another vessel at a random relative bearing on a course that
+   produces a risk of collision (steady bearing, closing range). Two question forms rotate:
+     (a) "Who gives way — and under which rule?"
+     (b) "What should you do?"
+   The correct answer is never stored in the template: it is DERIVED from the geometry and the vessel
+   categories by decide() below, and the derivation is written into the explanation. Fact numbers
+   (F..) refer to the verified fact sheet facts/colregs-steering.md; S.. are its worked scenarios.
 
+   Derivation chain used by decide(), in the order the Rules impose it:
+     G   Geometry. Relative bearing of the other vessel from own vessel (0° = own bow, clockwise) and
+         relative bearing of own vessel from her. "More than 22.5° abaft the beam" = relative bearing
+         inside (112.5°, 247.5°), the 135° sternlight sector (F50, F83). Steady bearing + closing range
+         = risk of collision (F24).
+     D1  Rule 13 comes first: "notwithstanding anything in Sections I and II", ANY vessel overtaking
+         any other keeps out of the way, whatever the types (F49) — overtaking also overrides Rule 18
+         (F64) and lasts until finally past and clear (F52). Own vessel is overtaking when she lies
+         inside the other's stern sector; the other is overtaking when she lies inside ours (F50).
+     D2  Norwegian Rule 44: in narrow waters, busy fairways and harbour areas, pleasure craft and open
+         boats under oars, sail OR engine keep out of the way of larger vessels, scheduled ferries and
+         other commercial traffic (F91) — a sailing yacht too (F92); Rule 9(b) adds that vessels under
+         20 m and sailing vessels shall not impede a vessel that can only navigate inside the channel
+         (F33). This is applied irrespective of the port/starboard geometry (S11).
+     D3  A kayak or rowing boat is a vessel (F6) with no rung in Rule 18 (F71); Norwegian Rule 43 puts
+         the duty on the small craft to manoeuvre with caution, slow down, stop if required and keep
+         WELL out of the way (F90) — the other skipper must still keep a look-out, slow down and pass
+         well clear (Rules 2, 5, 6, 8; S12).
+     D4  A vessel constrained by her draught is a "do not impede" case: every vessel other than NUC/RAM
+         avoids impeding her safe passage (F68, F70).
+     D5  Rule 18 ladder (F65, F66, F67, F70): power-driven < sailing < engaged in fishing < NUC = RAM;
+         the lower rung keeps out of the way, whichever side the other is on. Categories: a yacht with
+         her engine running is POWER-DRIVEN even with sails up (F8, F9); a boat trolling a lure is NOT
+         engaged in fishing (F10).
+     D6  Two sailing vessels, Rule 12: wind on different sides -> the port-tack boat gives way (F45);
+         same side -> the windward boat gives way (F46); the windward side is opposite the mainsail, so
+         boom to starboard = port tack (F48). Rule 14 is NOT used between sailing vessels (F55).
+     D7  Two power-driven vessels: reciprocal or nearly reciprocal courses, bow to bow = head-on, BOTH
+         alter to starboard and pass port to port (F53, F54); otherwise crossing, and the vessel which
+         has the other on her own STARBOARD side keeps out of the way and avoids crossing ahead (F56).
+         Give-way action is early and substantial (F58); the stand-on vessel keeps course and speed
+         (F59), may act when the other clearly does not (F60), must act when it is too late for the
+         other alone (F61), and does not turn to port for a vessel on her port side (F62). */
+(function () {
+  'use strict';
+  const B = window.BOAT;
+  const S = B.svg;                       // BOAT_SVG: svg, text, COLORS, esc, gallery
+  const K = B.trainerKit;                // drill, pick
+  const C = S.COLORS;
+  const esc = S.esc;
+  const rad = d => d * Math.PI / 180;
+  const norm = d => ((d % 360) + 360) % 360;
+  const f1 = n => Math.round(n * 10) / 10;
+  const dirv = a => [Math.sin(rad(a)), -Math.cos(rad(a))];
+  const bearing = (x0, y0, x1, y1) => norm(Math.atan2(x1 - x0, -(y1 - y0)) * 180 / Math.PI);
+  const WIND = '#2A9D8F', SHORE = '#8A9A5B', FERRY = '#7D8597', SHIP = '#6b7a86';
+
+  /* Deterministic generator for the gallery pictures (mulberry32); the drill uses Math.random. */
+  function seeded(seed) { let t = seed >>> 0; return () => { t += 0x6D2B79F5; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; }
+
+  /* ---------- vessel catalogue ----------
+     cat = Rule 18 category (D5): power (F7, F8, F10), sail (F8), fishing (F10), nuc (F11), ram (F12),
+     cbd (F13), oars (F6, F71). commercial = protected by Norwegian Rule 44 in narrow waters (F91). */
+  const V = {
+    power:     { cat: 'power', name: 'motorboat', you: 'motorboat', label: ['MOTORBOAT'], len: 56, draw: { power: true } },
+    sail:      { cat: 'sail', name: 'sailing yacht under sail', you: 'sailing yacht, engine off', label: ['SAILING YACHT', 'under sail, engine off'], len: 56, draw: { sail: true } },
+    motorsail: { cat: 'power', name: 'yacht with sails up and her engine running', you: 'yacht motor-sailing (engine on)', label: ['SAILING YACHT, ENGINE ON', 'cone apex down'], len: 56, draw: { sail: true, power: true, shape: 'cone-down' } },
+    fishing:   { cat: 'fishing', name: 'vessel engaged in fishing', label: ['FISHING VESSEL', 'two cones apexes together, nets out'], len: 64, draw: { power: true, shape: 'cones', nets: true } },
+    trolling:  { cat: 'power', name: 'leisure boat trolling a lure', label: ['LEISURE BOAT', 'trolling one lure astern'], len: 50, draw: { power: true, troll: true } },
+    nuc:       { cat: 'nuc', name: 'vessel not under command', label: ['NOT UNDER COMMAND', 'two black balls, drifting'], len: 70, draw: { shape: 'balls', beam: .34 } },
+    ram:       { cat: 'ram', name: 'vessel restricted in her ability to manoeuvre', label: ['RESTRICTED IN HER ABILITY', 'TO MANOEUVRE: ball, diamond, ball'], len: 70, draw: { power: true, shape: 'bdb', beam: .34 } },
+    cbd:       { cat: 'cbd', name: 'ship constrained by her draught', label: ['SHIP CONSTRAINED BY', 'HER DRAUGHT: cylinder'], len: 96, draw: { ship: true, shape: 'cyl' } },
+    ferry:     { cat: 'power', name: 'scheduled ferry', label: ['SCHEDULED FERRY'], len: 84, draw: { ferry: true }, commercial: true },
+    cargo:     { cat: 'power', name: 'coastal cargo ship', label: ['COASTAL CARGO SHIP', 'needs the deep water of the channel'], len: 96, draw: { ship: true }, commercial: true },
+    oars:      { cat: 'oars', name: 'rowing boat', label: ['ROWING BOAT'], len: 34, draw: { oars: true, beam: .45 } },
+    kayak:     { cat: 'oars', name: 'kayak', you: 'kayak', label: ['KAYAK'], len: 34, draw: { kayak: true, beam: .3 } },
+  };
+  const RANK = { power: 0, sail: 1, fishing: 2, nuc: 3, ram: 3 };   // F70
+
+  /* ---------- geometry -> situation (G) ---------- */
+  const inStern = a => a > 112.5 && a < 247.5;   // more than 22.5° abaft the beam (F50)
+  function situation(rel, relFromOther, otherHdg) {
+    if (inStern(relFromOther)) return 'own-overtakes';          // we lie in HER sternlight sector
+    if (inStern(rel)) return 'other-overtakes';                 // she lies in OUR sternlight sector
+    if ((rel <= 6 || rel >= 354) && Math.abs(norm(otherHdg) - 180) <= 6) return 'head-on';   // reciprocal, bow to bow (F54)
+    return rel < 180 ? 'crossing-starboard' : 'crossing-port';  // she is on our starboard (0–112.5°) or port side
+  }
+  /* Tack from the wind direction (F48): wind over the starboard side = starboard tack = boom to port. */
+  function tackOf(hdg, windFrom) { const w = norm(windFrom - hdg); return w > 0 && w < 180 ? 'starboard' : 'port'; }
+  const boomSide = tack => (tack === 'starboard' ? -1 : 1);   // -1 = boom to port, +1 = boom to starboard
+
+  /* ---------- the decision (D1–D7) ---------- */
+  function decide(sc) {
+    const o = V[sc.own.kind], t = V[sc.other.kind], sit = sc.sit;
+    const D = (who, rule, action) => ({ who, rule, action });
+    if (sit === 'own-overtakes') return D('own', '13', 'overtake');                       // D1 (F49, F50, F52)
+    if (sit === 'other-overtakes') return D('other', '13', 'standon-ot');                 // D1 + F59
+    if (sc.narrow && t.commercial && !o.commercial) return D('own', '44', sit === 'head-on' ? 'narrow-headon' : 'narrow');   // D2 (F91, F92, F33)
+    if (o.cat === 'oars') return D('own', '43', 'kayak-own');                             // D3 (F90)
+    if (t.cat === 'oars') return D('other', '43', 'rowing');                              // D3 (F90, S12)
+    if (t.cat === 'cbd') return D('own', '18d', 'impede');                                // D4 (F68)
+    if (RANK[o.cat] !== RANK[t.cat]) return RANK[o.cat] < RANK[t.cat] ? D('own', '18', 'r18') : D('other', '18', o.cat === 'sail' ? 'sail-stand' : 'standon');   // D5 (F65–F67)
+    if (o.cat === 'sail') {                                                               // D6 (F45, F46)
+      if (sc.ownTack !== sc.otherTack) return sc.ownTack === 'port' ? D('own', '12i', 'sail-give') : D('other', '12i', 'sail-stand');
+      return sc.windward === 'own' ? D('own', '12ii', 'sail-give') : D('other', '12ii', 'sail-stand');
+    }
+    if (sit === 'head-on') return D('both', '14', 'both-stbd');                           // D7 (F53)
+    return sit === 'crossing-starboard' ? D('own', '15', 'stbd-astern') : D('other', '15', 'standon');   // D7 (F56, F59)
+  }
+
+  /* ---------- scenario templates ----------
+     sector: where the other vessel is placed relative to own bow-up vessel —
+       stbd (starboard bow, crossing), port (port bow, crossing), cross (either), head (bow to bow),
+       we-overtake (she is ahead, we come up in her stern sector), they-overtake (she comes up in ours).
+     wind: constraint for sailing rounds — any | own-port | own-stbd (own tack) | own-windward | own-leeward | opposite.
+     expect: [who, action] the template is meant to teach; scene() resamples until the derived answer
+     matches (a self-check that the picture shows what the template intends), and selfTest() verifies it. */
+  const T = (id, own, other, sector, x) => Object.assign({ id, own, other, sector }, x || {});
+  const TEMPLATES = [
+    // --- you are a motorboat (power-driven, F7) ---
+    T('pp-stbd', 'power', 'power', 'stbd', { expect: ['own', 'stbd-astern'] }),              // D7, S1
+    T('pp-port', 'power', 'power', 'port', { expect: ['other', 'standon'] }),                // D7, S2
+    T('pp-head', 'power', 'power', 'head', { expect: ['both', 'both-stbd'] }),               // D7, S3
+    T('pp-we-ot', 'power', 'power', 'we-overtake', { expect: ['own', 'overtake'] }),         // D1, S8
+    T('pp-they-ot', 'power', 'power', 'they-overtake', { expect: ['other', 'standon-ot'] }), // D1
+    T('ps-stbd', 'power', 'sail', 'stbd', { wind: 'any', expect: ['own', 'r18'] }),          // D5, S4
+    T('ps-port', 'power', 'sail', 'port', { wind: 'any', expect: ['own', 'r18'] }),          // D5 (trap T1)
+    T('ps-head', 'power', 'sail', 'head', { wind: 'any', expect: ['own', 'r18'] }),          // D5, F55
+    T('ps-they-ot', 'power', 'sail', 'they-overtake', { wind: 'any', expect: ['other', 'standon-ot'] }),   // D1 overrides D5 (T3)
+    T('ps-we-ot', 'power', 'sail', 'we-overtake', { wind: 'any', expect: ['own', 'overtake'] }),           // D1
+    T('pm-stbd', 'power', 'motorsail', 'stbd', { wind: 'any', expect: ['own', 'stbd-astern'] }),   // F8, S5
+    T('pm-port', 'power', 'motorsail', 'port', { wind: 'any', expect: ['other', 'standon'] }),     // F8, S5
+    T('pf-stbd', 'power', 'fishing', 'stbd', { expect: ['own', 'r18'] }),                    // D5, S10
+    T('pf-port', 'power', 'fishing', 'port', { expect: ['own', 'r18'] }),                    // D5, S10
+    T('pf-they-ot', 'power', 'fishing', 'they-overtake', { expect: ['other', 'standon-ot'] }),   // D1 overrides D5
+    T('pt-port', 'power', 'trolling', 'port', { expect: ['other', 'standon'] }),             // F10 (T11)
+    T('pt-stbd', 'power', 'trolling', 'stbd', { expect: ['own', 'stbd-astern'] }),           // F10
+    T('pn-cross', 'power', 'nuc', 'cross', { expect: ['own', 'r18'] }),                      // D5, S14
+    T('pr-cross', 'power', 'ram', 'cross', { expect: ['own', 'r18'] }),                      // D5
+    T('pc-cross', 'power', 'cbd', 'cross', { expect: ['own', 'impede'] }),                   // D4, S13
+    T('pfe-nar-port', 'power', 'ferry', 'port', { narrow: true, expect: ['own', 'narrow'] }),         // D2, S11
+    T('pfe-nar-stbd', 'power', 'ferry', 'stbd', { narrow: true, expect: ['own', 'narrow'] }),         // D2, S11
+    T('pca-nar-head', 'power', 'cargo', 'head', { narrow: true, expect: ['own', 'narrow-headon'] }),  // D2, F32, F33
+    T('pca-nar-stbd', 'power', 'cargo', 'stbd', { narrow: true, expect: ['own', 'narrow'] }),         // D2, F33
+    T('pfe-open-port', 'power', 'ferry', 'port', { expect: ['other', 'standon'] }),          // T16: open water, ordinary rules
+    T('pfe-open-stbd', 'power', 'ferry', 'stbd', { expect: ['own', 'stbd-astern'] }),        // T16
+    T('po-stbd', 'power', 'oars', 'stbd', { expect: ['other', 'rowing'] }),                  // D3, S12
+    T('pk-port', 'power', 'kayak', 'port', { expect: ['other', 'rowing'] }),                 // D3, S12
+    // --- you are a sailing yacht under sail (F8) ---
+    T('ss-opp-port', 'sail', 'sail', 'cross', { wind: 'opposite-own-port', expect: ['own', 'sail-give'] }),     // D6, S6
+    T('ss-opp-stbd', 'sail', 'sail', 'cross', { wind: 'opposite-own-stbd', expect: ['other', 'sail-stand'] }),  // D6
+    T('ss-same-wind', 'sail', 'sail', 'cross', { wind: 'same-own-windward', expect: ['own', 'sail-give'] }),    // D6, S7
+    T('ss-same-lee', 'sail', 'sail', 'cross', { wind: 'same-own-leeward', expect: ['other', 'sail-stand'] }),   // D6
+    T('ss-head-port', 'sail', 'sail', 'head', { wind: 'opposite-own-port', expect: ['own', 'sail-give'] }),     // D6, T20
+    T('ss-head-stbd', 'sail', 'sail', 'head', { wind: 'opposite-own-stbd', expect: ['other', 'sail-stand'] }),  // D6, T20
+    T('sp-stbd', 'sail', 'power', 'stbd', { wind: 'any', expect: ['other', 'sail-stand'] }), // D5
+    T('sp-port', 'sail', 'power', 'port', { wind: 'any', expect: ['other', 'sail-stand'] }), // D5
+    T('sp-head', 'sail', 'power', 'head', { wind: 'any', expect: ['other', 'sail-stand'] }), // D5, F55
+    T('sp-they-ot', 'sail', 'power', 'they-overtake', { wind: 'any', expect: ['other', 'standon-ot'] }),   // D1
+    T('sp-we-ot', 'sail', 'power', 'we-overtake', { wind: 'any', expect: ['own', 'overtake'] }),           // D1 (T3)
+    T('sm-stbd', 'sail', 'motorsail', 'stbd', { wind: 'any', expect: ['other', 'sail-stand'] }),           // F8 + D5
+    T('sf-cross', 'sail', 'fishing', 'cross', { wind: 'any', expect: ['own', 'r18'] }),      // D5, F66
+    T('sn-cross', 'sail', 'nuc', 'cross', { wind: 'any', expect: ['own', 'r18'] }),          // D5, F66
+    T('sr-cross', 'sail', 'ram', 'cross', { wind: 'any', expect: ['own', 'r18'] }),          // D5, F66
+    T('sc-cross', 'sail', 'cbd', 'cross', { wind: 'any', expect: ['own', 'impede'] }),       // D4
+    T('sfe-nar-port', 'sail', 'ferry', 'port', { narrow: true, wind: 'any', expect: ['own', 'narrow'] }),   // D2, F92
+    T('sfe-nar-stbd', 'sail', 'ferry', 'stbd', { narrow: true, wind: 'any', expect: ['own', 'narrow'] }),   // D2, F92
+    T('sca-nar-head', 'sail', 'cargo', 'head', { narrow: true, wind: 'any', expect: ['own', 'narrow-headon'] }),   // D2, F33
+    T('sfe-open-port', 'sail', 'ferry', 'port', { wind: 'any', expect: ['other', 'sail-stand'] }),   // T16 + D5
+    T('so-cross', 'sail', 'oars', 'cross', { wind: 'any', expect: ['other', 'rowing'] }),    // D3
+    // --- you are a yacht motor-sailing (power-driven, F8) ---
+    T('ms-stbd', 'motorsail', 'sail', 'stbd', { wind: 'any', expect: ['own', 'r18'] }),      // F8 + D5
+    T('ms-port', 'motorsail', 'sail', 'port', { wind: 'any', expect: ['own', 'r18'] }),      // F8 + D5
+    T('mp-stbd', 'motorsail', 'power', 'stbd', { wind: 'any', expect: ['own', 'stbd-astern'] }),   // F8 + D7
+    T('mp-port', 'motorsail', 'power', 'port', { wind: 'any', expect: ['other', 'standon'] }),     // F8 + D7
+    // --- you are paddling a kayak (F6, F71) ---
+    T('kfe-nar', 'kayak', 'ferry', 'cross', { narrow: true, expect: ['own', 'narrow'] }),     // D2 (Rule 44 names open boats under oars) + D3
+    T('ks-cross', 'kayak', 'sail', 'cross', { wind: 'any', expect: ['own', 'kayak-own'] }),  // D3 (S12 exam framing)
+    T('kp-cross', 'kayak', 'power', 'cross', { expect: ['own', 'kayak-own'] }),              // D3
+  ];
+
+  /* ---------- scene generation ---------- */
+  const W = 480, H = 420;
+  function tryScene(tpl, rng) {
+    const narrow = !!tpl.narrow;
+    const own = { kind: tpl.own, x: 240, y: 300, hdg: 0, len: V[tpl.own].len };
+    const other = { kind: tpl.other, len: V[tpl.other].len };
+    let P = null, sector = tpl.sector;
+    if (sector === 'cross') sector = rng() < .5 ? 'stbd' : 'port';
+    const place = (rel, dist) => { const [ux, uy] = dirv(rel); other.x = own.x + ux * dist; other.y = own.y - 0 + uy * dist; };
+    if (sector === 'stbd' || sector === 'port') {
+      place(sector === 'stbd' ? 25 + rng() * 70 : 265 + rng() * 70, 150 + rng() * 80);
+      P = [own.x, own.y - (95 + rng() * 65)];
+      other.hdg = bearing(other.x, other.y, P[0], P[1]);
+    } else if (sector === 'head') {
+      place(norm(-3 + rng() * 6), 185 + rng() * 45);
+      other.hdg = norm(180 + (-4 + rng() * 8));
+      P = [(own.x + other.x) / 2, (own.y + other.y) / 2];
+    } else if (sector === 'we-overtake') {
+      place(norm(-22 + rng() * 44), 115 + rng() * 45);
+      other.hdg = norm(-15 + rng() * 30);
+    } else { // they-overtake
+      own.y = 150;
+      place(150 + rng() * 60, 125 + rng() * 40);
+      other.hdg = norm(-15 + rng() * 30);
+    }
+    const xmin = narrow ? 105 : 50, xmax = narrow ? 375 : 430;
+    if (other.x < xmin || other.x > xmax || other.y < 48 || other.y > 362) return null;
+    const rel = norm(bearing(own.x, own.y, other.x, other.y) - own.hdg);
+    const relFromOther = norm(bearing(other.x, other.y, own.x, own.y) - other.hdg);
+    const sc = { tpl, own, other, P, narrow, sector, rel, relFromOther, sit: situation(rel, relFromOther, other.hdg), wind: null };
+    // wind for sailing rounds: no boat may have the wind within 40° of her bow (cannot sail) or within 20° of dead astern (tack ambiguous)
+    const sails = [tpl.own, tpl.other].map(k => V[k].draw.sail);
+    if (sails[0] || sails[1]) {
+      const ok = w => [own, other].every((v, i) => { if (!sails[i]) return true; const r = norm(w - v.hdg), off = Math.min(r, 360 - r); return off >= 40 && off <= 160; });
+      let found = false;
+      for (let i = 0; i < 80 && !found; i++) {
+        const w = Math.floor(rng() * 36) * 10;
+        if (!ok(w)) continue;
+        sc.wind = w;
+        sc.ownTack = sails[0] ? tackOf(own.hdg, w) : null;
+        sc.otherTack = sails[1] ? tackOf(other.hdg, w) : null;
+        // windward = nearer to where the wind comes from: positive projection on the wind-from direction (F46)
+        const [ux, uy] = dirv(w), dot = (other.x - own.x) * ux + (other.y - own.y) * uy;
+        sc.windward = Math.abs(dot) < 30 ? null : (dot > 0 ? 'other' : 'own');
+        const c = tpl.wind || 'any';
+        if (c === 'any') found = true;
+        else if (c === 'opposite-own-port') found = sc.ownTack === 'port' && sc.otherTack === 'starboard';
+        else if (c === 'opposite-own-stbd') found = sc.ownTack === 'starboard' && sc.otherTack === 'port';
+        else if (c === 'same-own-windward') found = sc.ownTack === sc.otherTack && sc.windward === 'own';
+        else if (c === 'same-own-leeward') found = sc.ownTack === sc.otherTack && sc.windward === 'other';
+      }
+      if (!found) return null;
+    }
+    sc.d = decide(sc);
+    return sc;
+  }
+  function scene(tpl, rng) {
+    rng = rng || Math.random;
+    let last = null;
+    for (let i = 0; i < 400; i++) {
+      const sc = tryScene(tpl, rng);
+      if (!sc) continue;
+      last = sc;
+      if (!tpl.expect || (sc.d.who === tpl.expect[0] && sc.d.action === tpl.expect[1])) return sc;
+    }
+    console.warn('trainer-rules: template ' + tpl.id + ' could not reach its intended answer', last && last.d);
+    return last;
+  }
+
+  /* ---------- drawing (fact sheet illustration conventions: bow-up own vessel, course arrows meeting at
+     the collision point, dashed teal wind arrow, labels in words, inset "bow up" compass) ---------- */
+  function txt(x, y, s, o) {
+    o = o || {};
+    return `<text x="${f1(x)}" y="${f1(y)}" font-size="${o.size || 12}" font-weight="${o.weight || 500}" fill="${o.fill || 'var(--ink)'}" text-anchor="${o.anchor || 'middle'}" dominant-baseline="middle"${o.halo !== false ? ` paint-order="stroke" stroke="${o.halo || 'var(--shallow)'}" stroke-width="3.5" stroke-linejoin="round"` : ''}${o.italic ? ' font-style="italic"' : ''}>${esc(s)}</text>`;
+  }
+  const lines = (x, y, arr, o) => arr.map((l, i) => txt(x, y + i * ((o && o.lh) || 14), l, o)).join('');
+  const arrowHead = (x, y, ang, fill, k) => { k = k || 9; return `<polygon points="0,0 ${-k * .5},${k} ${k * .5},${k}" fill="${fill}" transform="translate(${f1(x)},${f1(y)}) rotate(${f1(ang)})"/>`; };
+  const line = (x1, y1, x2, y2, color, w, dashed) => `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${color}" stroke-width="${w}" stroke-linecap="round"${dashed ? ' stroke-dasharray="6 5"' : ''}/>`;
+  /* Hull seen from above, bow up before rotation; o = V[kind].draw plus {sail: +1|-1 boom side}. */
+  function hull(v, fill, o) {
+    const len = v.len, hb = len * (o.beam || .38) / 2, stroke = o.stroke || 'var(--ink)';
+    let body, extra = '';
+    if (o.kayak) body = `<polygon points="0,${-len / 2} ${f1(hb)},0 0,${len / 2} ${f1(-hb)},0" fill="${fill}" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round"/><line x1="${f1(-hb - 12)}" y1="6" x2="${f1(hb + 12)}" y2="-6" stroke="${stroke}" stroke-width="2"/>`;
+    else if (o.ship || o.ferry) body = `<path d="M0,${-len / 2} L${f1(hb)},${f1(-len / 4)} L${f1(hb)},${f1(len / 2 - 6)} Q${f1(hb)},${f1(len / 2)} ${f1(hb - 6)},${f1(len / 2)} L${f1(-hb + 6)},${f1(len / 2)} Q${f1(-hb)},${f1(len / 2)} ${f1(-hb)},${f1(len / 2 - 6)} L${f1(-hb)},${f1(-len / 4)} Z" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>`;
+    else body = `<polygon points="0,${-len / 2} ${f1(hb)},${f1(-len / 6)} ${f1(hb)},${f1(len / 2 - 3)} ${f1(-hb)},${f1(len / 2 - 3)} ${f1(-hb)},${f1(-len / 6)}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round"/>`;
+    if (o.ferry) extra += `<rect x="${f1(-hb * .7)}" y="${f1(-len * .18)}" width="${f1(hb * 1.4)}" height="${f1(len * .55)}" rx="3" fill="#f4f4f4" stroke="#41505c"/><circle cx="0" cy="${f1(-len * .06)}" r="3" fill="#41505c"/>`;
+    if (o.ship) extra += `<rect x="${f1(-hb * .6)}" y="${f1(-len * .3)}" width="${f1(hb * 1.2)}" height="${f1(len * .42)}" rx="2" fill="none" stroke="#f4f4f4" stroke-width="1.2"/><rect x="${f1(-hb * .7)}" y="${f1(len * .22)}" width="${f1(hb * 1.4)}" height="${f1(len * .16)}" rx="2" fill="#f4f4f4" stroke="#41505c"/>`;
+    if (o.oars) extra += `<line x1="${f1(-hb)}" y1="0" x2="${f1(-hb - 14)}" y2="-7" stroke="${stroke}" stroke-width="2"/><line x1="${f1(hb)}" y1="0" x2="${f1(hb + 14)}" y2="-7" stroke="${stroke}" stroke-width="2"/>`;
+    if (o.sail) {
+      // Boom swung ~55° out to the side opposite the wind (F48); the mainsail is the triangle behind it.
+      const s = o.sail, my = -len * .1, bl = len * .5, bx = s * bl * Math.sin(rad(55)), by = my + bl * Math.cos(rad(55));
+      extra += `<polygon points="0,${f1(my)} ${f1(bx)},${f1(by)} 0,${f1(len * .3)}" fill="var(--paper)" stroke="var(--ink-2)" stroke-width="1.3"/><line x1="0" y1="${f1(my)}" x2="${f1(bx)}" y2="${f1(by)}" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"/><circle cx="0" cy="${f1(my)}" r="2.2" fill="var(--ink)"/>`;
+    }
+    if (o.power) extra += `<path d="M${f1(-hb * .5)},${f1(len / 2 - 1)} l-2,9 M0,${f1(len / 2 - 1)} l0,10 M${f1(hb * .5)},${f1(len / 2 - 1)} l2,9" stroke="var(--muted)" stroke-width="1.5" fill="none"/>`;
+    if (o.nets) extra += `<path d="M0,${f1(len / 2)} c8,14 -8,30 4,46 c6,8 -4,16 2,26" fill="none" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="3 4"/>`;
+    if (o.troll) extra += `<line x1="0" y1="${f1(len / 2)}" x2="0" y2="${f1(len / 2 + 40)}" stroke="var(--ink-2)" stroke-width="1"/><circle cx="0" cy="${f1(len / 2 + 42)}" r="2" fill="var(--ink-2)"/>`;
+    if (!o.kayak && !o.oars) extra += `<circle cx="${f1(-hb)}" cy="${f1(-len / 5)}" r="3.5" fill="${C.red}" stroke="var(--paper)" stroke-width="1"/><circle cx="${f1(hb)}" cy="${f1(-len / 5)}" r="3.5" fill="${C.green}" stroke="var(--paper)" stroke-width="1"/>`;
+    return `<g transform="translate(${f1(v.x)},${f1(v.y)}) rotate(${f1(v.hdg)})">${body}${extra}</g>`;
+  }
+  /* Side-view day-shape glyph on a short mast, drawn unrotated beside the vessel. */
+  function shapeIcon(kind, x, y) {
+    const st = `fill="${C.black}" stroke="var(--paper)" stroke-width=".8"`;
+    const ball = cy => `<circle cx="${x}" cy="${cy}" r="5" ${st}/>`;
+    const coneUp = cy => `<polygon points="${x - 5},${cy + 5} ${x + 5},${cy + 5} ${x},${cy - 5}" ${st}/>`;
+    const coneDown = cy => `<polygon points="${x - 5},${cy - 5} ${x + 5},${cy - 5} ${x},${cy + 5}" ${st}/>`;
+    const diamond = cy => `<polygon points="${x},${cy - 6} ${x + 5},${cy} ${x},${cy + 6} ${x - 5},${cy}" ${st}/>`;
+    let s = `<line x1="${x}" y1="${y - 26}" x2="${x}" y2="${y + 14}" stroke="var(--ink-2)" stroke-width="1.5"/>`;
+    if (kind === 'cones') s += coneDown(y - 14) + coneUp(y - 2);          // apexes together, one above the other (fishing)
+    else if (kind === 'balls') s += ball(y - 16) + ball(y - 3);          // NUC
+    else if (kind === 'bdb') s += ball(y - 20) + diamond(y - 7) + ball(y + 6);   // RAM
+    else if (kind === 'cyl') s += `<rect x="${x - 4}" y="${y - 20}" width="8" height="18" ${st}/>`;   // CBD
+    else if (kind === 'cone-down') s += coneDown(y - 10);                 // motor-sailing
+    return s;
+  }
+  function courseArrow(v, P, color) {
+    const [ux, uy] = dirv(v.hdg), bx = v.x + ux * v.len / 2, by = v.y + uy * v.len / 2, ex = bx + ux * 34, ey = by + uy * 34;
+    let s = line(bx, by, ex, ey, color, 2.5) + arrowHead(ex, ey, v.hdg, color, 9);
+    if (P) s += line(ex, ey, P[0], P[1], color, 1.5, true);
+    else s += line(ex, ey, ex + ux * 150, ey + uy * 150, color, 1.5, true);
+    return s;
+  }
+  function windArrow(sc) {
+    // the arrow points the way the wind BLOWS (from sc.wind towards sc.wind + 180); placed in the corner farthest from both boats
+    const corners = [[420, 70], [420, 350], [60, 350], [60, 70]];
+    const far = c => Math.min(Math.hypot(c[0] - sc.own.x, c[1] - sc.own.y), Math.hypot(c[0] - sc.other.x, c[1] - sc.other.y));
+    const [cx, cy] = corners.reduce((a, b) => (far(b) > far(a) ? b : a));
+    const [ux, uy] = dirv(sc.wind + 180), x1 = cx - ux * 26, y1 = cy - uy * 26, x2 = cx + ux * 26, y2 = cy + uy * 26;
+    return `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${WIND}" stroke-width="3" stroke-dasharray="8 5" stroke-linecap="round"/>` + arrowHead(x2, y2, sc.wind + 180, WIND, 12) +
+      `<path d="M${f1(x1 - 7)},${f1(y1)} l7,-9 l7,9" fill="none" stroke="${WIND}" stroke-width="3" stroke-linecap="round" opacity=".6" transform="rotate(${f1(sc.wind + 180)} ${f1(x1)} ${f1(y1)})"/>` +
+      txt(cx, cy + 40, 'WIND', { fill: WIND, weight: 700, size: 13 }) + txt(cx, cy + 54, 'read the tack from the boom', { size: 9, fill: 'var(--muted)' });
+  }
+  function art(sc) {
+    const o = V[sc.own.kind], t = V[sc.other.kind];
+    let g = `<rect width="${W}" height="${H}" rx="8" fill="var(--shallow)"/>`;
+    if (sc.narrow) g += `<polygon points="0,0 72,0 60,120 82,250 66,${H} 0,${H}" fill="${SHORE}" opacity=".9"/><polygon points="${W},0 408,0 420,140 398,260 414,${H} ${W},${H}" fill="${SHORE}" opacity=".9"/>`;
+    const own = sc.own, oth = sc.other;
+    // courses first, then hulls on top
+    g += courseArrow(oth, sc.P, 'var(--ink-2)') + courseArrow(own, sc.P, 'var(--ink-2)');
+    if (sc.P) g += `<circle cx="${f1(sc.P[0])}" cy="${f1(sc.P[1])}" r="4" fill="none" stroke="var(--bad)" stroke-width="2"/>`;
+    const od = Object.assign({}, t.draw, t.draw.sail ? { sail: boomSide(sc.otherTack) } : {});
+    const wd = Object.assign({}, o.draw, o.draw.sail ? { sail: boomSide(sc.ownTack) } : {});
+    g += hull(oth, t.draw.ferry ? FERRY : t.draw.ship ? SHIP : 'var(--paper)', od);
+    g += hull(own, 'var(--ink)', Object.assign({ stroke: 'var(--paper)' }, wd));
+    // day shapes beside the vessel that carries them (on her starboard beam, unrotated)
+    const sideOff = (v, k) => { const [px, py] = dirv(v.hdg + 90); return [v.x + px * k, v.y + py * k]; };
+    if (t.draw.shape) { const [sx, sy] = sideOff(oth, t.len * (t.draw.beam || .38) / 2 + 22); g += shapeIcon(t.draw.shape, sx, sy); }
+    if (o.draw.shape) { const [sx, sy] = sideOff(own, o.len * .19 + 22); g += shapeIcon(o.draw.shape, sx, sy); }
+    // labels: other vessel below her if she is high on the page, else above; own vessel below (or beside when she comes from astern)
+    const below = oth.y < 215;
+    const ly = below ? oth.y + oth.len / 2 + 16 : oth.y - oth.len / 2 - 10 - (t.label.length - 1) * 14;
+    g += lines(Math.min(Math.max(oth.x, 85), W - 85), ly, t.label, { size: 11, weight: 700, fill: 'var(--ink)' });
+    const youLabel = ['YOU: ' + (o.you || o.name)];
+    if (sc.sector === 'they-overtake') { const left = oth.x >= own.x; g += txt(own.x + (left ? -40 : 40), own.y, youLabel[0], { size: 11, weight: 700, anchor: left ? 'end' : 'start' }); }
+    else g += lines(own.x, own.y + own.len / 2 + 16, youLabel, { size: 11, weight: 700 });
+    if (sc.wind != null) g += windArrow(sc);
+    // inset compass ("bow up") and the status line
+    g += `<circle cx="30" cy="30" r="17" fill="var(--paper)" stroke="var(--line)"/><polygon points="30,17 25,34 35,34" fill="var(--ink)"/>` + txt(30, 56, 'bow up', { size: 9, fill: 'var(--muted)' });
+    g += txt(W / 2, H - 14, (sc.narrow ? 'Narrow sound / harbour area' : 'Open water, plenty of sea room') + ' · daylight · her bearing is steady and the range is closing', { size: 10.5, fill: 'var(--ink-2)' });
+    const off = sc.rel < 180 ? sc.rel : 360 - sc.rel;
+    const label = `Plan view with your bow up. You are a ${o.you || o.name}. A ${t.name} is about ${Math.round(off)} degrees on your ${sc.rel < 180 ? 'starboard' : 'port'} side${sc.narrow ? ' in a narrow sound' : ' in open water'}, on a converging course.`;
+    return S.svg(W, H, g, { label });
+  }
+
+  /* ---------- answer options ----------
+     Each option knows when it is TRUE for a round (holds), so distractors are always wrong for that
+     round and the correct option is the one decide() derived. */
+  const WHO = [
+    { k: 'own-15', t: 'You: she is on your starboard side (Rule 15)', holds: d => d.who === 'own' && d.rule === '15' },
+    { k: 'own-18', t: 'You: she ranks above you in the Rule 18 pecking order', holds: d => d.who === 'own' && d.rule === '18' },
+    { k: 'own-13', t: 'You: you are overtaking her (Rule 13)', holds: d => d.who === 'own' && d.rule === '13' },
+    { k: 'own-12', t: 'You: port tack gives way to starboard tack (Rule 12(a)(i))', holds: d => d.who === 'own' && d.rule === '12i' },
+    { k: 'own-12w', t: 'You: the windward boat gives way (Rule 12(a)(ii))', holds: d => d.who === 'own' && d.rule === '12ii' },
+    { k: 'own-44', t: 'You: pleasure craft keep clear of ferries and commercial traffic in narrow waters (Norwegian Rule 44)', holds: d => d.who === 'own' && d.rule === '44' },
+    { k: 'own-18d', t: 'You: do not impede a vessel constrained by her draught (Rule 18(d))', holds: d => d.who === 'own' && d.rule === '18d' },
+    { k: 'own-43', t: 'You: a kayak or rowing boat keeps well out of the way of other vessels (Norwegian Rule 43)', holds: d => d.who === 'own' && d.rule === '43' },
+    { k: 'oth-15', t: 'The other vessel: you are on her starboard side (Rule 15)', holds: d => d.who === 'other' && d.rule === '15' },
+    { k: 'oth-18', t: 'The other vessel: a power-driven vessel keeps out of the way of a sailing vessel (Rule 18)', holds: d => d.who === 'other' && d.rule === '18' },
+    { k: 'oth-13', t: 'The other vessel: she is overtaking you (Rule 13)', holds: d => d.who === 'other' && d.rule === '13' },
+    { k: 'oth-12', t: 'The other vessel: she is on port tack (Rule 12(a)(i))', holds: d => d.who === 'other' && d.rule === '12i' },
+    { k: 'oth-12w', t: 'The other vessel: she is the windward boat (Rule 12(a)(ii))', holds: d => d.who === 'other' && d.rule === '12ii' },
+    { k: 'oth-43', t: 'The rowing boat keeps well out of your way (Norwegian Rule 43) — but you still slow down and pass well clear', holds: d => d.who === 'other' && d.rule === '43' },
+    { k: 'both-14', t: 'Both of you: head-on, each alters course to starboard (Rule 14)', holds: d => d.who === 'both' },
+    { k: 'none', t: 'Neither: her bearing is steady, so there is no risk of collision', holds: () => false },
+    { k: 'sail-always', t: 'The motorboat, always: a sailing vessel has priority in every situation', holds: () => false, when: sc => [sc.own.kind, sc.other.kind].some(k => V[k].draw.sail) },
+    { k: 'big', t: 'The smaller boat, always: a big ship has right of way wherever she is', holds: () => false, when: sc => [sc.own.kind, sc.other.kind].some(k => V[k].commercial || V[k].cat === 'cbd') },
+  ];
+  const ACT = [
+    { k: 'stbd-astern', t: 'Alter course to starboard early and substantially and pass astern of her; do not cross ahead' },
+    { k: 'r18', t: 'Keep out of her way whichever side she is on: alter early, pass well clear, preferably astern' },
+    { k: 'overtake', t: 'Keep clear of her until you are finally past and clear; pass on either side at a safe distance' },
+    { k: 'sail-give', t: 'Keep clear: bear away or tack early to pass astern of the other boat', when: sc => V[sc.own.kind].draw.sail },
+    { k: 'narrow', t: 'Slow down early, keep to the starboard side of the channel, pass astern of her or wait; never cross close ahead', when: sc => sc.narrow },
+    { k: 'narrow-headon', t: 'Keep well over to the starboard side of the channel, slow down and let her pass; do not get in her way', when: sc => sc.narrow },
+    { k: 'impede', t: 'Alter course early, give her the deep water and do not cross ahead of her', when: sc => ['cbd', 'cargo', 'ferry'].includes(sc.other.kind) },
+    { k: 'kayak-own', t: 'Slow down, stop if necessary, and keep well out of her way' },
+    { k: 'both-stbd', t: 'Both alter course to starboard and pass port to port (red to red)' },
+    { k: 'standon', t: 'Keep course and speed and watch her; if she clearly does nothing, act yourself, but not by turning to port' },
+    { k: 'standon-ot', t: 'Keep course and speed; she must keep clear of you until she is finally past and clear' },
+    { k: 'sail-stand', t: 'Stand on: keep course and speed, but watch her and be ready to act if she does nothing', when: sc => V[sc.own.kind].draw.sail },
+    { k: 'rowing', t: 'Slow down, keep a sharp look-out and pass well clear with little wash while the rowing boat keeps out of your way', when: sc => V[sc.other.kind].cat === 'oars' },
+    { k: 'port-ahead', t: 'Alter course to port and cross ahead of her' },
+    { k: 'speed-up', t: 'Increase speed to get past before she arrives' },
+    { k: 'five-hold', t: 'Sound five short blasts and hold your course until she moves' },
+    { k: 'one-port', t: 'You alter to port and she alters to starboard, so you pass starboard to starboard' },
+    { k: 'port-turn', t: 'Alter course to port to open the distance' },
+  ];
+  // Options that say the same thing as the correct one in other words are never offered as distractors.
+  const KEEPCLEAR = ['stbd-astern', 'r18', 'overtake', 'sail-give', 'narrow', 'narrow-headon', 'impede', 'kayak-own'];
+  const STAND = ['standon', 'standon-ot', 'sail-stand'];
+  function whoChoices(sc) {
+    const d = sc.d;
+    const correct = WHO.find(o => o.holds(d));
+    const pool = WHO.filter(o => o !== correct && !o.holds(d) && (!o.when || o.when(sc)));
+    // one option with the opposite outcome first, then any two others
+    const opposite = pool.filter(o => (d.who === 'own' ? o.k.startsWith('oth-') : o.k.startsWith('own-')));
+    const first = opposite.length ? K.pick(opposite) : K.pick(pool);
+    const rest = B.shuffle(pool.filter(o => o !== first)).slice(0, 2);
+    const choices = B.shuffle([correct, first].concat(rest));
+    return { choices: choices.map(o => o.t), answer: choices.indexOf(correct) };
+  }
+  function actChoices(sc) {
+    const d = sc.d;
+    const correct = ACT.find(o => o.k === d.action);
+    const group = KEEPCLEAR.includes(d.action) || d.action === 'rowing' ? KEEPCLEAR : STAND.includes(d.action) ? STAND : [];
+    const cands = ACT.filter(o => o !== correct && !group.includes(o.k) && (!o.when || o.when(sc)));
+    // one option from the opposite camp (stand on vs keep clear) first, then two more
+    const camp = cands.filter(o => (group === KEEPCLEAR ? STAND.includes(o.k) : KEEPCLEAR.includes(o.k)));
+    const first = camp.length ? K.pick(camp) : K.pick(cands);
+    const rest = B.shuffle(cands.filter(o => o !== first)).slice(0, 2);
+    const choices = B.shuffle([correct, first].concat(rest));
+    return { choices: choices.map(o => o.t), answer: choices.indexOf(correct) };
+  }
+
+  /* ---------- explanations: the derivation in words, citing the rule ---------- */
+  const CAT = {
+    power: 'A motorboat is a power-driven vessel (Rule 3(b)).',
+    sail: 'A yacht under sail with her engine off is a sailing vessel (Rule 3(c)).',
+    motorsail: 'A yacht with sails up and her engine running is a POWER-DRIVEN vessel (Rule 3(c)); the cone, apex down, is her day signal (Rule 25(e)).',
+    trolling: 'A boat trolling a lure is NOT "engaged in fishing" (Rule 3(d) excludes trolling lines), so she is an ordinary power-driven vessel.',
+    fishing: 'Two cones with apexes together (red over white all-round lights at night) mean a vessel engaged in fishing with gear that restricts her manoeuvrability (Rules 3(d), 26).',
+    nuc: 'Two black balls (two all-round red lights at night) mean a vessel not under command (Rules 3(f), 27(a)).',
+    ram: 'Ball, diamond, ball (red-white-red all-round lights at night) mean a vessel restricted in her ability to manoeuvre (Rules 3(g), 27(b)).',
+    cbd: 'A cylinder (three all-round red lights at night) means a vessel constrained by her draught (Rules 3(h), 28).',
+    ferry: 'In open water with sea room a ferry is simply a power-driven vessel: the ordinary rules apply and size gives no priority (Norwegian Rule 44 only applies in narrow waters, busy fairways and harbours).',
+    cargo: 'A cargo ship is a power-driven vessel (Rule 3(b)).',
+    oars: 'A rowing boat is a vessel (Rule 3(a)) but neither power-driven nor sailing, so Rule 18 gives her no rung.',
+    kayak: 'A kayak is a vessel (Rule 3(a)) but neither power-driven nor sailing, so Rule 18 gives it no rung.',
+  };
+  const ABOVE = { sail: 'a sailing vessel (Rule 18(a)(iv))', fishing: 'a vessel engaged in fishing (Rule 18(a)(iii) for power, 18(b)(iii) for sail)', nuc: 'a vessel not under command (Rule 18(a)(i), 18(b)(i))', ram: 'a vessel restricted in her ability to manoeuvre (Rule 18(a)(ii), 18(b)(ii))' };
+  function geomText(sc) {
+    const off = Math.round((sc.rel < 180 ? sc.rel : 360 - sc.rel) / 5) * 5, side = sc.rel < 180 ? 'starboard' : 'port';
+    const where = off <= 6 ? 'right ahead' : off <= 67.5 ? `about ${off}° on your ${side} bow` : off <= 112.5 ? `nearly abeam to ${side} (about ${off}° from your bow)` : `on your ${side} quarter (about ${off}° from your bow)`;
+    let s = `She is ${where}; her bearing is steady and the range is closing, so risk of collision exists (Rule 7(d)).`;
+    if (sc.sit === 'crossing-starboard' || sc.sit === 'crossing-port') s += ' Neither vessel is in the other\'s 135° stern sector and the courses are not reciprocal: a crossing situation.';
+    else if (sc.sit === 'head-on') s += ' The courses are reciprocal, bow to bow.';
+    return s;
+  }
+  function explain(sc) {
+    const o = V[sc.own.kind], t = V[sc.other.kind], d = sc.d;
+    const p = [geomText(sc)];
+    switch (d.rule) {
+      case '13':
+        p.push(d.who === 'own'
+          ? 'You are coming up on her from more than 22.5° abaft her beam (at night you would see only her white sternlight), so you are OVERTAKING. Any vessel overtaking any other keeps out of the way, whatever the types: Rule 13 overrides Rule 18' + (t.cat === 'sail' || o.cat === 'sail' ? ' (even sail against power)' : '') + '. Keep clear until finally past and clear, on either side; if in doubt, assume you are overtaking (Rule 13(a)–(d)).'
+          : 'She is coming up from more than 22.5° abaft YOUR beam, inside your 135° sternlight sector, so SHE is overtaking and keeps clear until finally past and clear, whatever her type (Rule 13 overrides Rule 18' + (t.cat === 'sail' ? ', so sail-over-power does not help her' : '') + '). You keep your course and speed (Rule 17(a)(i)).');
+        break;
+      case '44':
+        p.push(`This is a narrow sound / harbour area. Norwegian Rule 44: pleasure craft and open boats under oars, sail or engine keep out of the way, as far as practicable, of larger vessels, scheduled ferries and other commercial traffic in narrow waters, busy fairways and harbour areas; Rule 9(b) also says a vessel under 20 m or a sailing vessel shall not impede a vessel that can only navigate inside the channel. ${o.cat === 'sail' ? 'That applies to a sailing yacht too: sail-over-power (Rule 18) does not help you here.' : o.cat === 'oars' ? 'A kayak is an open boat under oars, named in Rule 44; Norwegian Rule 43 also requires a vessel under oars to keep WELL out of the way of other vessels.' : 'The port/starboard geometry of Rule 15 does not decide this.'} Slow down early, keep to your starboard side of the channel (Rule 9(a)), pass astern or wait, and never cross close ahead of a ferry.`);
+        break;
+      case '43':
+        p.push(d.who === 'own'
+          ? `${CAT.kayak} Norwegian Rule 43: a vessel under oars manoeuvres with caution, slackens speed, stops if required and keeps WELL out of the way of other vessels${sc.narrow ? '; Rule 44 adds the duty to keep clear of ferries and commercial traffic in narrow waters' : ''}. Do not count on her giving way to you.`
+          : `${CAT.oars} Norwegian Rule 43: a vessel under oars keeps WELL out of the way of other vessels, slowing or stopping if required. That does not excuse you: keep a proper look-out, slow down, pass well clear and mind your wash (Rules 2, 5, 6, 8), because she cannot get out of your way quickly.`);
+        break;
+      case '18d':
+        p.push(`${CAT.cbd} Rule 18(d): every vessel other than one not under command or restricted in her ability to manoeuvre shall avoid impeding her safe passage. Alter early, give her the deep water and do not cross ahead; she is probably also confined to the channel (Rule 9(b)).`);
+        break;
+      case '18':
+        if (d.who === 'own') p.push(`${CAT[sc.own.kind]} ${CAT[sc.other.kind]} Rule 18: a ${o.cat === 'power' ? 'power-driven' : 'sailing'} vessel keeps out of the way of ${ABOVE[t.cat]}, whichever side she is on; the crossing rule (Rule 15) only decides between two power-driven vessels. Act early and substantially (Rule 16) and pass well clear${t.cat === 'fishing' ? ' of her and her gear' : ''}, preferably astern.`);
+        else p.push(`${CAT[sc.other.kind]} ${CAT[sc.own.kind]} Rule 18(a)(iv): a power-driven vessel keeps out of the way of a sailing vessel, whichever side she is on. You stand on: keep course and speed, but watch her and act yourself if she clearly does nothing (Rule 17).`);
+        break;
+      case '12i':
+        p.push(`Two sailing vessels with the wind on different sides: the one with the wind on her PORT side keeps out of the way (Rule 12(a)(i)). Read the tack from the boom: the windward side is opposite the mainsail (Rule 12(b)). You have the wind on your ${sc.ownTack} side (boom out to ${sc.ownTack === 'port' ? 'starboard' : 'port'}), she has it on her ${sc.otherTack} side, so ${d.who === 'own' ? 'you give way: bear away or tack early to pass clear.' : 'she gives way and you stand on, keeping course and speed (Rule 17). Rule 14 does not apply between sailing vessels.'}`);
+        break;
+      case '12ii':
+        p.push(`Both boats have the wind on the ${sc.ownTack} side: same tack. Rule 12(a)(ii): the vessel to WINDWARD, nearer to where the wind comes from, keeps out of the way of the vessel to leeward. ${d.who === 'own' ? 'You are the windward boat, so you give way: bear away to pass astern of her, or tack away.' : 'She is the windward boat, so she gives way and you stand on, keeping course and speed (Rule 17).'}`);
+        break;
+      case '14':
+        p.push(`${CAT[sc.own.kind]} ${CAT[sc.other.kind]} Meeting on reciprocal courses, bow to bow, is a head-on situation (Rule 14(b)): EACH alters course to STARBOARD so that you pass port to port, red to red (Rule 14(a)), with one short blast as you turn (Rule 34(a)). If in doubt whether it is head-on, assume it is (Rule 14(c)).`);
+        break;
+      default: // 15
+        p.push(d.who === 'own'
+          ? `${CAT[sc.own.kind]} ${CAT[sc.other.kind]} Rule 15: in a crossing situation the vessel which has the other on her STARBOARD side keeps out of the way. She is on your starboard side, so that is you. Act early and substantially (Rule 16): alter to starboard and pass astern; do not cross ahead. At night you would see her RED sidelight: red means stop (Rule 21(b)).`
+          : `${CAT[sc.own.kind]} ${CAT[sc.other.kind]} She is on your PORT side, so YOU are on HER starboard side: she gives way (Rule 15) and you stand on, keeping course and speed (Rule 17(a)(i)). If it becomes clear she is not acting you may act, but not by turning to port towards her (Rule 17(a)(ii), (c)); sound at least five short blasts if in doubt (Rule 34(d)). At night you would see her GREEN sidelight: green means go.`);
+    }
+    return p.join(' ');
+  }
+
+  /* ---------- rounds ---------- */
+  const PROMPT_WHO = 'Who gives way, and under which rule?';
+  const PROMPT_ACT = 'What should you do?';
+  function makeRound(tpl, form, rng) {
+    const sc = scene(tpl, rng);
+    const c = form === 'act' ? actChoices(sc) : whoChoices(sc);
+    const o = V[sc.own.kind];
+    return { key: tpl.id + ':' + form, tpl: tpl.id, art: art(sc), prompt: form === 'act' ? PROMPT_ACT : PROMPT_WHO, hint: `${sc.narrow ? 'Narrow waters' : 'Open water'} · you are a ${o.you || o.name}`, choices: c.choices, answer: c.answer, explain: explain(sc), scene: sc };
+  }
+  function selfTest(n) {
+    const out = [];
+    TEMPLATES.forEach(tpl => {
+      for (let i = 0; i < (n || 20); i++) {
+        const r = makeRound(tpl, i % 2 ? 'act' : 'who');
+        const sc = r.scene;
+        if (sc.d.who !== tpl.expect[0] || sc.d.action !== tpl.expect[1]) out.push(`${tpl.id}: derived ${sc.d.who}/${sc.d.action}, template expects ${tpl.expect.join('/')}`);
+        if (r.choices.length !== 4 || new Set(r.choices).size !== 4) out.push(`${tpl.id}: ${r.choices.length} choices / duplicates`);
+        if (r.answer < 0 || r.answer > 3) out.push(`${tpl.id}: bad answer index`);
+        if (!/Rule/.test(r.explain) || r.explain.length < 80) out.push(`${tpl.id}: explanation missing a rule citation`);
+        if (!r.art.includes('<svg')) out.push(`${tpl.id}: no picture`);
+        if (/GIVE-WAY|STAND-ON/.test(r.art)) out.push(`${tpl.id}: picture leaks the answer`);
+      }
+    });
+    return out;
+  }
+
+  function mount(root) {
+    let lastId = null, form = Math.random() < .5 ? 'who' : 'act';
+    return K.drill(root, {
+      makeRound() {
+        let tpl = K.pick(TEMPLATES), tries = 0;
+        while (tpl.id === lastId && tries++ < 8) tpl = K.pick(TEMPLATES);   // never the same scenario twice in a row
+        lastId = tpl.id;
+        form = form === 'who' ? 'act' : 'who';                             // the two question forms alternate
+        return makeRound(tpl, form);
+      },
+    });
+  }
+
+  B.registerTrainer({
+    id: 'rules',
+    title: 'Who gives way?',
+    description: 'Random crossing, head-on, overtaking, sail-against-sail and narrow-channel encounters: decide who gives way and what to do, with the rule that decides it.',
+    mount,
+  });
+
+  // one gallery picture per template (seeded, so the same picture renders every time)
+  TEMPLATES.forEach((tpl, i) => S.gallery.push({ name: 'trainer-rules ' + tpl.id, svg: () => art(scene(tpl, seeded(1000 + i))) }));
+
+  // expose for tests
+  B.rulesDrills = { TEMPLATES, V, scene, decide, situation, tackOf, makeRound, selfTest, art };
+})();
+
+</script>
 <script>
 /* Skipper Prep — "Sound signals" trainer.
    Multiple-choice drill built on BOAT.trainerKit.drill with a Web Audio horn/bell player on top.
@@ -5368,10 +5901,10 @@ window.BOAT = (function () {
     fishing: () => nightScene([[180, 60, 'red'], [180, 88, 'white'], [136, 136, 'red', 'left']], { masts: [[180, 176, 68]], hull: [226, 110, -1], label: 'Night view: red over white all-round lights and a red sidelight' }),
     trawling: () => nightScene([[180, 60, 'green'], [180, 88, 'white'], [136, 136, 'red', 'left']], { masts: [[180, 176, 68]], hull: [226, 110, -1], label: 'Night view: green over white all-round lights and a red sidelight' }),
     nuc: () => nightScene([[180, 60, 'red'], [180, 88, 'red'], [226, 136, 'green']], { masts: [[180, 176, 68]], hull: [134, 110, 1], label: 'Night view: red over red all-round lights and a green sidelight' }),
-    ram: () => nightScene([[120, 62, 'white', 'left'], [200, 62, 'red'], [200, 88, 'white'], [200, 114, 'red'], [142, 142, 'red', 'left']], { masts: [[120, 176, 70], [200, 176, 70]], hull: [244, 130, -1], label: 'Night view: a white masthead light forward and red, white, red in a vertical line, plus a red sidelight' }),
+    ram: () => nightScene([[120, 46, 'white', 'left'], [200, 62, 'red'], [200, 88, 'white'], [200, 114, 'red'], [142, 142, 'red', 'left']], { masts: [[120, 176, 54], [200, 176, 70]], hull: [244, 130, -1], label: 'Night view: a white masthead light forward and red, white, red in a vertical line, plus a red sidelight' }),
     pilot: () => nightScene([[180, 60, 'white'], [180, 88, 'red'], [136, 136, 'red', 'left']], { masts: [[180, 176, 68]], hull: [226, 110, -1], label: 'Night view: white over red all-round lights and a red sidelight' }),
-    anchoredBig: () => nightScene([[120, 70, 'white', 'left'], [240, 112, 'white']], { masts: [[120, 176, 78], [240, 176, 120]], hull: [60, 240, 1], label: 'Night view: two white lights, the forward one higher, nothing else' }),
-    aground: () => nightScene([[120, 70, 'white', 'left'], [240, 112, 'white'], [180, 62, 'red'], [180, 90, 'red']], { masts: [[120, 176, 78], [240, 176, 120], [180, 176, 70]], hull: [60, 240, 1], label: 'Night view: two white anchor lights and two red lights in a vertical line' }),
+    anchoredBig: () => nightScene([[120, 70, 'white', 'left'], [240, 112, 'white']], { masts: [[120, 176, 78], [240, 176, 120]], hull: [300, 240, -1], label: 'Night view: two white lights, the forward one higher, nothing else' }),
+    aground: () => nightScene([[120, 70, 'white', 'left'], [240, 112, 'white'], [180, 62, 'red'], [180, 90, 'red']], { masts: [[120, 176, 78], [240, 176, 120], [180, 176, 70]], hull: [300, 240, -1], label: 'Night view: two white anchor lights and two red lights in a vertical line' }),
     towingAstern: () => nightScene([[180, 108, 'yellow'], [180, 136, 'white']], { stern: true, label: 'Night view: a yellow light directly above a white light' }),
     towingSide: () => nightScene([[140, 62, 'white', 'left'], [140, 88, 'white', 'left'], [160, 136, 'red'], [60, 150, 'white', 'left']], { masts: [[140, 170, 96]], hull: [200, 100, -1], label: 'Night view: two white lights in a vertical line, a red light and a white light astern' }),
     singleWhiteHigh: () => nightScene([[180, 96, 'white']], { masts: [[180, 170, 104]], hull: [130, 100, 1], label: 'Night view: a single white light with nothing else' }),
@@ -5524,8 +6057,8 @@ window.BOAT = (function () {
     title: 'Navigation lights and day shapes',
     order: 3,
     examShare: 6,
-    examWeight: 'about 4–7 of 50 questions, some of them in part 4',
-    summary: 'The lights a boat must show from sunset to sunrise and in poor visibility, and the black shapes shown by day: the colours and arcs of the masthead light, sidelights and sternlight, the small-boat options (under 7 m and 7 knots, under 12 m, under 20 m, under 50 m), the lights of sailing boats and the torch rule for rowing boats, towing, anchoring, the fishing and "cannot manoeuvre" stacks, and the white-and-blue flag A for a diver down. The motorboat and sailing-boat lights and flag A are part-4 item 1.4.4, where more than two mistakes in the whole exam means a fail.',
+    examWeight: 'about 3 to 6 of 50 questions, some of them in part 4',
+    summary: 'The lights a boat must show from sunset to sunrise and in poor visibility, and the black shapes shown by day: the colours and arcs of the masthead light, sidelights and sternlight, the small-boat options (under 7 m and 7 knots, under 12 m, under 20 m, under 50 m), the lights of sailing boats and the torch rule for rowing boats, towing, anchoring, the fishing and "cannot manoeuvre" stacks, and the white-and-blue flag A for a diver down. The motorboat and sailing-boat lights and flag A are part-4 item 1.4.4; more than two mistakes across part 4 fails the whole exam.',
     sections: [
       // 1 ------------------------------------------------------------
       {
@@ -5534,7 +6067,7 @@ window.BOAT = (function () {
         html: `<p>At night a boat is invisible. All another skipper can see of you is your lights, and all you can see of them is theirs. The Rules of the Road therefore prescribe exactly which coloured lights each kind of vessel shows, over which arcs, so that from a few dots you can tell <em>what</em> is out there, <em>which way</em> it is heading and <em>who must give way</em>.</p>
 <p>The syllabus lists this material twice. In <strong>part 2, laws and regulations</strong>, you need good knowledge of the lights on large and small motorboats, the light on a rowing boat, the lights on sailing vessels, the lights and day signal for towing, and signal flag A. Then <strong>part 4, item 1.4.4 "lights and flags"</strong>, repeats the core: lights carried by motorboats and sailing boats, and flag A ("I have a diver down"). Part 4 is the fail-critical group: more than two wrong answers there fails the whole exam, however well you do elsewhere.</p>
 <div class="callout rule"><p><strong>When</strong> (Rule 20): lights must be shown <strong>from sunset to sunrise</strong>, and also <strong>by day in restricted visibility</strong> (fog, heavy rain, snow). They may be switched on at any other time when you think it necessary. During those hours you must not show any other light that could be mistaken for a navigation light or spoil a look-out.</p></div>
-<p>Typical exam questions: which lights a sailing boat or a motorboat of a given length shows; the colour of each light; when lights must be on; what you show when being towed; a night picture of two or three dots ("what is it, who gives way?"); what flag A means; and what day shape a sailing boat under engine shows. Expect roughly four to seven of the fifty questions, two or three of them in part 4.</p>
+<p>Typical exam questions: which lights a sailing boat or a motorboat of a given length shows; the colour of each light; when lights must be on; what you show when being towed; a night picture of two or three dots ("what is it, who gives way?"); what flag A means; and what day shape a sailing boat under engine shows. Expect roughly three to six of the fifty questions, and count on one or two of them being in part 4.</p>
 <div class="callout tip"><p>A common trap is "only at night". Lights are also compulsory by day in poor visibility, and the police fine a boat whose required lights are not switched on (NOK 4,000) or not fitted at all (NOK 5,000).</p></div>`,
         keyFacts: ['Part 2 (good knowledge) and part 4 item 1.4.4: motorboat and sailing-boat lights, flag A', 'Lights on from sunset to sunrise AND by day in restricted visibility (Rule 20)', 'More than two wrong part-4 answers = fail, whatever the total score', 'Fines: lights not fitted NOK 5,000; fitted but not working or not switched on NOK 4,000'],
         check: { q: 'When must a recreational boat show its navigation lights?', options: ['Only after 22:00', 'Only when other vessels are nearby', 'From sunset to sunrise, and in restricted visibility by day', 'Only outside harbours'], answer: 2, explanation: 'Rule 20(b) and (c): from sunset to sunrise, and also between sunrise and sunset in restricted visibility. They may be shown at any other time when necessary (F1, F2).' },
@@ -5578,7 +6111,7 @@ window.BOAT = (function () {
         title: 'Larger vessels: the second masthead light tells you where the bow is',
         html: `<p>A ship of <strong>50 m or more</strong> must show <strong>two masthead lights</strong>: the forward one lower, and the after one <strong>higher</strong> and at least half the ship's length further aft, plus sidelights and a sternlight. A vessel under 50 m may carry the second masthead light but need not. The after light must be at least 4.5 m higher than the forward one.</p>
 <p>Why the exam cares: the two white lights are a heading indicator. The <strong>lower white light is at the bow end</strong>, so when you see two whites with the right-hand one lower, the ship is heading to the right. If the two whites line up one above the other with both sidelights below, she is coming straight at you. Seeing one white light above another therefore tells you two things at once: she is big, and which way she is going. Compare that to a single masthead light, which gives no heading information except what the sidelights add.</p>
-<p>Three other things large vessels may add are worth recognising, because they change who gives way:</p>
+<p>Three other signals you may meet on larger vessels are worth recognising at night:</p>
 <ul>
 <li><strong>Constrained by her draught</strong> (Rule 28): three all-round red lights in a vertical line, or a cylinder by day, in addition to the normal power-driven lights. Norwegian Rule 48 requires this of big tankers bound for Slagentangen, Risavika and Mongstad, and of tankers inside Filtvet in the Oslofjord. Do not impede her.</li>
 <li><strong>Pilot vessel on duty</strong> (Rule 29): white over red all-round at the masthead, plus sidelights and sternlight when underway. "White over red, pilot ahead."</li>
@@ -5634,7 +6167,7 @@ window.BOAT = (function () {
 <li><strong>Red and green with no white above</strong>, or a tricolour high up: a sailing vessel. A power-driven vessel keeps out of her way whichever side she is on (Rule 18), unless you are overtaking her.</li>
 <li><strong>Only a white light</strong>: you may be overtaking (you keep clear, Rule 13), or it is a small boat or an anchored vessel. Slow down and identify.</li>
 </ul>
-<p>Then check for stacks: two reds (not under command), red-white-red (restricted in ability to manoeuvre), red over white or green over white (fishing), three reds (constrained by draught). A power-driven vessel keeps out of the way of all of these; a sailing vessel keeps out of the way of all but the last, which she must simply not impede (Rule 18).</p>`,
+<p>Then check for stacks: two reds (not under command), red-white-red (restricted in ability to manoeuvre), red over white or green over white (fishing), three reds (constrained by draught). Both a power-driven vessel and a sailing vessel keep out of the way of the first three; a vessel constrained by her draught is not given way to in the same sense, but every vessel other than one not under command or restricted in her ability to manoeuvre must avoid impeding her safe passage (Rule 18).</p>`,
         illustration: () => aspectStrip('power'),
         caption: 'The same motorboat seen from ahead, from her port side, from her starboard side and from astern. The colour you see decides who gives way.',
         keyFacts: ['White above coloured lights = power-driven; coloured lights with no white above = sailing', 'Red + green + white ahead = head-on: both turn to starboard (Rule 14)', 'You see her RED = she is on your starboard side = YOU give way (Rule 15)', 'You see her GREEN = you stand on, she gives way', 'Only a white light = overtaking, small boat or anchored: slow down, keep clear'],
@@ -5648,7 +6181,7 @@ window.BOAT = (function () {
 <div class="callout rule"><p><strong>Norwegian Rule 42</strong>: when a vessel marks with flag A, or an equivalent rigid board, that a diver is down, other vessels shall <strong>pass with caution</strong>, and <strong>power-driven vessels shall, if possible, stop their engine</strong>.</p></div>
 <p>Why stop the engine? A propeller is lethal to a diver surfacing, and divers do not surface where the flag is: the Norwegian Maritime Authority points out that divers may be as far as <strong>about 300 m</strong> from the dive boat. There is no fixed distance in the rule itself. The required reaction is caution, slow speed, a wide berth, and the engine off if you must pass close.</p>
 <p>At night a small vessel engaged in diving operations shows three all-round lights in a vertical line, <strong>red, white, red</strong> (the "restricted in her ability to manoeuvre" signal), and a <strong>rigid replica of flag A at least 1 m high</strong>, lit so that it is visible all round (Rule 27(e)). Larger vessels doing underwater work add two reds on the side where the obstruction is and two greens on the side where you may pass.</p>
-<div class="callout tip"><p>Three exam facts: flag A is <strong>white and blue, swallow-tailed</strong>; it means <strong>diver down, keep well clear at slow speed</strong>; power-driven vessels <strong>stop the engine if possible</strong>. Distractors will offer "I am at anchor", "I require a pilot" and "I am towing". Flag A is also used on dive buoys floating away from any boat; treat them exactly the same.</p></div>`,
+<div class="callout tip"><p>Three exam facts: flag A is <strong>white and blue, swallow-tailed</strong>; it means <strong>diver down, keep well clear at slow speed</strong>; power-driven vessels <strong>stop the engine if possible</strong>. Distractors will offer "I am at anchor", "I require a pilot" and "I am towing". You may also see flag A on a floating dive buoy with no boat near it; give it the same wide berth at slow speed.</p></div>`,
         illustration: () => flagAlpha(),
         caption: 'Signal flag A: white at the hoist, blue at the fly, swallow-tailed. The red flag with a white diagonal is the North American diver-down flag, not the Norwegian signal.',
         keyFacts: ['Flag A: WHITE half at the pole, BLUE half outside, swallow-tailed', 'Meaning: "I have a diver down; keep well clear at slow speed"', 'Norwegian Rule 42: pass with caution; power-driven vessels stop the engine if possible', 'Divers may be about 300 m from the flag (NMA guidance); no fixed distance in the rule', 'Night: red-white-red all-round lights plus a lit rigid flag A at least 1 m high (Rule 27(e))'],
@@ -5663,7 +6196,7 @@ window.BOAT = (function () {
 <p>The <strong>vessel being towed</strong> shows <strong>sidelights and a sternlight</strong>, and a diamond by day if the tow exceeds 200 m. This is the exam's standard question: "you are being towed at night, which lights do you show?" Answer: sidelights and sternlight. A Norwegian rule adds that nets towed under water must end in a float showing a white light or a diamond.</p>
 <p><strong>Pushing ahead or towing alongside</strong>: two masthead lights in a vertical line, sidelights and sternlight, but <strong>no yellow towing light</strong>. A pushing tug rigidly connected to its barge is lit as one ordinary power-driven vessel. A towing vessel of 50 m or more also carries its after masthead light.</p>
 <p>What about your own motorboat towing a disabled boat at night? Rule 24(i) accepts that a vessel not normally engaged in towing may be unable to show towing lights when helping a vessel in distress. You must then do everything possible to indicate that you are towing, <strong>in particular by lighting up the towline</strong>, and the towed boat shows its sidelights and sternlight if it has them.</p>
-<div class="callout tip"><p>Seen from astern a tug shows yellow over white: the towing light sits <em>above</em> the sternlight. From ahead she shows two (or three) whites in a vertical line with the sidelights below, which you must not confuse with a big ship's two masthead lights (those are separated horizontally, the forward one lower).</p></div>`,
+<div class="callout tip"><p>Seen from astern a tug shows yellow over white: the towing light sits <em>above</em> the sternlight. From ahead she shows two (or three) whites in a vertical line with the sidelights below. A ship of 50 m or more seen from dead ahead also shows two whites one above the other, so do not decide too early: as the bearing changes, the ship's two lights separate sideways (the forward one lower) while the tug's stay stacked, and a tow follows behind her.</p></div>`,
         illustration: () => S.shipProfile('tug'),
         caption: 'Tug towing astern at night: two masthead lights in a vertical line, green sidelight, yellow towing light above the white sternlight. The barge shows sidelight and sternlight.',
         keyFacts: ['Tug towing astern: two masthead lights vertical, sidelights, sternlight, YELLOW towing light above the sternlight', 'Tow longer than 200 m (tug stern to end of tow): three masthead lights, diamond by day', 'Towed vessel: sidelights + sternlight (+ diamond if tow over 200 m)', 'Pushing or towing alongside: two masthead lights, no yellow light', 'Towing a vessel in distress with a normal boat: light up the towline (Rule 24(i))'],
@@ -5795,7 +6328,7 @@ window.BOAT = (function () {
       { id: 'lights-26', q: 'What does International Code flag A mean when shown by a boat?', options: ['I am at anchor', 'I require a pilot', 'I am towing', 'I have a diver down; keep well clear at slow speed'], answer: 3, explanation: 'Flag A (white and blue, swallow-tailed) means "I have a diver down; keep well clear at slow speed". Norwegian Rule 42 adds the duty to pass with caution (F55, F56).', difficulty: 1, part: 4, p4: '1.4.4', tags: ['flag-a'] },
       { id: 'lights-27', q: 'A boat shows the flag in the picture. What must a power-driven vessel passing nearby do?', illustration: () => flagAlpha({ quiz: true }), options: ['Pass with caution at slow speed and stop the engine if possible', 'Sound one prolonged blast and pass at normal speed', 'Stop and offer assistance', 'Keep at least 1 nautical mile away'], answer: 0, explanation: 'This is flag A, "I have a diver down". Norwegian Rule 42: other vessels pass with caution and power-driven vessels stop their engine if possible (F55).', difficulty: 1, part: 4, p4: '1.4.4', tags: ['picture', 'flag-a'] },
       { id: 'lights-28', q: 'How is signal flag A coloured?', options: ['Red with a white diagonal stripe', 'White nearest the pole and blue at the outer edge, swallow-tailed', 'Blue and yellow halves', 'Red and white quarters'], answer: 1, explanation: 'Flag A is divided vertically, white at the hoist and blue at the fly, with a swallow-tailed notch. The red flag with a white diagonal is the North American diver-down flag, not the Norwegian signal (F56).', difficulty: 1, part: 4, p4: '1.4.4', tags: ['flag-a'] },
-      { id: 'lights-29', q: 'How far from a boat flying flag A may divers be in the water?', options: ['At most 20 m', 'Within the boat’s own length', 'Up to about 300 m, according to the Norwegian Maritime Authority', 'At least 1 nautical mile'], answer: 2, explanation: 'The Maritime Authority warns that divers may be as far as about 300 m from the dive boat, which is why a wide berth at slow speed is required. The rule itself contains no fixed distance (F57).', difficulty: 2, part: 4, p4: '1.4.4', tags: ['flag-a'] },
+      { id: 'lights-29', q: 'A boat ahead flies flag A. Which statement about the divers is correct?', options: ['They are always within 20 m of the boat', 'They are always within the boat’s own length', 'They may be a long way from the boat (the Maritime Authority mentions up to about 300 m), so give a wide berth at slow speed', 'They must stay at least 1 nautical mile from other traffic'], answer: 2, explanation: 'The Maritime Authority warns that divers may be as far as about 300 m from the dive boat, which is why a wide berth at slow speed is required. Norwegian Rule 42 itself sets no fixed distance (F55, F57).', difficulty: 2, part: 4, p4: '1.4.4', tags: ['flag-a'] },
       { id: 'lights-30', q: 'At night a small vessel engaged in diving operations shows:', options: ['Flag A only', 'Red over red all-round lights', 'White over red all-round lights', 'Red, white, red all-round lights and a lit rigid replica of flag A at least 1 m high'], answer: 3, explanation: 'Rule 27(e): a small vessel engaged in diving that cannot show the full Rule 27(d) signals shows three all-round lights red-white-red and a rigid replica of flag A at least 1 m high, visible all round (F54).', difficulty: 3, part: 4, p4: '1.4.4', tags: ['flag-a', 'rule-27'] },
       { id: 'lights-31', q: 'You are sailing (under sail only) past a dive boat flying flag A. Which statement is correct?', options: ['Only motorboats need to take care; sailing boats have priority', 'You must pass with caution and keep well clear at slow speed; divers may be far from the flag', 'You must anchor until the divers surface', 'You may pass close because you have no propeller turning'], answer: 1, explanation: 'Norwegian Rule 42 applies to all vessels: pass with caution; the engine-stop duty is specific to power-driven vessels. Divers may be up to about 300 m away, so give a wide berth (F55, F57, S10).', difficulty: 2, part: 4, p4: '1.4.4', tags: ['flag-a'] },
       // ----- part 2: arcs, ranges, timing -----
@@ -5810,7 +6343,7 @@ window.BOAT = (function () {
       { id: 'lights-40', q: 'What is the on-the-spot fine for operating in the dark with navigation lights that are fitted but not switched on?', options: ['NOK 900', 'NOK 4,000', 'NOK 5,000', 'NOK 15,000'], answer: 1, explanation: 'The simplified-fines regulation: NOK 4,000 for fitted lights that are not working or not switched on; NOK 5,000 when required lights are not fitted at all (F82).', difficulty: 2, part: 2, tags: ['fines'] },
       // ----- part 2: towing -----
       { id: 'lights-41', q: 'A tug towing astern at night shows at her stern:', options: ['Two white lights in a vertical line', 'A white light above a yellow light', 'A yellow towing light above the white sternlight', 'A red light above a white light'], answer: 2, explanation: 'Rule 24(a)(iv): a towing light (yellow, 135°) in a vertical line above the sternlight (F29).', difficulty: 2, part: 2, tags: ['rule-24', 'towing'] },
-      { id: 'lights-42', q: 'Night. You see the lights in the picture. What is it?', illustration: SCENES.towingAstern, options: ['A vessel towing, seen from astern', 'A hovercraft', 'A fishing vessel', 'A vessel aground'], answer: 0, explanation: 'A yellow light directly above a white sternlight is the stern view of a vessel towing astern (Rule 24). Expect a towline and a towed vessel behind her; never pass between them (F29).', difficulty: 2, part: 2, tags: ['picture', 'rule-24', 'towing'] },
+      { id: 'lights-42', q: 'Night. You see the lights in the picture. What is it?', illustration: SCENES.towingAstern, options: ['A vessel towing, seen from astern', 'A pilot vessel', 'A fishing vessel', 'A vessel aground'], answer: 0, explanation: 'A yellow light directly above a white sternlight is the stern view of a vessel towing astern (Rule 24). Expect a towline and a towed vessel behind her; never pass between them (F29).', difficulty: 2, part: 2, tags: ['picture', 'rule-24', 'towing'] },
       { id: 'lights-43', q: 'When does a towing vessel show three masthead lights in a vertical line and a diamond by day?', options: ['When the tug is over 50 m', 'When towing at night only', 'When towing alongside', 'When the tow, measured from the tug’s stern to the end of the tow, exceeds 200 m'], answer: 3, explanation: 'Rule 24(a)(i) and (v): three masthead lights and a diamond when the length of the tow exceeds 200 m. The towed object then also carries a diamond (F30, F31).', difficulty: 2, part: 2, tags: ['rule-24', 'towing'] },
       { id: 'lights-44', q: 'You are being towed at night in your 7 m motorboat. Which lights do you show?', options: ['No lights', 'A yellow towing light', 'Sidelights and a sternlight', 'An all-round white light only'], answer: 2, explanation: 'Rule 24(e): the vessel being towed shows sidelights and a sternlight. The yellow light is carried by the towing vessel (F31, S6).', difficulty: 1, part: 2, tags: ['rule-24', 'towing'] },
       { id: 'lights-45', q: 'Your ordinary motorboat tows a disabled boat home at night and cannot show proper towing lights. What does Rule 24 expect?', options: ['Nothing; towing lights are only for professional tugs', 'Take all possible measures to show the relationship, in particular by lighting up the towline', 'Show two red lights in a vertical line', 'Show a flashing yellow light'], answer: 1, explanation: 'Rule 24(i): a vessel not normally engaged in towing that assists a vessel in distress need not show towing lights if impracticable, but must indicate the tow, especially by illuminating the towline (F35).', difficulty: 3, part: 2, tags: ['rule-24', 'towing'] },
@@ -6158,8 +6691,8 @@ window.BOAT = (function () {
     title: 'Sound signals, radio and distress',
     order: 4,
     examShare: 5,
-    examWeight: 'about 4–6 of 50 questions, one of them in part 4',
-    summary: 'How vessels talk to each other without radio: the whistle signals that announce a turn or a reversing engine, the doubt signal, the fog signals that tell you what kind of vessel is hidden in the murk, and the official distress signals of Annex IV. Then the radio side: VHF channel 16, the DSC distress button on channel 70, the Mayday call, and the coast radio telephone number 120. The last two numbers are a "particularly important topic" (1.4.6), where the exam allows at most two errors in total.',
+    examWeight: 'about 3–6 of 50 questions, one of them in part 4',
+    summary: 'How vessels talk to each other without radio: the whistle signals that announce a turn or a reversing engine, the doubt signal, the fog signals that tell you what kind of vessel is hidden in the murk, and the official distress signals of Annex IV. Then the radio side: VHF channel 16, the DSC distress button on channel 70, the Mayday call, and the coast radio telephone number 120. The last two numbers are a "particularly important topic" (1.4.6): more than two errors in that part of the exam means a fail, whatever your total.',
     sections: [
       // 1 ------------------------------------------------------------
       {
@@ -6172,9 +6705,9 @@ window.BOAT = (function () {
 <li><strong>Part 1, seamanship</strong>: VHF channel 16 and DSC, the coast radio telephone number 120, and the range, possibilities and limitations of VHF and mobile phones at sea.</li>
 <li><strong>Part 4, particularly important topics, item 1.4.6</strong>: emergencies, the coast radio number <strong>120</strong> and <strong>VHF channel 16</strong>.</li>
 </ul>
-<p>Part 4 is where the exam is unforgiving: more than two wrong answers in that group fails you regardless of your total. A slip on "120" or "channel 16" therefore costs far more than a slip on the bell signal of a vessel aground. Expect about four to six questions from this topic in all, typically: what one, two, three or five short blasts mean; which signal a motorboat gives in fog and how often; which of several pictures is a distress signal; which number reaches the coast radio from a mobile phone; which VHF channel is the distress channel; and whether you may fire a red flare to test it.</p>
+<p>Part 4 is where the exam is unforgiving: more than two wrong answers in that group fails you regardless of your total. A slip on "120" or "channel 16" therefore costs far more than a slip on the bell signal of a vessel aground. Expect roughly three to six questions from this topic in all (the split is not published), typically: what one, two, three or five short blasts mean; which signal a motorboat gives in fog and how often; which of several pictures is a distress signal; which number reaches the coast radio from a mobile phone; which VHF channel is the distress channel; and whether you may fire a red flare to test it.</p>
 <div class="callout tip"><p>Learn two numbers before anything else: <strong>120</strong> (coast radio by phone) and <strong>16</strong> (VHF distress and calling channel). Then learn the whistle signals as a little language: one short, two short, three short, five short.</p></div>`,
-        keyFacts: ['Part 2: Rules 33, 34(a)(b), 35(a)(i) and Annex IV distress signals', 'Part 1: VHF channel 16, DSC, the number 120, limits of VHF and mobile phone', 'Part 4 item 1.4.6: coast radio 120 and VHF channel 16; more than two part-4 errors = fail', 'About 4–6 questions out of 50 come from this topic'],
+        keyFacts: ['Part 2: Rules 33, 34(a)(b), 35(a)(i) and Annex IV distress signals', 'Part 1: VHF channel 16, DSC, the number 120, limits of VHF and mobile phone', 'Part 4 item 1.4.6: coast radio 120 and VHF channel 16; more than two part-4 errors = fail', 'Roughly 3–6 questions out of 50 come from this topic (estimate; the split is not published)'],
         check: { q: 'Which item from this topic belongs to part 4 of the exam, where more than two errors fail you?', options: ['The length from which a bell is compulsory', 'The coast radio number 120 and VHF channel 16', 'The colour of distress smoke', 'The fog signal of a sailing vessel'], answer: 1, explanation: 'Part 4 item 1.4.6 "Emergencies" names the coast radio station number 120 and VHF channel 16. The sound signals and Annex IV belong to part 2.' },
       },
       // 2 ------------------------------------------------------------
@@ -6183,7 +6716,7 @@ window.BOAT = (function () {
         title: 'Short, prolonged, and who must carry a whistle',
         html: `<p>Every whistle signal in the Rules is built from only two sounds. The Rules define them precisely so that a blast means the same thing from a dinghy and from a tanker.</p>
 <div class="callout rule"><p><strong>Short blast:</strong> a blast of about <strong>one second</strong>. <strong>Prolonged blast:</strong> a blast of <strong>four to six seconds</strong> (Rule 32).</p></div>
-<p>"Whistle" in the Rules means any sound-signalling appliance that can produce these blasts and meets the technical standard in Annex III. On a small boat that is in practice a compressed-air or electric horn, or a mouth-blown horn. Norwegian texts call the prolonged blast a "long blast"; the exam in English uses "prolonged". Do not confuse it with the special Norwegian narrow-channel signal, a long blast of <strong>at least 10 seconds</strong> sounded by a power-driven vessel about half a mile before entering a narrow channel (national Rule 41).</p>
+<p>"Whistle" in the Rules means any sound-signalling appliance that can produce these blasts and meets the technical standard in Annex III. On a small boat that is in practice a compressed-air or electric horn, or a mouth-blown horn. Norwegian texts call the prolonged blast a "long blast"; the English Rules say "prolonged". Do not confuse it with the special Norwegian narrow-channel signal, a long blast of <strong>at least 10 seconds</strong> sounded by a power-driven vessel about half a mile before entering a narrow channel (national Rule 41).</p>
 <p>Who must carry what? <strong>Rule 33</strong> scales the equipment with the size of the vessel, because a big ship needs to be heard further off and must also signal at anchor:</p>
 <ul>
 <li><strong>12 m or more:</strong> a whistle.</li>
@@ -6207,7 +6740,7 @@ window.BOAT = (function () {
 <p>Note the wording of the third signal. It says the <em>engine</em> is going astern; the boat may still be sliding ahead while she loses speed. It does not mean "I have stopped" and it is not a distress signal. A sailing vessel under sail alone does not give the course-alteration signals, because Rule 34(a) speaks of power-driven vessels; a sailing boat with her engine running is power-driven and does.</p>
 <p><strong>Rule 34(b)</strong> lets any vessel back up the whistle with light: <strong>one flash</strong> for starboard, <strong>two</strong> for port, <strong>three</strong> for astern propulsion, repeated while the manoeuvre lasts. Each flash lasts about one second, the gap between flashes is about one second, and successive signals are at least ten seconds apart. The light, if fitted, is an <strong>all-round white light</strong> visible at least <strong>5 miles</strong>. So a ferry ahead flashing twice, then twice again ten seconds later, is turning to port.</p>
 <p>How to remember which is which: the standard avoiding manoeuvre in the Rules is a turn to <strong>starboard</strong> (head-on, crossing, narrow channels), so the standard move gets the single, simplest blast. Port, the odd one out, gets two.</p>
-<div class="callout tip"><p>Say it as a rhythm: "ONE, star-board. TWO, port. THREE, a-stern." The number of syllables matches the number of blasts.</p></div>`,
+<div class="callout tip"><p>Say it as a rhythm while you tap the blasts: "ONE, starboard. TWO, port. THREE, astern." Then "FIVE" for "I do not understand you".</p></div>`,
         illustration: () => manoeuvringCard(),
         caption: 'Bow up, starboard is to the right. One short blast: turning to starboard. Two: turning to port. Three: engine astern.',
         keyFacts: ['1 short = altering course to starboard; 2 short = to port; 3 short = operating astern propulsion', 'Power-driven vessels only, and only when in sight of one another (Rule 34(a))', 'Light supplement: 1 / 2 / 3 flashes, all-round WHITE light visible 5 miles (Rule 34(b))', 'Flash ≈1 s, gap ≈1 s, at least 10 s between successive signals', 'Three short blasts = engine in reverse, not "I have stopped" and not distress'],
@@ -6345,7 +6878,7 @@ window.BOAT = (function () {
         title: 'The numbers: 120, 112 and the coast radio service',
         html: `<p>Part 4 item 1.4.6 is short and ruthless: <strong>the coast radio station's number 120</strong> and <strong>VHF channel 16</strong>. A wrong answer here counts against the two-error limit for the whole exam. Learn the following card by heart.</p>
 <div class="callout rule"><p><strong>120</strong>: the coast radio stations, from any mobile phone. <strong>VHF channel 16</strong>: the distress, safety and calling channel, monitored continuously by the coast radio.</p></div>
-<p>The coast radio stations are the shore side of the maritime radio system. They listen on channel 16 and on DSC around the clock, relay your distress to the <strong>Joint Rescue Coordination Centre</strong> and coordinate the vessels that come to help. Since <strong>1 January 2026</strong> the Norwegian state runs the service: the Joint Rescue Coordination Centre operates the radio watch, the Coastal Administration owns the technical network, and the Norwegian Maritime Authority manages the ship radio register, licences and radio certificates. There are two stations, North (from about 65 degrees north to the Russian border, plus the Arctic islands and the Norwegian and Barents Seas) and South (from the Swedish border to 65 degrees north); you call them by name on VHF, and 120 connects you to the nearest.</p>
+<p>The coast radio stations are the shore side of the maritime radio system. They listen on channel 16 and on DSC around the clock, relay your distress to the <strong>Joint Rescue Coordination Centre</strong> and coordinate the vessels that come to help. Since <strong>1 January 2026</strong> the Norwegian state runs the service: the Joint Rescue Coordination Centre operates the radio watch, the Coastal Administration owns the technical network, and the Norwegian Maritime Authority manages the ship radio register, licences and radio certificates. There are two stations, North (from about 65 degrees north to the Russian border, plus the Arctic islands and the Norwegian and Barents Seas) and South (from the Swedish border to 65 degrees north); you call them by name on VHF, and 120 reaches the coast radio service by telephone.</p>
 <p>The land emergency numbers also work at sea: <strong>112</strong> police and general emergency, <strong>113</strong> medical, <strong>110</strong> fire. 112 can be dialled from any mobile phone, even without a SIM card or credit, as long as any network is available, and the Society for Sea Rescue's advice is "if in distress, always call 112"; you may also call the coast radio on 120. The exam, however, asks specifically which number reaches the <em>coast radio station</em>, and that answer is <strong>120</strong>.</p>
 <p>One more number to keep apart: <strong>02016</strong> (full number 915 02016) is the <strong>Society for Sea Rescue's assistance line</strong> for non-emergency help such as engine trouble, navigation problems or a tow. It is not an emergency number, and it is not the coast radio.</p>
 <div class="callout warn"><p>Trap: 112 is the general emergency number; 120 is the coast radio; 02016 is the rescue society's assistance line. If the question says "coast radio" the answer is 120.</p></div>`,
@@ -6457,12 +6990,12 @@ window.BOAT = (function () {
       { id: 'sound-49', q: 'You have only a mobile phone on board and need to reach the coast radio station. Which number do you dial?', options: ['110', '120', '113', '02016'], answer: 1, explanation: '120 is the coast radio stations\' telephone number named in the curriculum (F86). 110 is fire, 113 medical, 02016 the Society for Sea Rescue assistance line (F89, F91).', difficulty: 1, part: 4, p4: '1.4.6', tags: ['120'] },
       { id: 'sound-50', q: 'Which VHF channel is the international distress, safety and calling channel for voice?', options: ['Channel 6', 'Channel 70', 'Channel 72', 'Channel 16'], answer: 3, explanation: 'VHF channel 16 (156.8 MHz) is the distress, safety and calling channel, monitored continuously by the coast radio stations (F75). Channel 70 carries DSC data only (F76).', difficulty: 1, part: 4, p4: '1.4.6', tags: ['channel-16'] },
       { id: 'sound-51', q: 'Your VHF is set to the channel shown in the picture. What is this channel for?', illustration: () => radioPanel(16), options: ['Distress, safety and calling by voice; the coast radio keeps a continuous watch on it', 'Private chat between leisure boats', 'Digital DSC alerts only', 'Harbour and marina traffic'], answer: 0, explanation: 'Channel 16 is the international distress, safety and calling channel for radiotelephony, watched around the clock by the Norwegian coast radio (F75).', difficulty: 1, part: 4, p4: '1.4.6', tags: ['channel-16', 'picture'] },
-      { id: 'sound-52', q: 'The radio in the picture is tuned to channel 70. What is channel 70 used for?', illustration: () => radioPanel(70, { chLabel: ['channel 70', 'selected'] }), options: ['Spoken distress calls', 'Weather forecasts from the coast radio', 'Routine calls between leisure boats', 'Digital DSC alerts, including the distress alert sent by the red button; no voice'], answer: 3, explanation: 'Channel 70 (156.525 MHz) is reserved for digital selective calling. The DSC distress alert goes out there; you then speak on channel 16 (F76, T18).', difficulty: 2, part: 4, p4: '1.4.6', tags: ['dsc', 'channel-70', 'picture'] },
+      { id: 'sound-52', q: 'The radio in the picture is tuned to channel 70. What is channel 70 used for?', illustration: () => radioPanel(70, { chLabel: ['channel 70', 'selected'] }), options: ['Spoken distress calls', 'Weather forecasts from the coast radio', 'Routine calls between leisure boats', 'Digital DSC alerts, including the distress alert sent by the red button; no voice'], answer: 3, explanation: 'Channel 70 (156.525 MHz) is reserved for digital selective calling. The DSC distress alert goes out there; you then speak on channel 16 (F76, T18).', difficulty: 2, part: 1, tags: ['dsc', 'channel-70', 'picture'] },
       { id: 'sound-53', q: 'On which VHF channel do the Norwegian coast radio stations keep a continuous listening watch for voice calls?', options: ['Channel 16', 'Channel 6', 'Channel 13', 'Channel 72'], answer: 0, explanation: 'The coast radio stations keep a continuous listening watch on channel 16, the distress, safety and calling channel (F75), as well as on DSC.', difficulty: 1, part: 4, p4: '1.4.6', tags: ['channel-16'] },
       { id: 'sound-54', q: 'What is the difference between the numbers 120 and 112?', options: ['They are two numbers for the same service', '120 reaches the coast radio station; 112 is the general emergency number for the police, which works on any mobile phone', '120 is the fire service at sea; 112 is the coast radio', '120 is the medical emergency number; 112 is the Society for Sea Rescue'], answer: 1, explanation: '120 is the coast radio telephone number required by the curriculum (F86); 112 is the general emergency number (police), which can be dialled from any mobile (F89). If the question says "coast radio", answer 120 (T17).', difficulty: 2, part: 4, p4: '1.4.6', tags: ['120', '112'] },
       { id: 'sound-55', q: 'You are chatting with a friend\'s boat on a working channel when your passenger collapses and you need help urgently. What do you do with the radio?', options: ['Stay on the working channel and ask your friend to call for help', 'Switch to channel 70 and speak', 'Switch to channel 16 (and use the DSC DISTRESS button if the situation is life-threatening) and call the coast radio', 'Switch the radio off and use the mobile phone instead'], answer: 2, explanation: 'Channel 16 is the distress, safety and calling channel that the coast radio monitors continuously (F75); a DSC alert on channel 70 is digital only, you never speak on it (F76, F78).', difficulty: 2, part: 4, p4: '1.4.6', tags: ['channel-16', 'scenario'] },
       { id: 'sound-56', q: 'Which number is missing from the card in the picture: the one that reaches the coast radio station from a mobile phone?', illustration: () => numbersCard({ hide: '120' }), options: ['116 117', '110', '112', '120'], answer: 3, explanation: 'The coast radio stations are reached on 120 (F86). 112 is police / general emergency, 110 fire, 113 medical (F89).', difficulty: 1, part: 4, p4: '1.4.6', tags: ['120', 'picture'] },
-      { id: 'sound-57', q: 'Who answers when you dial 120?', options: ['The nearest coast radio station, run since 2026 by the Joint Rescue Coordination Centre', 'The police operations centre', 'The Society for Sea Rescue\'s towing service', 'The Norwegian Maritime Authority\'s licence office'], answer: 0, explanation: '120 connects you to the coast radio stations, which keep watch on channel 16 and relay distress to the rescue service; since 1 January 2026 the service is run by the Joint Rescue Coordination Centre (F86, F87).', difficulty: 2, part: 4, p4: '1.4.6', tags: ['120'] },
+      { id: 'sound-57', q: 'Who answers when you dial 120?', options: ['A coast radio station (Kystradio), run since 2026 by the Joint Rescue Coordination Centre', 'The police operations centre', 'The Society for Sea Rescue\'s towing service', 'The Norwegian Maritime Authority\'s licence office'], answer: 0, explanation: '120 connects you to the coast radio stations, which keep watch on channel 16 and relay distress to the rescue service; since 1 January 2026 the service is run by the Joint Rescue Coordination Centre (F86, F87).', difficulty: 2, part: 4, p4: '1.4.6', tags: ['120'] },
       { id: 'sound-58', q: 'Your engine has failed in calm weather, nobody is in danger, and you have no VHF. Which number is a correct one to call for assistance?', options: ['113', '120, the coast radio station (or 02016, the Society for Sea Rescue)', '110', '116 117'], answer: 1, explanation: 'The coast radio on 120 handles assistance needs at sea, and the Society for Sea Rescue\'s line 02016 provides non-emergency help such as towing (F86, F91). 113 is medical, 110 fire.', difficulty: 2, part: 4, p4: '1.4.6', tags: ['120', '02016'] },
       { id: 'sound-59', q: 'A crew member has fallen overboard in cold water and you cannot get him back on board. You have a DSC VHF. What is the correct radio action?', options: ['Call 02016 and ask for a tow', 'Send Securite on channel 16', 'Press and hold the DSC DISTRESS button, then send a Mayday by voice on channel 16', 'Send Pan Pan on channel 70'], answer: 2, explanation: 'A person in the water in cold water is grave and imminent danger: send the DSC alert (channel 70, with MMSI and position) and then the spoken Mayday on channel 16, the distress channel the coast radio monitors (F75, F78, F79, scenario S8).', difficulty: 3, part: 4, p4: '1.4.6', tags: ['channel-16', 'dsc', 'scenario'] },
       { id: 'sound-60', q: 'Which pair of numbers does the "particularly important" curriculum item on emergencies name?', options: ['112 and channel 70', '120 and VHF channel 16', '110 and channel 6', '02016 and channel 72'], answer: 1, explanation: 'Part 4 item 1.4.6 "Emergencies" names the coast radio station number 120 and VHF channel 16; both must be known cold because more than two part-4 errors fails the exam (F86, F75).', difficulty: 1, part: 4, p4: '1.4.6', tags: ['120', 'channel-16'] },

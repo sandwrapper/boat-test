@@ -174,7 +174,7 @@
     T('mp-stbd', 'motorsail', 'power', 'stbd', { wind: 'any', expect: ['own', 'stbd-astern'] }),   // F8 + D7
     T('mp-port', 'motorsail', 'power', 'port', { wind: 'any', expect: ['other', 'standon'] }),     // F8 + D7
     // --- you are paddling a kayak (F6, F71) ---
-    T('kfe-nar', 'kayak', 'ferry', 'cross', { narrow: true, expect: ['own', 'kayak-own'] }), // D2 + D3
+    T('kfe-nar', 'kayak', 'ferry', 'cross', { narrow: true, expect: ['own', 'narrow'] }),     // D2 (Rule 44 names open boats under oars) + D3
     T('ks-cross', 'kayak', 'sail', 'cross', { wind: 'any', expect: ['own', 'kayak-own'] }),  // D3 (S12 exam framing)
     T('kp-cross', 'kayak', 'power', 'cross', { expect: ['own', 'kayak-own'] }),              // D3
   ];
@@ -428,9 +428,10 @@
     kayak: 'A kayak is a vessel (Rule 3(a)) but neither power-driven nor sailing, so Rule 18 gives it no rung.',
   };
   const ABOVE = { sail: 'a sailing vessel (Rule 18(a)(iv))', fishing: 'a vessel engaged in fishing (Rule 18(a)(iii) for power, 18(b)(iii) for sail)', nuc: 'a vessel not under command (Rule 18(a)(i), 18(b)(i))', ram: 'a vessel restricted in her ability to manoeuvre (Rule 18(a)(ii), 18(b)(ii))' };
+  const cats = (a, b) => (CAT[a] === CAT[b] ? CAT[a].replace('A motorboat is', 'Both are motorboats, i.e.').replace('vessel (', 'vessels (') : CAT[a] + ' ' + CAT[b]);
   function geomText(sc) {
     const off = Math.round((sc.rel < 180 ? sc.rel : 360 - sc.rel) / 5) * 5, side = sc.rel < 180 ? 'starboard' : 'port';
-    const where = off <= 6 ? 'right ahead' : `about ${off}° on your ${side} ${off <= 67.5 ? 'bow' : off <= 112.5 ? 'beam' : 'quarter'}`;
+    const where = off <= 6 ? 'right ahead' : off <= 67.5 ? `about ${off}° on your ${side} bow` : off <= 112.5 ? `nearly abeam to ${side} (about ${off}° from your bow)` : `on your ${side} quarter (about ${off}° from your bow)`;
     let s = `She is ${where}; her bearing is steady and the range is closing, so risk of collision exists (Rule 7(d)).`;
     if (sc.sit === 'crossing-starboard' || sc.sit === 'crossing-port') s += ' Neither vessel is in the other\'s 135° stern sector and the courses are not reciprocal: a crossing situation.';
     else if (sc.sit === 'head-on') s += ' The courses are reciprocal, bow to bow.';
@@ -446,7 +447,7 @@
           : 'She is coming up from more than 22.5° abaft YOUR beam, inside your 135° sternlight sector, so SHE is overtaking and keeps clear until finally past and clear, whatever her type (Rule 13 overrides Rule 18' + (t.cat === 'sail' ? ', so sail-over-power does not help her' : '') + '). You keep your course and speed (Rule 17(a)(i)).');
         break;
       case '44':
-        p.push(`This is a narrow sound / harbour area. Norwegian Rule 44: pleasure craft and open boats under oars, sail or engine keep out of the way, as far as practicable, of larger vessels, scheduled ferries and other commercial traffic in narrow waters, busy fairways and harbour areas; Rule 9(b) also says a vessel under 20 m or a sailing vessel shall not impede a vessel that can only navigate inside the channel. ${o.cat === 'sail' ? 'That applies to a sailing yacht too: sail-over-power (Rule 18) does not help you here.' : 'The port/starboard geometry of Rule 15 does not decide this.'} Slow down early, keep to your starboard side of the channel (Rule 9(a)), pass astern or wait, and never cross close ahead of a ferry.`);
+        p.push(`This is a narrow sound / harbour area. Norwegian Rule 44: pleasure craft and open boats under oars, sail or engine keep out of the way, as far as practicable, of larger vessels, scheduled ferries and other commercial traffic in narrow waters, busy fairways and harbour areas; Rule 9(b) also says a vessel under 20 m or a sailing vessel shall not impede a vessel that can only navigate inside the channel. ${o.cat === 'sail' ? 'That applies to a sailing yacht too: sail-over-power (Rule 18) does not help you here.' : o.cat === 'oars' ? 'A kayak is an open boat under oars, named in Rule 44; Norwegian Rule 43 also requires a vessel under oars to keep WELL out of the way of other vessels.' : 'The port/starboard geometry of Rule 15 does not decide this.'} Slow down early, keep to your starboard side of the channel (Rule 9(a)), pass astern or wait, and never cross close ahead of a ferry.`);
         break;
       case '43':
         p.push(d.who === 'own'
@@ -467,12 +468,12 @@
         p.push(`Both boats have the wind on the ${sc.ownTack} side: same tack. Rule 12(a)(ii): the vessel to WINDWARD, nearer to where the wind comes from, keeps out of the way of the vessel to leeward. ${d.who === 'own' ? 'You are the windward boat, so you give way: bear away to pass astern of her, or tack away.' : 'She is the windward boat, so she gives way and you stand on, keeping course and speed (Rule 17).'}`);
         break;
       case '14':
-        p.push(`${CAT[sc.own.kind]} ${CAT[sc.other.kind]} Meeting on reciprocal courses, bow to bow, is a head-on situation (Rule 14(b)): EACH alters course to STARBOARD so that you pass port to port, red to red (Rule 14(a)), with one short blast as you turn (Rule 34(a)). If in doubt whether it is head-on, assume it is (Rule 14(c)).`);
+        p.push(`${cats(sc.own.kind, sc.other.kind)} Meeting on reciprocal courses, bow to bow, is a head-on situation (Rule 14(b)): EACH alters course to STARBOARD so that you pass port to port, red to red (Rule 14(a)), with one short blast as you turn (Rule 34(a)). If in doubt whether it is head-on, assume it is (Rule 14(c)).`);
         break;
       default: // 15
         p.push(d.who === 'own'
-          ? `${CAT[sc.own.kind]} ${CAT[sc.other.kind]} Rule 15: in a crossing situation the vessel which has the other on her STARBOARD side keeps out of the way. She is on your starboard side, so that is you. Act early and substantially (Rule 16): alter to starboard and pass astern; do not cross ahead. At night you would see her RED sidelight: red means stop (Rule 21(b)).`
-          : `${CAT[sc.own.kind]} ${CAT[sc.other.kind]} She is on your PORT side, so YOU are on HER starboard side: she gives way (Rule 15) and you stand on, keeping course and speed (Rule 17(a)(i)). If it becomes clear she is not acting you may act, but not by turning to port towards her (Rule 17(a)(ii), (c)); sound at least five short blasts if in doubt (Rule 34(d)). At night you would see her GREEN sidelight: green means go.`);
+          ? `${cats(sc.own.kind, sc.other.kind)} Rule 15: in a crossing situation the vessel which has the other on her STARBOARD side keeps out of the way. She is on your starboard side, so that is you. Act early and substantially (Rule 16): alter to starboard and pass astern; do not cross ahead. At night you would see her RED sidelight: red means stop (Rule 21(b)).`
+          : `${cats(sc.own.kind, sc.other.kind)} She is on your PORT side, so YOU are on HER starboard side: she gives way (Rule 15) and you stand on, keeping course and speed (Rule 17(a)(i)). If it becomes clear she is not acting you may act, but not by turning to port towards her (Rule 17(a)(ii), (c)); sound at least five short blasts if in doubt (Rule 34(d)). At night you would see her GREEN sidelight: green means go.`);
     }
     return p.join(' ');
   }
