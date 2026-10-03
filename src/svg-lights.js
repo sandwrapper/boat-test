@@ -349,7 +349,7 @@
       g += course(140, 150, 90, 56, 40, 310, 150, 'var(--ink-2)') + course(310, 310, 0, 56, 40, 310, 150, 'var(--ink-2)');
       g += planBoat(140, 150, 90, 56, GIVE, { power: true, lights: true }) + planBoat(310, 310, 0, 56, STAND, { power: true, lights: true });
       g += curve([168, 150], [240, 160], [240, 300], [300, 372], 'var(--bad)') + lines(150, 250, ['turns to STARBOARD,', 'passes ASTERN of you'], { size: 11, weight: 600, halo: 'var(--shallow)' });
-      g += roleTag(140, 196, 'GIVE-WAY', 'she has you on her starboard side') + roleTag(405, 282, 'STAND-ON', 'you: keep course and speed, watch her');
+      g += roleTag(140, 196, 'GIVE-WAY', 'she has you on her starboard side') + tag(405, 282, 'STAND-ON', 'var(--sea)') + lines(405, 297, ['you: keep course and', 'speed, watch her'], { size: 11, halo: 'var(--shallow)' });
       g += tag(108, 128, 'you see her GREEN light', C.green, { size: 11 });
       cap = 'The other power-driven vessel is on your PORT side: she gives way and you STAND ON — keep course and speed (Rule 17). If she clearly does nothing, you must act: slow down or turn to starboard, never to port towards her (Rule 17(c)); sound 5 short blasts if in doubt.';
       label = 'Crossing situation: the other power-driven vessel is on our port bow, so she gives way and we stand on';
@@ -377,10 +377,10 @@
       label = 'Overtaking: the ' + (sail ? 'sailing boat' : 'motorboat') + ' coming up inside the 135 degree stern sector of a motorboat keeps clear and may pass on either side';
     } else if (name === 'sail-opposite-tacks') {
       g += windArrow(240, 22, 240, 78, 240, 94);
-      g += course(130, 290, 45, 56, 40, 240, 180, 'var(--ink-2)') + course(350, 290, 315, 56, 40, 240, 180, 'var(--ink-2)');
-      g += curve([150, 270], [185, 220], [270, 240], [318, 315], 'var(--bad)') + lines(240, 318, ['bears away (turns to', 'STARBOARD), passes astern'], { size: 11, weight: 600, halo: 'var(--shallow)' });
-      g += planBoat(130, 290, 45, 56, GIVE, { sail: 1, lights: true }) + planBoat(350, 290, 315, 56, STAND, { sail: -1, lights: true });
-      g += roleTag(110, 342, 'GIVE-WAY', 'PORT TACK: wind on her port side, boom out to starboard') + roleTag(370, 342, 'STAND-ON', 'STARBOARD TACK: wind on her starboard side, boom out to port');
+      g += course(130, 270, 45, 56, 40, 240, 160, 'var(--ink-2)') + course(350, 270, 315, 56, 40, 240, 160, 'var(--ink-2)');
+      g += curve([150, 250], [180, 205], [235, 225], [290, 305], 'var(--bad)') + lines(240, 326, ['bears away (turns to STARBOARD),', 'passes astern of her'], { size: 11, weight: 600, halo: 'var(--shallow)' });
+      g += planBoat(130, 270, 45, 56, GIVE, { sail: 1, lights: true }) + planBoat(350, 270, 315, 56, STAND, { sail: -1, lights: true });
+      g += roleTag(100, 356, 'GIVE-WAY', 'PORT TACK: boom out to starboard') + roleTag(385, 356, 'STAND-ON', 'STARBOARD TACK: boom out to port');
       cap = 'Two sailing vessels with the wind on different sides: the boat with the wind on her PORT side keeps out of the way (Rule 12(a)(i)). Read the tack from the boom: boom out to starboard = wind from port = port tack.';
       label = 'Two sailing boats on opposite tacks with wind from the north: the port-tack boat gives way to the starboard-tack boat';
     } else if (name === 'sail-same-tack') {
@@ -459,7 +459,7 @@
       t += d + gap;
     }
     const total = Math.ceil(t - gap + (doubt ? 2 : 0));
-    const U = 22, x0 = 24, top = 52, hgt = 34, W = Math.max(400, Math.min(640, x0 * 2 + total * U + 20)), H = 160;
+    const U = 22, x0 = 24, top = 52, hgt = 34, W = Math.max(400, Math.min(640, x0 * 2 + total * U + 20)), H = 176;
     const col = doubt ? 'var(--warn)' : 'var(--sea)';
     let g = `<rect width="${W}" height="${H}" rx="8" fill="var(--paper-2)"/>`;
     blasts.forEach(b => {
@@ -475,7 +475,7 @@
     const sym = compact.replace(/\./g, '·').replace(/-/g, '—').split('').join(' ');
     g += txt(x0, 22, sym + (doubt ? ' …' : ''), { size: 18, weight: 700, anchor: 'start' });
     const meaning = opts.meaning || MEANINGS[compact] || '';
-    if (meaning) g += caption(W / 2, H - 28, meaning, Math.floor(W / 6.2), { size: 11, lh: 13 });
+    if (meaning) g += caption(W / 2, H - 44, meaning, Math.floor(W / 6.2), { size: 11, lh: 13 });
     return S.svg(W, H, g, { label: `Sound signal ${sym}: ${meaning || pattern}` });
   }
 
