@@ -221,7 +221,7 @@
       if (which === 'cable') {
         const c = pick([1, 2, 3, 5, 10]);
         return { kind: 'Chart scale', prompt: `A chart note says "keep ${c} cable${c === 1 ? '' : 's'} off the point". How many metres is that?`, unit: 'm', answer: c * 185.2, tol: 1,
-          steps: [`1 cable = 0.1 NM = 185.2 m`, `${c} × 185.2 m = ${num(c * 185.2)} m`], rule: 'F66: a cable (kabellengde) is one tenth of a nautical mile, 185.2 m.', art };
+          steps: [`1 cable = 0.1 NM = 185.2 m`, `${c} × 185.2 m = ${num(c * 185.2)} m`], rule: 'F66: a cable is one tenth of a nautical mile, 185.2 m.', art };
       }
       const mins = pick([1, 2, 4, 6, 10]);
       return { kind: 'Chart scale', prompt: `At 60°N you mistakenly measure ${mins}′ on the LONGITUDE scale (top border). About how many nautical miles does that really represent?`, unit: 'NM', answer: mins * 0.5, tol: 0.05,

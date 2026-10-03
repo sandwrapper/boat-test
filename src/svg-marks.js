@@ -512,7 +512,7 @@
       T(x + 14, y - 12, kind === 'lateral-port' ? 'R' : 'G', { size: 12, anchor: 'start', weight: 700 });
   }
   const SYMS = {
-    'rock-awash': { scale: 1.8, draw: (x, y) => plusSym(x, y, 12, 2.2) + [[-6, -6], [6, -6], [-6, 6], [6, 6]].map(d => `<circle cx="${x + d[0]}" cy="${y + d[1]}" r="2" fill="${INK}"/>`).join(''), title: 'Rock awash at chart datum', sub: '(skvalpeskjaer, INT1 K12): between CD and 0.5 m below', water: true },
+    'rock-awash': { scale: 1.8, draw: (x, y) => plusSym(x, y, 12, 2.2) + [[-6, -6], [6, -6], [-6, 6], [6, 6]].map(d => `<circle cx="${x + d[0]}" cy="${y + d[1]}" r="2" fill="${INK}"/>`).join(''), title: 'Rock awash at chart datum', sub: '(INT1 K12): between CD and 0.5 m below', water: true },
     'rock-submerged': { scale: 1.8, draw: (x, y) => plusSym(x, y, 12, 2.2), title: 'Underwater rock, depth unknown', sub: 'dangerous to surface navigation (INT1 K13)', water: true },
     'rock-drying': { scale: 1.8, draw: (x, y) => `<g stroke="${INK}" stroke-width="2.2" stroke-linecap="round">${[0, 60, 120].map(a => `<line x1="${fx(x + 12 * Math.sin(deg(a)))}" y1="${fx(y - 12 * Math.cos(deg(a)))}" x2="${fx(x - 12 * Math.sin(deg(a)))}" y2="${fx(y + 12 * Math.cos(deg(a)))}"/>`).join('')}</g>`, title: 'Rock that covers and uncovers', sub: 'drying rock, between chart datum and MHW (INT1 K11)', water: true },
     'rock-above-water': { scale: 1.5, draw: (x, y) => rockBlob(x, y, 14, PAPER2) + T(x + 22, y + 2, '(1,7)', { size: 12, anchor: 'start' }), title: 'Islet / rock always above water', sub: 'height in metres above MHW in brackets (INT1 K10)', water: true },
