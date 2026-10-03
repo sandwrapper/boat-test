@@ -39,6 +39,8 @@ BOAT.register({
       explanation: 'Why, in 1–3 sentences. Cite the rule/number.',
       illustration: () => BOAT.svg.nightView({...}), // optional SVG string or thunk
       difficulty: 2,                      // 1 easy recall, 2 standard, 3 scenario/reasoning
+      part: 2,                            // official curriculum part: 1 seamanship, 2 laws and regulations, 3 navigation and chart reading, 4 particularly important topics
+      p4: '1.4.4',                        // only when part is 4: which sub-topic of part 4 (see scratchpad/facts/curriculum.md)
       tags: ['rule-26', 'fishing'],
     },
   ],
@@ -46,6 +48,9 @@ BOAT.register({
 ```
 
 Rules for authors
+- Tag every question with its curriculum `part` (and `p4` for part 4). Part 4 is the "particularly important"
+  group where more than two wrong answers fails the whole exam, so write plenty of part-4 questions where the
+  topic touches a 1.4.x item, and make them unambiguous.
 - English only. No Norwegian words anywhere in user-facing text (the exam name may be
   written as "the Norwegian boating licence exam").
 - Every number, rule number, colour and side must come from the verified fact sheet for the

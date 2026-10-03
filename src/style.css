@@ -145,10 +145,10 @@ label.chk { display: inline-flex; gap: .4rem; align-items: center; cursor: point
 /* ---------- Home ---------- */
 .hero { display: grid; gap: 1.5rem; grid-template-columns: 1.4fr 1fr; align-items: start; margin-bottom: 1.6rem; }
 .hero .lede { font-size: 1.1rem; color: var(--ink-2); max-width: 60ch; }
-.examfacts { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+.examfacts { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }
 .examfacts .fact { background: var(--shallow); border-radius: 8px; padding: .7rem .6rem; text-align: center; }
-.examfacts .fact b { display: block; font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--ink); }
-.examfacts .fact span { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); font-family: var(--font-display); font-weight: 700; }
+.examfacts .fact b { display: block; font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; color: var(--ink); }
+.examfacts .fact span { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); font-family: var(--font-display); font-weight: 700; }
 .readiness { display: flex; align-items: center; gap: 1rem; }
 .ring { width: 92px; height: 92px; flex: none; }
 .topiccard { display: flex; flex-direction: column; gap: .5rem; min-width: 0; }

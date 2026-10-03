@@ -116,35 +116,35 @@
   });
 
   // ---------- Mock exam ----------
+  // The real exam draws from four curriculum parts (1 seamanship, 2 laws and regulations,
+  // 3 navigation and chart reading, 4 particularly important topics). Part 4 has its own rule:
+  // more than two wrong answers there fails the exam regardless of the total.
+  function partOf(q) { const p = +q.part; if (p >= 1 && p <= 4) return p; const t = B.topic(q.topic); return (t && t.defaultPart) || 1; }
   function buildExam() {
     const total = B.exam.questions;
-    const topics = B.topics.filter(t => t.questions.length);
-    const shares = topics.map(t => t.examShare || 1);
-    const sum = shares.reduce((a, b) => a + b, 0);
+    const counts = Object.assign({}, B.exam.partCounts);
     const recent = new Set((B.progress.exams()[0] || { ids: [] }).ids || []);
-    let picked = [];
-    // proportional allocation with largest-remainder rounding
-    const exact = shares.map(s => total * s / sum);
-    const counts = exact.map(Math.floor);
-    let rem = total - counts.reduce((a, b) => a + b, 0);
-    exact.map((x, i) => ({ i, f: x - Math.floor(x) })).sort((a, b) => b.f - a.f).slice(0, rem).forEach(x => counts[x.i]++);
-    topics.forEach((t, i) => {
-      const pool = B.shuffle(t.questions);
-      const fresh = pool.filter(q => !recent.has(q.id)), used = pool.filter(q => recent.has(q.id));
-      picked.push(...fresh.concat(used).slice(0, counts[i]));
+    const byPart = { 1: [], 2: [], 3: [], 4: [] };
+    B.allQuestions().forEach(q => byPart[partOf(q)].push(q));
+    const picked = [];
+    [1, 2, 3, 4].forEach(part => {
+      const groups = {};
+      byPart[part].forEach(q => { (groups[q.topic] = groups[q.topic] || []).push(q); });
+      const lists = Object.values(groups).map(g => { const sh = B.shuffle(g); return sh.filter(q => !recent.has(q.id)).concat(sh.filter(q => recent.has(q.id))); });
+      let got = 0, k = 0;
+      while (got < counts[part] && lists.some(l => l.length)) { const l = lists[k % lists.length]; if (l.length) { picked.push(l.shift()); got++; } k++; }
     });
-    // top up if a topic ran short
     if (picked.length < total) {
       const have = new Set(picked.map(q => q.id));
       picked.push(...B.shuffle(B.allQuestions().filter(q => !have.has(q.id))).slice(0, total - picked.length));
     }
-    return B.shuffle(picked);
+    return B.shuffle(picked.slice(0, total));
   }
 
   B.registerView('exam', (el, r) => {
     if (r.a !== 'run') {
       const exams = B.progress.exams();
-      el.innerHTML = `<div class="pagehead"><div><div class="eyebrow">Mock exam</div><h1>Full-length exam simulation</h1><p>${B.exam.questions} multiple-choice questions, ${B.exam.minutes} minutes, ${B.exam.pass} correct answers to pass, drawn from every topic in roughly the real exam's proportions. No feedback until you hand in. ${B.exam.note ? esc(B.exam.note) : ''}</p></div></div>
+      el.innerHTML = `<div class="pagehead"><div><div class="eyebrow">Mock exam</div><h1>Full-length exam simulation</h1><p>${B.exam.questions} multiple-choice questions in ${B.exam.minutes} minutes, drawn from the four official curriculum parts in roughly equal numbers. Two things must both be true to pass: at least ${B.exam.pass} correct overall, and no more than ${B.exam.maxPart4Errors} wrong in part 4, the "particularly important topics". No feedback until you hand in. ${B.exam.note ? esc(B.exam.note) : ''}</p></div></div>
         <div class="grid two">
           <div class="card raised"><h3>Before you start</h3><ul><li>You can move freely between questions and flag any for a second look.</li><li>The timer keeps running if you leave the page; the attempt is lost if you reload.</li><li>Unanswered questions count as wrong, so always pick something.</li><li>Keys <kbd>1</kbd>–<kbd>4</kbd> answer, <kbd>←</kbd> <kbd>→</kbd> move, <kbd>F</kbd> flags.</li></ul><div class="btnrow"><a class="btn primary" href="#exam.run">Start the exam</a></div></div>
           <div class="card"><h3>Your attempts</h3>${exams.length ? `<div class="table-wrap"><table><thead><tr><th>Date</th><th>Score</th><th>Result</th></tr></thead><tbody>${exams.slice(0, 8).map(e => `<tr><td>${new Date(e.date).toLocaleDateString()}</td><td class="num">${e.score}/${e.total}</td><td>${e.passed ? '<span class="pill ok">Pass</span>' : '<span class="pill bad">Fail</span>'}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">No attempts yet.</p>'}</div>
@@ -189,21 +189,25 @@
     function finish(timedOut) {
       if (finished) return; finished = true; clearInterval(tick); document.removeEventListener('keydown', onKey);
       const seconds = Math.round((Math.min(Date.now(), deadline) - startedAt) / 1000);
-      let score = 0; const perTopic = {};
+      let score = 0; const perTopic = {}; const perPart = { 1: { right: 0, total: 0 }, 2: { right: 0, total: 0 }, 3: { right: 0, total: 0 }, 4: { right: 0, total: 0 } };
       qs.forEach((q, k) => {
         const ok = answers[k] === q.answer; if (ok) score++;
         B.progress.recordAnswer(q.id, ok);
         const pt = perTopic[q.topic] || (perTopic[q.topic] = { right: 0, total: 0 }); pt.total++; if (ok) pt.right++;
+        const pp = perPart[partOf(q)]; pp.total++; if (ok) pp.right++;
       });
-      const passed = score >= B.exam.pass;
-      B.progress.addExam({ date: Date.now(), score, total: qs.length, passed, seconds, ids: qs.map(q => q.id), perTopic });
+      const p4wrong = perPart[4].total - perPart[4].right;
+      const scoreOk = score >= B.exam.pass, p4ok = p4wrong <= B.exam.maxPart4Errors;
+      const passed = scoreOk && p4ok;
+      B.progress.addExam({ date: Date.now(), score, total: qs.length, passed, seconds, ids: qs.map(q => q.id), perTopic, perPart, p4wrong });
       el.innerHTML = `<div class="quiz">
-        <div class="qcard score"><div class="eyebrow">${timedOut ? 'Time is up' : 'Handed in'} · ${B.fmtTime(seconds)} used</div><div class="big">${score}/${qs.length}</div><div class="verdict ${passed ? 'pass' : 'fail'}">${passed ? 'PASS' : 'FAIL'} — pass mark ${B.exam.pass}</div>
-          <p class="muted">${passed ? (score >= B.exam.pass + 5 ? 'Comfortably above the pass mark. Review the misses below so they do not come back.' : 'Passed, but close to the line. Review the misses and run another exam.') : 'Not there yet. Work through every wrong answer below, re-read the weak topics, then try again.'}</p>
+        <div class="qcard score"><div class="eyebrow">${timedOut ? 'Time is up' : 'Handed in'} · ${B.fmtTime(seconds)} used</div><div class="big">${score}/${qs.length}</div><div class="verdict ${passed ? 'pass' : 'fail'}">${passed ? 'PASS' : 'FAIL'}</div>
+          <p class="muted" style="margin:.4rem 0 0">Pass mark ${B.exam.pass} of ${qs.length}: <b>${scoreOk ? 'met' : 'not met'}</b>. Part 4 (particularly important topics): <b class="num">${p4wrong}</b> wrong of ${perPart[4].total}, limit ${B.exam.maxPart4Errors}: <b>${p4ok ? 'met' : 'not met'}</b>.</p>
+          <p class="muted">${passed ? (score >= B.exam.pass + 5 && p4wrong <= 1 ? 'Comfortably above the pass mark. Review the misses below so they do not come back.' : 'Passed, but close to the line. Review the misses and run another exam.') : (!p4ok && scoreOk ? 'Your total would pass, but more than two mistakes in the particularly important topics fails the real exam. Drill those first.' : 'Not there yet. Work through every wrong answer below, re-read the weak topics, then try again.')}</p>
           <div class="btnrow" style="justify-content:center"><a class="btn primary" href="#exam.run" onclick="setTimeout(()=>BOAT.render(),0)">New exam</a><a class="btn" href="#review">Review page</a><a class="btn ghost" href="#home">Home</a></div></div>
-        <div class="card" style="margin:1rem 0"><h3>By topic</h3><div class="weak" style="margin-top:.6rem">${Object.keys(perTopic).map(id => { const pt = perTopic[id], pct = Math.round(100 * pt.right / pt.total); const t = B.topic(id); return `<div class="row"><a href="#lesson.${id}">${esc(t ? t.title : id)}</a><div class="progress ${pct < 70 ? 'accent' : ''}"><span style="width:${pct}%"></span></div><span class="num small">${pt.right}/${pt.total}</span></div>`; }).join('')}</div></div>
+        <div class="card" style="margin:1rem 0"><h3>By curriculum part</h3><div class="weak" style="margin:.6rem 0 1rem">${[1, 2, 3, 4].map(p => { const pp = perPart[p]; if (!pp.total) return ''; const pct = Math.round(100 * pp.right / pp.total); return `<div class="row"><span>${['', 'Part 1 · Seamanship', 'Part 2 · Laws and regulations', 'Part 3 · Navigation and chart reading', 'Part 4 · Particularly important topics'][p]}</span><div class="progress ${p === 4 && pp.total - pp.right > B.exam.maxPart4Errors ? 'accent' : ''}"><span style="width:${pct}%"></span></div><span class="num small">${pp.right}/${pp.total}</span></div>`; }).join('')}</div><h3>By topic</h3><div class="weak" style="margin-top:.6rem">${Object.keys(perTopic).map(id => { const pt = perTopic[id], pct = Math.round(100 * pt.right / pt.total); const t = B.topic(id); return `<div class="row"><a href="#lesson.${id}">${esc(t ? t.title : id)}</a><div class="progress ${pct < 70 ? 'accent' : ''}"><span style="width:${pct}%"></span></div><span class="num small">${pt.right}/${pt.total}</span></div>`; }).join('')}</div></div>
         <h2 style="margin:1.2rem 0 .6rem">All questions</h2><div class="navgrid" id="resnav">${qs.map((q, k) => `<button type="button" data-k="${k}" class="${answers[k] === q.answer ? 'right' : 'wrongq'}">${k + 1}</button>`).join('')}</div>
-        <div id="reslist">${qs.map((q, k) => { const ok = answers[k] === q.answer; const art = B.renderArt(q.illustration); return `<div class="qcard" id="res-${k}" style="margin-bottom:1rem"><div class="small muted">Question ${k + 1} · ${esc(B.topic(q.topic).title)} · ${ok ? '<span class="pill ok">correct</span>' : '<span class="pill bad">wrong</span>'}</div><div class="qtext">${esc(q.q)}</div>${art ? `<div class="qart">${art}</div>` : ''}<div class="options">${q.options.map((o, j) => `<div class="opt ${j === q.answer ? 'correct' : (j === answers[k] ? 'wrong' : '')}"><span class="key">${KEYS[j]}</span><span>${esc(o)}</span></div>`).join('')}</div><div class="explain ${ok ? '' : 'bad'}"><p>${answers[k] == null ? '<strong>Not answered.</strong> ' : ''}${esc(q.explanation || '')}</p></div></div>`; }).join('')}</div></div>`;
+        <div id="reslist">${qs.map((q, k) => { const ok = answers[k] === q.answer; const art = B.renderArt(q.illustration); return `<div class="qcard" id="res-${k}" style="margin-bottom:1rem"><div class="small muted">Question ${k + 1} · ${esc(B.topic(q.topic).title)} · Part ${partOf(q)}${partOf(q) === 4 ? ' (particularly important)' : ''} · ${ok ? '<span class="pill ok">correct</span>' : '<span class="pill bad">wrong</span>'}</div><div class="qtext">${esc(q.q)}</div>${art ? `<div class="qart">${art}</div>` : ''}<div class="options">${q.options.map((o, j) => `<div class="opt ${j === q.answer ? 'correct' : (j === answers[k] ? 'wrong' : '')}"><span class="key">${KEYS[j]}</span><span>${esc(o)}</span></div>`).join('')}</div><div class="explain ${ok ? '' : 'bad'}"><p>${answers[k] == null ? '<strong>Not answered.</strong> ' : ''}${esc(q.explanation || '')}</p></div></div>`; }).join('')}</div></div>`;
       el.querySelector('#resnav').addEventListener('click', e => { const b = e.target.closest('button'); if (b) document.getElementById('res-' + b.dataset.k).scrollIntoView({ behavior: 'smooth', block: 'start' }); });
       window.scrollTo(0, 0);
     }
@@ -263,5 +267,5 @@
     return () => document.removeEventListener('keydown', onKey);
   });
 
-  B.quiz = { questionCard, reveal, mountInlineCheck, buildExam, pickPractice };
+  B.quiz = { questionCard, reveal, mountInlineCheck, buildExam, pickPractice, partOf };
 })();

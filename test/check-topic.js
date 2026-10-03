@@ -60,6 +60,8 @@ fs.writeFileSync(tmp, html);
         else if (new Set(q.options.map(o => String(o).trim().toLowerCase())).size !== 4) problems.push(`${q.id}: duplicate options`);
         if (typeof q.answer !== 'number' || q.answer < 0 || q.answer > 3) problems.push(`${q.id}: bad answer index`); else answerHist[q.answer]++;
         if (!q.explanation || q.explanation.length < 20) problems.push(`${q.id}: explanation missing or too short`);
+        if (![1, 2, 3, 4].includes(q.part)) problems.push(`${q.id}: part must be 1-4`);
+        if (q.part === 4 && !/^1\.4\.[1-7]$/.test(q.p4 || '')) problems.push(`${q.id}: part 4 question needs p4 like '1.4.3'`);
         if (norw.test(JSON.stringify({ q: q.q, o: q.options, e: q.explanation }))) problems.push(`${q.id}: Norwegian characters`);
         if (/all of the above|none of the above/i.test((q.options || []).join(' '))) problems.push(`${q.id}: avoid "all/none of the above"`);
         if (q.illustration) { try { const v = typeof q.illustration === 'function' ? q.illustration() : q.illustration; if (typeof v !== 'string' || !v.includes('<svg')) problems.push(`${q.id}: illustration is not an svg string`); else svgs.push({ name: 'q-' + q.id, svg: v }); } catch (e) { problems.push(`${q.id}: illustration threw: ${e.message}`); } }

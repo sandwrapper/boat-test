@@ -18,7 +18,7 @@ BOAT_SVG.gallery.push({ name: 'vesselLights power<50 ahead', svg: () => BOAT_SVG
 - `src/svg.js` — base: `COLORS`, `svg(w,h,inner,opts)`, `sector(cx,cy,r,fromDeg,toDeg,fill,opacity)` (0° = up, clockwise), `text(x,y,str,opts)`, `gallery`.
 - `src/svg-lights.js` — lights, day shapes, encounters, sound signals.
 - `src/svg-marks.js` — IALA/Norwegian marks, light rhythms, sector lights, chart symbols.
-- `src/svg-nav.js` — compass/variation, speed-time-distance, boat terminology, seamanship and weather diagrams.
+- `src/svg-nav.js` — compass/variation, course conversion, bearing fix, latitude scale, speed-time-distance.
 
 ## src/svg-lights.js
 - `lightArcs(opts)` — plan view of a boat (bow up) with the four standard arcs drawn as translucent
@@ -80,24 +80,20 @@ BOAT_SVG.gallery.push({ name: 'vesselLights power<50 ahead', svg: () => BOAT_SVG
 - `chartSymbol(kind)` — INT1-style chart symbol on a chart-paper square: `'rock-awash'`, `'rock-submerged'` (dangerous underwater rock), `'rock-drying'`, `'rock-above-water'`, `'wreck-dangerous'`, `'wreck-non-dangerous'`, `'light'` (magenta flare), `'sector-light'`, `'beacon-port'`, `'beacon-starboard'`, `'buoy-cardinal-n'` etc., `'anchorage'`, `'cable'`, `'depth-contour'`, `'leading-line'`, `'buoyage-direction'` (magenta arrow), `'foul'`, `'obstruction'`.
 - `chartExcerpt()` — a small invented chart excerpt (soundings in metres, contours, a rock, a lateral pair, a light with sectors, a leading line) with a legend; clearly marked as an example, not a real chart.
 
-## src/svg-nav.js
-- `compassRose(opts)` — true rose with a magnetic rose rotated by `opts.variation` degrees (east positive), labelled, with the chart-style annotation text.
-- `courseTriangle(opts)` — the true / magnetic / compass ladder: boxes T → (±variation) → M → (±deviation) → C with a worked example from `opts` (e.g. `{ true: 90, variation: 3, deviation: -2 }`).
-- `bearingFix()` — chart with two or three bearing lines from landmarks crossing at the fix.
-- `latitudeScale()` — chart edge showing that 1 minute of latitude = 1 nautical mile, and that the longitude scale must not be used.
-- `std(opts)` — speed-time-distance triangle with a worked example.
-- `boatTerms()` — plan view with bow, stern, port, starboard, beam, fore/aft, and a side view with freeboard, draught, waterline, keel, transom.
-- `propWalk()` — stern swings to port in astern for a right-handed propeller (label clearly).
-- `berthing(opts)` — approaching a quay against wind/current at a shallow angle, lines named (bow line, stern line, springs).
-- `anchorScope()` — anchor on the bottom with chain/rope at 3–5× depth, labelled.
-- `mobTurn()` — man overboard: boat turns toward the side the person fell (stern/propeller swings away), returns and approaches at slow speed, engine in neutral alongside.
-- `lifejacketTable()` — not SVG: skip (use HTML table in content).
-- `pressureSystems()` — low (L, anticlockwise inflow) and high (H, clockwise outflow) for the northern hemisphere with wind arrows.
-- `seaBreeze()` — daytime onshore sea breeze (land warms, air rises, air flows from sea to land at the surface).
-- `windAgainstCurrent()` — waves steeper and shorter where wind opposes current.
-- `helpPosition()` — HELP posture in water with a life jacket and the huddle.
-- `fireTriangle()` — heat, fuel, oxygen.
-- `outboard()` — labelled outboard engine side view: tiller/steering, cowling, cooling-water telltale, propeller, kill cord, fuel line/primer bulb, trim/tilt.
-- `fuelThirds()` — one third out, one third back, one third reserve.
+## src/svg-nav.js (navigation only; also used by the navigation trainer)
+- `compassRose(opts)` — true rose with a magnetic rose rotated by `opts.variation` degrees (east positive), labelled, with the chart-style annotation text (e.g. "Var 3°E (2026)").
+- `courseTriangle(opts)` — the true / magnetic / compass ladder: boxes T → (±variation) → M → (±deviation) → C with a worked example from `opts` (e.g. `{ true: 90, variation: 3, deviation: -2 }`), arrows showing the direction of each conversion.
+- `bearingFix(opts)` — chart with two or three bearing lines from landmarks crossing at the fix (optionally a small cocked hat).
+- `latitudeScale()` — chart edge showing that 1 minute of latitude = 1 nautical mile, with dividers, and that the longitude scale must not be used.
+- `std(opts)` — speed-time-distance triangle with a worked example (`{ speed: 12, minutes: 40 }` → 8 NM).
+- `plotExample()` — a leg drawn on a chart excerpt with course, distance and time labelled.
 
-Keep every function pure and fast (no DOM access). Register gallery entries for every type/kind/preset.
+## Topic-specific diagrams live in the topic's own content file
+These are used by one lesson only, so the content author draws them inline with the base primitives
+(`BOAT.svg.svg`, `sector`, `text`, `COLORS`) inside `content/<slug>.js`. Keep them simple and
+correct: boat terminology (bow, stern, port, starboard, beam, draught, freeboard, transom, keel),
+prop walk (right-handed propeller: stern swings to port when going astern), berthing against wind/current
+with named lines, anchor scope (3–5 × depth), man-overboard turn, HELP position/huddle, fire triangle,
+outboard engine labelled (cooling-water telltale, kill cord, primer bulb, trim), fuel thirds rule,
+low/high pressure rotation (northern hemisphere), sea breeze, wind against current, Beaufort scale strip,
+flag A (white and blue swallow-tailed, blue half at the fly), life-jacket buoyancy classes.

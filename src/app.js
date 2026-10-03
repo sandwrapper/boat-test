@@ -5,7 +5,7 @@ window.BOAT = (function () {
   // ---------- Registry ----------
   const topics = [];
   const trainers = [];
-  const exam = { questions: 50, minutes: 60, pass: 40, note: '' };
+  const exam = { questions: 50, minutes: 60, pass: 40, maxPart4Errors: 2, partCounts: { 1: 13, 2: 12, 3: 12, 4: 13 }, note: '' };
 
   function register(t) {
     if (!t || !t.id) throw new Error('BOAT.register: topic needs an id');
@@ -186,7 +186,9 @@ window.BOAT = (function () {
             <div class="fact"><b>${exam.questions}</b><span>questions</span></div>
             <div class="fact"><b>${exam.minutes}</b><span>minutes</span></div>
             <div class="fact"><b>${exam.pass}</b><span>to pass</span></div>
+            <div class="fact"><b>≤${exam.maxPart4Errors}</b><span>wrong in part 4</span></div>
           </div>
+          <p class="small muted" style="margin:0 0 .6rem">Four curriculum parts: seamanship, laws and regulations, navigation and chart reading, and the "particularly important topics" (part 4), where more than ${exam.maxPart4Errors} mistakes fails the exam regardless of the total.</p>
           ${exam.note ? `<p class="small muted" style="margin:0 0 .6rem">${exam.note}</p>` : ''}
           <div class="readiness">
             ${ring(ready, 'Readiness ' + ready + '%')}
