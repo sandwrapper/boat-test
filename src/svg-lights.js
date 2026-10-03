@@ -282,7 +282,7 @@
         g += `<polygon points="${bx + 16},${wi} ${bx + 20},${wi - 10} ${bx + 160},${wi - 10} ${bx + 174},${wi - 5} ${bx + 170},${wi}" fill="${hull}"/>` + box(bx + 34, wi - 22, 34, 12) + line(mx, wi - 10, mx, wi - 26, '#555', 2) + dayShapeGlyph('ball', mx, wi - 37, .25);
         g += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="6" fill="none" stroke="${DAY_MUTED}" stroke-width="1"/>`;
         g += note(bx + bw / 2, by + 12, 'AT ANCHOR by day — not underway', { size: 10, weight: 700 });
-        g += notes(bx + bw / 2, wi + 13, ['one black ball forward (Rule 30),', 'and NO masthead, side or', 'stern lights are shown'], { size: 10, weight: 500, lh: 12 });
+        g += notes(bx + bw / 2, wi + 13, ['one black ball forward (Rule 30),', 'and NO masthead, side or', 'stern lights are shown'], { size: 10, weight: 500, lh: 12, halo: DAY_SEA });
       }
       cap = 'Power-driven vessel of 50 m or more: two masthead lights, the after one at least 4.5 m higher than the forward one. Under 50 m the after masthead light is optional (Rule 23(a)).';
       label = 'Side view of a ship over 50 m with forward and higher after masthead lights, green sidelight and sternlight';

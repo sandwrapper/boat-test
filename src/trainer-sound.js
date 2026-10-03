@@ -139,15 +139,21 @@
       }
     }
     else if (kind === 'bend') {
-      g += `<path d="M0,0 L${W / 2 - 20},0 L${W / 2 - 20},120 Q${W / 2 - 20},150 ${W / 2 - 50},150 L0,150 Z" fill="var(--line)"/>`;
-      g += boatPath(W / 2 + 40, 180, .8) + S.text(W / 2 + 40, 215, 'you', { size: 11, fill: 'var(--ink-2)' }) + S.text(W / 2 - 110, 190, 'hidden vessel?', { size: 11, fill: 'var(--ink-2)', italic: true });
-      g += boatPath(60, 195, .7, 270);
+      // channel runs up the right of the panel, then turns left around a headland that fills the lower left
+      g += `<path d="M0,70 L120,70 Q160,70 160,110 L160,${H} L0,${H} Z" fill="var(--line)"/>`;
+      g += boatPath(200, 185, .8) + S.text(200, 222, 'you', { size: 11, fill: 'var(--ink-2)' });
+      g += boatPath(70, 36, .7, 90) + S.text(70, 60, 'hidden vessel?', { size: 11, fill: 'var(--ink-2)', italic: true });
+      g += curve(`M200,140 L200,60 Q200,36 176,36 L130,36`);
     }
     else if (kind === 'fog-power' || kind === 'fog-stopped' || kind === 'fog-sail' || kind === 'fog-tow' || kind === 'fog-towed' || kind === 'fog-fishing-anchor' || kind === 'fog-small') {
       g += `<rect width="${W / 2}" height="${H}" rx="8" fill="var(--paper-2)" opacity=".85"/>`;
       if (kind === 'fog-sail') g += boatPath(cx, cy, .9) + sailPath(cx + 4, cy - 8);
-      else if (kind === 'fog-tow') g += boatPath(cx - 40, cy + 10, .7) + `<line x1="${cx - 40}" y1="${cy - 14}" x2="${cx + 40}" y2="${cy - 60}" stroke="var(--ink)" stroke-width="1.5"/>` + boatPath(cx + 40, cy - 30, .6);
-      else if (kind === 'fog-towed') g += boatPath(cx + 40, cy - 30, .6) + `<line x1="${cx - 40}" y1="${cy - 14}" x2="${cx + 40}" y2="${cy - 60}" stroke="var(--ink)" stroke-width="1.5"/>` + boatPath(cx - 40, cy + 10, .7) + S.text(cx - 40, cy + 50, 'you (towed)', { size: 11, fill: 'var(--ink-2)' });
+      else if (kind === 'fog-tow' || kind === 'fog-towed') {
+        // tug ahead (higher on the page), towline, towed boat astern; both heading up
+        g += `<line x1="${cx}" y1="${cy - 26}" x2="${cx}" y2="${cy + 22}" stroke="var(--ink)" stroke-width="1.5"/>` + boatPath(cx, cy - 50, .7) + boatPath(cx, cy + 42, .6);
+        g += S.text(cx + 30, cy - 50, kind === 'fog-tow' ? 'you (towing)' : 'tug', { size: 11, fill: 'var(--ink-2)', anchor: 'start' });
+        g += S.text(cx + 30, cy + 42, kind === 'fog-towed' ? 'you (towed)' : 'tow', { size: 11, fill: 'var(--ink-2)', anchor: 'start' });
+      }
       else if (kind === 'fog-fishing-anchor') g += boatPath(cx, cy, .9) + S.text(cx, cy + 4, '⚓', { size: 22 }) + S.text(cx, cy + 50, 'fishing vessel, at anchor', { size: 11, fill: 'var(--ink-2)' });
       else g += boatPath(cx, cy, kind === 'fog-small' ? .7 : .9);
       if (kind === 'fog-power') g += `<path d="M${cx - 10},${cy + 40} q-6,20 -10,45 M${cx + 10},${cy + 40} q6,20 10,45" fill="none" stroke="var(--sea)" stroke-width="2" opacity=".8"/>`;
@@ -421,6 +427,14 @@
       if (player.ctx) { try { player.ctx.close(); } catch (e) { /* ignore */ } player.ctx = null; }
       if (typeof cleanupDrill === 'function') cleanupDrill();
     };
+  }
+
+  // Register every trainer picture in the illustration gallery so check-topic.js --gallery renders them for review.
+  if (S.gallery) {
+    ['turn-stbd', 'turn-port', 'astern', 'doubt', 'overtake-stbd', 'overtake-port', 'agree', 'narrow', 'channel-entry', 'bend', 'fog-power', 'fog-stopped', 'fog-sail', 'fog-tow', 'fog-towed', 'fog-fishing-anchor', 'fog-small', 'anchor', 'aground', 'distress', 'sail-sight']
+      .forEach(k => S.gallery.push({ name: `trainer-sound scene ${k}`, svg: () => scene(k, 'Title line', 'Second line\nthird line') }));
+    ['long10', 'anchor', 'aground', 'continuous'].forEach(k => S.gallery.push({ name: `trainer-sound timeline ${k}`, svg: () => customArt(k, 'caption') }));
+    S.gallery.push({ name: 'trainer-sound signalArt - - .', svg: () => signalArt('- - .', 'Narrow channel') });
   }
 
   B.registerTrainer({
